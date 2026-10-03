@@ -51,7 +51,7 @@ async function fill(slot){
   const version=(slot.mediaVersion||0)+1;slot.mediaVersion=version;
   const element=mediaElement(item);
   if(item.type==='image'){try{await element.decode();}catch{return;}}
-  if(slot.mediaVersion!==version)return;
+  if(slot.mediaVersion!==version){element.videoPlayback?.dispose();return;}
   slot.querySelector('.hobby-video-canvas')?.videoPlayback.dispose();
   slot.querySelector('.hobby-image-surface').replaceChildren(element);
   playback();

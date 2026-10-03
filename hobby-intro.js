@@ -7,6 +7,8 @@ export function observeHobbyIntro(callback){listeners.add(callback);return()=>li
 let centers=[],frame=0,last=0,progress=0,visible=false,measure=true;
 let orbitAngle=0,centerX=0,centerY=0,radius=0;
 let previousIntroState=null,previousReveal=-1,bounds=null,boundsDirty=true,modelsReady=false;
+let sectionTop=0,sectionHeight=0;
+const travelSpan=.10/(.65*.90);
 const clamp=value=>Math.max(0,Math.min(1,value));
 const smooth=value=>value*value*value*(value*(value*6-15)+10);
 function draw(){
@@ -36,12 +38,19 @@ function draw(){
 function tick(time){
   frame=0;
   if(document.hidden){last=0;return;}
-  if(boundsDirty||!bounds){bounds=section.getBoundingClientRect();boundsDirty=false;}
-  visible=bounds.top<innerHeight&&bounds.bottom>0;
-  // Orbit behind the heading while approaching. Spread out during the
-  // remaining scroll and finish at 95% viewport coverage. Progress follows
-  // the scroll in both directions, including after the models have settled.
-  const target=clamp((innerHeight*.50-bounds.top)/(innerHeight*.45));
+  if(boundsDirty||!bounds){
+    bounds=section.getBoundingClientRect();
+    sectionTop=bounds.top+window.scrollY;sectionHeight=bounds.height;
+    boundsDirty=false;
+  }
+  // The section's document position is stable during scrolling. Reuse it
+  // instead of forcing a layout read after each set of animation writes.
+  const top=sectionTop-window.scrollY;
+  visible=top<innerHeight&&top+sectionHeight>0;
+  // Widen the travel interval for the initial 35% speed reduction and
+  // another 10%, while retaining the arrival point at 95% coverage.
+  // The quintic easing in draw keeps both ends gentle without a timed delay.
+  const target=clamp((innerHeight*(.05+travelSpan)-top)/(innerHeight*travelSpan));
   if(measure){
     const elements=[...section.querySelectorAll('.hobby-orbit-center')];
     // Clear all transforms first, then batch the measurements to avoid four
@@ -52,7 +61,7 @@ function tick(time){
     radius=Math.min(width*.28,height*.28,250);
     centers=elements.map((element,index)=>{
       const rect=element.getBoundingClientRect();
-      return {element,button:element.querySelector('button'),homeX:rect.left-bounds.left+rect.width/2,homeY:rect.top-bounds.top+rect.height/2,angle:[-3,-1,3,1][index]*Math.PI/4};
+      return {element,button:element.querySelector('button'),homeX:rect.left-bounds.left+rect.width/2,homeY:rect.top-top+rect.height/2,angle:[-3,-1,3,1][index]*Math.PI/4};
     });
     measure=false;
   }
@@ -62,8 +71,9 @@ function tick(time){
   else if(visible&&!paused&&(progress<1||target<1)){
     if(!modelsReady)modelsReady=centers.every(({button})=>button?.classList.contains('camera-ready'));
     if(modelsReady){
-      progress+=(target-progress)*(1-Math.exp(-18*dt));
-      if(Math.abs(target-progress)<.0005)progress=target;
+      // Follow the site's existing smooth scroll directly, so the models
+      // are already home at 95% and reverse naturally when scrolling back.
+      progress=target;
       orbitAngle+=dt*.65*(1-smooth(progress));
     }
   }
@@ -71,12 +81,17 @@ function tick(time){
   if(visible&&(progress<1||progress!==target)&&!reduced.matches&&!paused)frame=requestAnimationFrame(tick);else last=0;
 }
 function wake(){if(!frame)frame=requestAnimationFrame(tick);}
-function onScroll(){boundsDirty=true;wake();}
+function onScroll(){wake();}
 function onResize(){measure=true;boundsDirty=true;previousIntroState=null;wake();}
 if(section){
   window.addEventListener('scroll',onScroll,{passive:true});
   window.addEventListener('resize',onResize,{passive:true});
   const resize=new ResizeObserver(onResize);resize.observe(section);
+  // Font and preceding section size changes can move the section without
+  // changing its own dimensions. Refresh the cached position in those cases.
+  const preceding=document.querySelector('#about');if(preceding)resize.observe(preceding);
+  document.fonts?.ready.then(onResize);
+  window.addEventListener('load',onResize,{once:true});
   reduced.addEventListener('change',()=>{measure=true;wake();});
   document.addEventListener('visibilitychange',wake);
   const state=new MutationObserver(wake);state.observe(document.body,{attributes:true,attributeFilter:['class']});

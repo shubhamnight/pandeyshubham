@@ -8,23 +8,27 @@
   let entrance=section.hobbyEntranceProgress||0,withdrawal=null;
   let entranceTarget=entrance;
   let frame=0, resizeFrame=0, lastTime=null, previousSize='', streams=[];
+  const positions=new Float64Array(count);
+  const indices=new Uint16Array(count),mixes=new Float64Array(count);
   function draw() {
     // Compute each slot's progress once and reuse it for every hobby.
-    const positions=Array.from({length:count},(_,i)=>{
-      if(entrance===1)return ((phase-i/count+1)%1)*resolution;
-      if(withdrawal)return withdrawal[i]*entrance*resolution;
-      return (entrance*.74-i/count)*resolution;
-    });
+    for(let i=0;i<count;i++){
+      const raw=entrance===1?((phase-i/count+1)%1)*resolution:
+        withdrawal?withdrawal[i]*entrance*resolution:(entrance*.74-i/count)*resolution;
+      positions[i]=raw;
+      const at=Math.max(0,Math.min(resolution-.000001,raw));
+      indices[i]=Math.floor(at);mixes[i]=at-indices[i];
+    }
     for(const {slots,points} of streams) {
       for(let i=0;i<count;i++) {
-        const raw=positions[i],at=Math.max(0,Math.min(resolution-.000001,raw)),index=Math.floor(at),mix=at-index;
+        const raw=positions[i],index=indices[i],mix=mixes[i],at=index+mix;
         const slot=slots[i];
         const visibility=raw<0?'hidden':'visible';
-        if(slot.style.visibility!==visibility)slot.style.visibility=visibility;
+        if(slot.arcVisibility!==visibility){slot.arcVisibility=visibility;slot.style.visibility=visibility;}
         if(entrance===1 && slot.arcPosition!==undefined && at<slot.arcPosition)slot.dispatchEvent(new Event('hobby-cycle'));
         slot.arcPosition=at;
-        const a=points[index],b=points[index+1];
-        const x=a.x+(b.x-a.x)*mix,y=a.y+(b.y-a.y)*mix;
+        const offset=index*2;
+        const x=points[offset]+(points[offset+2]-points[offset])*mix,y=points[offset+1]+(points[offset+3]-points[offset+1])*mix;
         slots[i].style.transform=`translate3d(${x.toFixed(3)}px,${y.toFixed(3)}px,0)`;
       }
     }
@@ -42,7 +46,9 @@
     }else if(entrance===1)phase=(phase+elapsed/duration)%1;
     lastTime=time;
     draw();
-    update();
+    // Visibility and pause changes already wake update through observers.
+    // Only a completed partial entrance needs a running-state change here.
+    if(entrance===entranceTarget&&entrance!==1)update();
     if(running)frame=requestAnimationFrame(tick);
   }
   function update() {
@@ -114,13 +120,14 @@
       // Bake the existing curves into lookup tables only on resize. No path
       // math, layout reads, Animation objects or async starts during movement.
       const offsets=samples.map(point=>offsetAt(point.distance));
-      const points=[];let segment=0;
+      const points=new Float64Array((resolution+1)*2);let segment=0;
       for(let i=0;i<=resolution;i++){
         const progress=i/resolution;
         while(segment<samples.length-2&&offsets[segment+1]<progress)segment++;
         const a=samples[segment],b=samples[segment+1];
         const t=(progress-offsets[segment])/(offsets[segment+1]-offsets[segment]);
-        points.push({x:a.x+(b.x-a.x)*t-tw/2,y:a.y+(b.y-a.y)*t-th/2});
+        points[i*2]=a.x+(b.x-a.x)*t-tw/2;
+        points[i*2+1]=a.y+(b.y-a.y)*t-th/2;
       }
       const slots=[...group.querySelectorAll('.hobby-image-placeholder')];
       slots.forEach((slot,i)=>{slot.hidden=i>=count;});
@@ -144,7 +151,10 @@
     if(reduced.matches)entrance=next;
     // Scroll reversal scrubs the same points without cycling artwork.
     for(const {slots} of streams)slots.forEach(slot=>{slot.arcPosition=undefined;});
-    draw();update();
+    // The shared animation clock draws the next interpolated position.
+    // Updating the target alone must not write twelve duplicate transforms.
+    if(reduced.matches)draw();
+    update();
   }
   section.addEventListener('hobby-intro-progress',entranceChanged);
   window.addEventListener('pagehide',event=>{
