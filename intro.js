@@ -81,29 +81,26 @@
   }
   document.addEventListener('visibilitychange',syncFlicker);
   flickerReduced.addEventListener('change',syncFlicker);
-  const started = performance.now();
   let ready = false;
   // Decode and clean the sprites during loading instead of the PLAY entrance.
   let stopCrowd = window.startIntroCrowd?.(intro)||(()=>{});
-  function showPlay() {
+  async function showPlay() {
     if (ready) return;
     ready = true;
-    setTimeout(async()=>{
-      const loader=await loaderReady;
-      await loader.finish();
-      intro.querySelector('.intro-loading').hidden=!intro.classList.contains('play-webgl');
-      intro.querySelector('.intro-play').hidden=false;
-      intro.classList.add('show-play');
-      document.body.classList.add('batman-cursor-active');
-      // A stationary pointer over the center must not pull the new button
-      // into its hover pose at the exact instant the morph finishes.
-      intro.addEventListener('pointermove',()=>intro.classList.add('play-hover-ready'),{once:true,passive:true});
-      // Begin the people only after the button and blue expansion have landed.
-      requestAnimationFrame(()=>intro.classList.add('crowd-ready'));
-      flickerEnabled=true;
-      syncFlicker();
-      button.focus({preventScroll:true});
-    },Math.max(0,2000-(performance.now()-started)));
+    const loader=await loaderReady;
+    await loader.finish();
+    intro.querySelector('.intro-loading').hidden=!intro.classList.contains('play-webgl');
+    intro.querySelector('.intro-play').hidden=false;
+    intro.classList.add('show-play');
+    document.body.classList.add('batman-cursor-active');
+    // A stationary pointer over the center must not pull the new button
+    // into its hover pose at the exact instant the spin finishes.
+    intro.addEventListener('pointermove',()=>intro.classList.add('play-hover-ready'),{once:true,passive:true});
+    // Begin the people only after the button and blue expansion have landed.
+    requestAnimationFrame(()=>intro.classList.add('crowd-ready'));
+    flickerEnabled=true;
+    syncFlicker();
+    button.focus({preventScroll:true});
   }
   if(document.readyState==='complete') showPlay();
   else window.addEventListener('load',showPlay,{once:true});
