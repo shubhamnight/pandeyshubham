@@ -85,3 +85,28 @@ body.intro-active{overflow:hidden}
 .portfolio-intro.is-zooming .intro-play .flow-play:focus-visible{outline:none;box-shadow:none}
 #home .badge-rig.awaiting-entrance{visibility:hidden}
 body.badge-entering #home .badge-rig{will-change:transform,opacity;transform-origin:50% 0}
+
+/* Batman loader: a dark canvas and a light extruded silhouette. */
+.portfolio-intro{background:#151719;color:#e7e7e7}
+.portfolio-intro .intro-loading{position:absolute;inset:0;z-index:4;display:flex;justify-content:center;gap:0;background:#151719;overflow:hidden}
+.portfolio-intro .intro-loading[hidden]{display:none}
+.batman-loader-stage{position:relative;width:min(76vw,400px);height:min(49.4vw,260px);flex:none;transform-origin:center}
+.batman-loader-stage>canvas{position:absolute;inset:0;display:block;width:100%;height:100%;visibility:hidden;pointer-events:none;filter:drop-shadow(0 16px 16px #1111111c)}
+.batman-loader-stage.batman-model-ready>canvas{visibility:visible}
+.portfolio-intro.play-morphing{overflow:hidden}
+.intro-blue-bloom{position:absolute;z-index:0;width:64px;height:64px;border-radius:50%;background:#2774d8;transform:translate(-50%,-50%) scale(0);pointer-events:none;will-change:transform}
+.portfolio-intro.play-morphing .intro-loading{background:transparent;pointer-events:none}
+.play-morphing .batman-loader-stage>canvas{filter:none}
+.portfolio-intro.play-morphing .intro-play{position:absolute;top:50%;left:0;right:0;translate:0 -50%;z-index:6;pointer-events:none}
+.portfolio-intro.play-morphing .flow-play{background:transparent!important;border-color:transparent!important;color:#fff;transform:none!important;translate:0 0;animation:none;transition:none;box-shadow:none}
+.portfolio-intro.play-morphing.play-morphed .flow-play{background:#000!important;border-color:#000!important;border-radius:100px}
+.play-morphing .flow-label,.play-morphing .flow-arrow{opacity:var(--play-detail-opacity,0)}
+.portfolio-intro.play-morphing .flow-arrow{fill:#fff;stroke:none}
+.play-morphing .flow-label>span,.play-morphed .flow-label>span{animation:none;translate:0 0}
+.play-morphed .intro-play .flow-play{animation:none;translate:0 0}
+.intro-crowd{z-index:1;opacity:0;translate:0 36px;transition:opacity .75s ease,translate .75s cubic-bezier(.22,1,.36,1)}
+.portfolio-intro.crowd-ready .intro-crowd{opacity:1;translate:0 0}
+@media(prefers-reduced-motion:reduce){.intro-crowd{transition:none;translate:0 0}}
+@media(hover:hover) and (pointer:fine){
+  body.batman-cursor-active,body.batman-cursor-active *{cursor:url('assets/batman/cursor.svg') 20 12,auto!important}
+}

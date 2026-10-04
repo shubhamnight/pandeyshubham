@@ -5,20 +5,35 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const groups=[...section.querySelectorAll('.hobby-orbit')];
   const count=3, resolution=1024;
+  const playbackSpeed=1.05;
   let visible=false, running=false, phase=.74, duration=1;
   let entrance=section.hobbyEntranceProgress||0,withdrawal=null;
   let entranceTarget=entrance;
+  const entranceSpeed=(.74/4800)*1.20,transitionDuration=1800;
+  let entranceDuration=4800,fastDuration=4800;
   let frame=0, resizeFrame=0, lastTime=null, previousSize='', streams=[];
   const positions=new Float64Array(count);
   const indices=new Uint16Array(count),mixes=new Float64Array(count);
   let pageWidth=0,pageHeight=0,tileWidth=0,tileHeight=0;
+  function entrancePhase(value){
+    // Keep the original fast arrival, then blend its velocity into cruise
+    // over the final 1.8 seconds. Integrate the velocity curve so neither
+    // position nor speed jumps, and acceleration is zero at both joins.
+    const time=value*entranceDuration;
+    if(time<=fastDuration)return time*entranceSpeed;
+    const u=Math.min(1,(time-fastDuration)/transitionDuration);
+    const integratedEase=u*u*u*(1-.5*u);
+    return fastDuration*entranceSpeed+transitionDuration*(entranceSpeed*u+(1/duration-entranceSpeed)*integratedEase);
+  }
   function draw() {
-    const showing=entrance>0&&entranceTarget>0;
+    // A zero target starts withdrawal; hide only once it has completed.
+    const showing=entrance>0;
     if(section.classList.contains('hobby-images-entering')!==showing)section.classList.toggle('hobby-images-entering',showing);
     // Compute each slot's progress once and reuse it for every hobby.
+    const arriving=entrancePhase(entrance);
     for(let i=0;i<count;i++){
       const raw=entrance===1?((phase-i/count+1)%1)*resolution:
-        withdrawal?withdrawal[i]*entrance*resolution:(entrance*.74-i/count)*resolution;
+        withdrawal?(withdrawal.slots[i]-withdrawal.distance*(1-entrance))*resolution:(arriving-i/count)*resolution;
       positions[i]=raw;
       const at=Math.max(0,Math.min(resolution-.000001,raw));
       indices[i]=Math.floor(at);mixes[i]=at-indices[i];
@@ -48,13 +63,21 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
   function tick(time) {
     frame=0;
     if(!running){cancelHobbyFrame(tick);return;}
-    const elapsed=lastTime===null?0:Math.min(time-lastTime,50);
+    const elapsed=lastTime===null?0:Math.min(time-lastTime,50)*playbackSpeed;
     if(entrance!==entranceTarget){
-      // Limit the reveal to a 4.8 second entrance even after a fast scroll.
-      // Every arc uses this same clock; normal rotation speed is untouched.
-      const step=elapsed/4800;
-      entrance+=Math.sign(entranceTarget-entrance)*Math.min(Math.abs(entranceTarget-entrance),step);
+      // All arcs share the fast entrance and its gradual slowdown.
+      const remaining=Math.abs(entranceTarget-entrance)*entranceDuration;
+      const consumed=Math.min(elapsed,remaining);
+      entrance+=Math.sign(entranceTarget-entrance)*consumed/entranceDuration;
       if(Math.abs(entranceTarget-entrance)<.000001)entrance=entranceTarget;
+      // Carry the unused frame time into the orbit; never insert a held frame
+      // between the entrance and continuous movement.
+      if(entrance===1&&entranceTarget===1){
+        phase=(phase+(elapsed-consumed)/duration)%1;
+        withdrawal=null;
+      }else if(entrance===0){
+        withdrawal=null;phase=.74;
+      }
     }else if(entrance===1)phase=(phase+elapsed/duration)%1;
     lastTime=time;
     draw();
@@ -64,6 +87,11 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
     if(running)frame=requestHobbyFrame(tick,30);
   }
   function update() {
+    // Once the page has left view, finish a pending withdrawal so a fresh
+    // approach cannot resume old placeholders halfway through their paths.
+    if(!visible&&entranceTarget===0&&entrance>0){
+      entrance=0;withdrawal=null;phase=.74;draw();
+    }
     const shouldRun=visible&&!document.hidden&&!reduced.matches&&
       (entrance===1||entrance!==entranceTarget)&&
       !document.body.classList.contains('motion-paused')&&
@@ -123,6 +151,10 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
       return {samples,length,entryDistance:samples.find(s=>s.t===entryT).distance,exitDistance:samples.find(s=>s.t===exitT).distance};
     });
     duration=Math.max(...tracks.map(track=>track.length))/(narrow?18:24)*1000;
+    // The blend covers the average of fast and cruise velocity. Shorten the
+    // constant-speed portion accordingly to retain the existing final spacing.
+    fastDuration=(.74-transitionDuration*(entranceSpeed+1/duration)/2)/entranceSpeed;
+    entranceDuration=fastDuration+transitionDuration;
     streams=groups.map((group,index)=>{
       const {samples,length,entryDistance,exitDistance}=tracks[index];
       const offsetAt=distance=>{
@@ -159,18 +191,22 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
   motionObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
   function entranceChanged(){
     const next=section.hobbyEntranceProgress??0;
-    if(entrance===1&&next<1)withdrawal=Array.from({length:count},(_,i)=>(phase-i/count+1)%1);
+    if(entrance===1&&next<1&&!withdrawal){
+      const slots=Array.from({length:count},(_,i)=>(phase-i/count+1)%1);
+      // Retreat all slots by the same distance from their current positions.
+      // Keep their spacing and artwork, and allow a mid-return direction change.
+      withdrawal={slots,distance:Math.max(...slots)};
+    }
     entranceTarget=next;
-    if(next===0){
-      // A fresh approach must enter from the path start, never resume stale
-      // cards halfway down an arc after a quick scroll out and back.
-      entrance=0;withdrawal=null;phase=.74;
-    }else if(reduced.matches)entrance=next;
+    if(reduced.matches){
+      entrance=next;
+      if(next===0){withdrawal=null;phase=.74;}
+    }
     // Scroll reversal scrubs the same points without cycling artwork.
     for(const {slots} of streams)slots.forEach(slot=>{slot.arcPosition=undefined;});
     // The shared animation clock draws the next interpolated position.
     // Updating the target alone must not write twelve duplicate transforms.
-    if(reduced.matches||next===0)draw();
+    if(reduced.matches)draw();
     update();
   }
   section.addEventListener('hobby-intro-progress',entranceChanged);

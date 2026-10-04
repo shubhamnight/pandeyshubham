@@ -81,7 +81,7 @@ window.startIntroCrowd = function(host) {
     wake();
   }
   function draw(time){
-    frame=0;if(dead||document.hidden||!host.classList.contains('show-play'))return;
+    frame=0;if(dead||document.hidden||!host.classList.contains('crowd-ready'))return;
     const dt=Math.min((time-(last||time))/1000,.04);last=time;
     ctx.clearRect(0,0,w,h);
     for(const p of people){
@@ -93,10 +93,10 @@ window.startIntroCrowd = function(host) {
     }
     if(!reduce.matches)wake();
   }
-  function wake(){if(!frame&&!dead&&loaded&&!document.hidden&&host.classList.contains('show-play'))frame=requestAnimationFrame(draw);}
+  function wake(){if(!frame&&!dead&&loaded&&!document.hidden&&host.classList.contains('crowd-ready'))frame=requestAnimationFrame(draw);}
   function visibility(){cancelAnimationFrame(frame);frame=0;last=0;wake();}
   const observer=new ResizeObserver(size);observer.observe(canvas);
-  const hostObserver=new MutationObserver(()=>{if(host.classList.contains('show-play')){wake();hostObserver.disconnect();}});
+  const hostObserver=new MutationObserver(()=>{if(host.classList.contains('crowd-ready')){wake();hostObserver.disconnect();}});
   hostObserver.observe(host,{attributes:true,attributeFilter:['class']});
   document.addEventListener('visibilitychange',visibility);reduce.addEventListener('change',visibility);
   img.onload=async()=>{if(dead)return;await prepareSprites();if(dead)return;loaded=true;size();};

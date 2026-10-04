@@ -4,8 +4,8 @@
   intro.setAttribute('role','dialog');
   intro.setAttribute('aria-modal','true');
   intro.setAttribute('aria-label','Enter Shubham’s portfolio');
-  const dots = Array.from({length:12},(_,index)=>'<div class="pl__dot" aria-hidden="true" style="--dot:'+index+'"></div>').join('');
-  intro.innerHTML = '<div class="intro-loading"><div class="pl">'+dots+'<div class="pl__text" role="status">Loading…</div></div></div><div class="intro-play" hidden><button class="flow-play" type="button" aria-label="Play"><svg class="flow-arrow flow-arrow-left" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><span class="flow-label play-flicker-label" aria-hidden="true"><span>P</span><span>L</span><span>A</span><span>Y</span></span><span class="flow-fill" aria-hidden="true"></span><svg class="flow-arrow flow-arrow-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg></button></div>';
+  if(!intro.querySelector('.intro-loading'))intro.innerHTML='<div class="intro-loading"><div class="batman-loader-stage" aria-hidden="true"></div></div>';
+  intro.insertAdjacentHTML('beforeend','<div class="intro-play" hidden><button class="flow-play" type="button" aria-label="Play"><svg class="flow-arrow flow-arrow-left" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><span class="flow-label play-flicker-label" aria-hidden="true"><span>P</span><span>L</span><span>A</span><span>Y</span></span><span class="flow-fill" aria-hidden="true"></span><svg class="flow-arrow flow-arrow-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg></button></div>');
   const content = [...document.querySelectorAll('body > main, body > nav, body > .skip')];
   content.forEach(element=>element.inert=true);
   document.body.classList.add('intro-active');
@@ -17,6 +17,10 @@
   const label = button.querySelector('.play-flicker-label');
   const letters=[...label.children];
   const flickerReduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const loaderReady=import('./batman-loader.js').then(module=>module.createBatmanLoader(intro)).catch(error=>{
+    console.warn('3D loader unavailable; opening PLAY without WebGL.',error);
+    return {finish:async()=>{intro.querySelector('.intro-loading').hidden=true;}};
+  });
   let flickerFrame=0,flickerLast=0,flickerTime=0,flickerEnabled=false;
   const clamp=value=>Math.max(0,Math.min(1,value));
   function randomAt(lane,step){
@@ -55,14 +59,19 @@
   const started = performance.now();
   let ready = false;
   // Decode and clean the sprites during loading instead of the PLAY entrance.
-  let stopCrowd = window.startIntroCrowd(intro);
+  let stopCrowd = window.startIntroCrowd?.(intro)||(()=>{});
   function showPlay() {
     if (ready) return;
     ready = true;
-    setTimeout(()=>{
+    setTimeout(async()=>{
+      const loader=await loaderReady;
+      await loader.finish();
       intro.querySelector('.intro-loading').hidden=true;
       intro.querySelector('.intro-play').hidden=false;
       intro.classList.add('show-play');
+      document.body.classList.add('batman-cursor-active');
+      // Begin the people only after the button and blue expansion have landed.
+      requestAnimationFrame(()=>intro.classList.add('crowd-ready'));
       flickerEnabled=true;
       syncFlicker();
       button.focus({preventScroll:true});
@@ -70,7 +79,6 @@
   }
   if(document.readyState==='complete') showPlay();
   else window.addEventListener('load',showPlay,{once:true});
-  const fallback = setTimeout(showPlay,6000);
   intro.addEventListener('keydown',event=>{
     if(event.key!=='Tab') return;
     const items=[...intro.querySelectorAll('button,a')].filter(el=>el.getClientRects().length);
@@ -79,7 +87,6 @@
     else if(!event.shiftKey && document.activeElement===items.at(-1)){event.preventDefault();items[0].focus();}
   });
   button.addEventListener('click',async()=>{
-    clearTimeout(fallback);
     flickerEnabled=false;
     syncFlicker();
     document.removeEventListener('visibilitychange',syncFlicker);
