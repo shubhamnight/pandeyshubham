@@ -158,11 +158,14 @@ export async function morphBatmanIntoPlay(intro,reduced,prepareMesh,signal){
   // Shape and blue finish together. A short settled beat completes the reveal
   // before the people, flicker and interactions take over.
   const transitionSpeed=1.2;
-  const morphDuration=1840,bloomDelay=1100,bloomDuration=morphDuration-bloomDelay;
+  const morphDuration=1840,bloomDelay=840,bloomDuration=morphDuration-bloomDelay;
   const detailStart=1160,detailDuration=580,totalDuration=morphDuration+160;
   const startScale=buttonBounds.height/64;
-  let bloomScale=Math.hypot(innerWidth,innerHeight)/64*1.08;
-  let elapsed=0,last=0,meshDone=false,frame=0,lastDetail=-1,lastBloom=-1,done=false;
+  // Match the gradient's opaque 72% core, so even viewport corners are fully
+  // blue before replacing the reveal layer with the identical background.
+  const bloomCoverage=()=>Math.hypot(innerWidth,innerHeight)/(64*.72)*1.04;
+  let bloomScale=bloomCoverage();
+  let elapsed=0,last=0,meshDone=false,frame=0,lastDetail=-1,lastBloom=-1,lastBloomOpacity=-1,done=false;
   const preference=matchMedia('(prefers-reduced-motion: reduce)');
   await new Promise((resolve,reject)=>{
     function cleanup(){
@@ -177,7 +180,7 @@ export async function morphBatmanIntoPlay(intro,reduced,prepareMesh,signal){
       details.forEach(detail=>{detail.style.removeProperty('opacity');detail.style.removeProperty('translate');});
       resolve();
     }
-    function resizeBloom(){bloomScale=Math.hypot(innerWidth,innerHeight)/64*1.08;lastBloom=-1;}
+    function resizeBloom(){bloomScale=bloomCoverage();lastBloom=-1;}
     function preferenceChanged(){if(preference.matches){elapsed=totalDuration;resume();}}
     function resume(){
       cancelAnimationFrame(frame);frame=0;last=0;
@@ -210,6 +213,10 @@ export async function morphBatmanIntoPlay(intro,reduced,prepareMesh,signal){
         const reveal=clamp((elapsed-bloomDelay)/bloomDuration);
         const scale=reveal>0?startScale+(bloomScale-startScale)*smooth(reveal):0;
         if(scale!==lastBloom){lastBloom=scale;bloom.style.transform=`translate(-50%,-50%) scale(${scale})`;}
+        // Fade the first blue outward gently instead of introducing a solid
+        // circle on one frame. Only transform and opacity animate this layer.
+        const bloomOpacity=smooth(clamp(reveal/.3));
+        if(bloomOpacity!==lastBloomOpacity){lastBloomOpacity=bloomOpacity;bloom.style.opacity=String(bloomOpacity);}
         if(elapsed>=totalDuration){
           cleanup();complete();resolve();
         }
