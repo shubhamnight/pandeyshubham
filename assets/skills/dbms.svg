@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<defs><linearGradient id="dbms-body" x2="1" y2="1"><stop stop-color="#4db6ac"/><stop offset="1" stop-color="#00796b"/></linearGradient></defs>
+<path fill="url(#dbms-body)" d="M7 24h92v74c0 11-21 20-46 20S7 109 7 98Z"/>
+<ellipse cx="53" cy="24" rx="46" ry="20" fill="#80cbc4"/>
+<ellipse cx="53" cy="24" rx="36" ry="12" fill="#00897b"/>
+<path d="M7 49c0 11 21 20 46 20s46-9 46-20M7 75c0 11 21 20 46 20" fill="none" stroke="#b2dfdb" stroke-width="4"/>
+<circle cx="93" cy="94" r="29" fill="#17263b"/>
+<g fill="none" stroke="#b2dfdb" stroke-width="8" stroke-linecap="round">
+<circle cx="93" cy="94" r="17"/>
+<path d="M93 70v9m0 30v9M69 94h9m30 0h9M76 77l6 6m22 22 6 6m0-34-6 6m-22 22-6 6"/>
+</g><circle cx="93" cy="94" r="6" fill="#4db6ac"/>
+</svg>
