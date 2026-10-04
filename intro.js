@@ -16,13 +16,16 @@
   button.setAttribute('aria-label','Play');
   const label = button.querySelector('.play-flicker-label');
   const letters=[...label.children];
+  letters.forEach(letter=>{letter.style.textShadow='0 1px 1px rgba(0,0,0,.65)';});
   const flickerReduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const loaderReady=import('./batman-loader.js').then(module=>module.createBatmanLoader(intro)).catch(error=>{
+  let activeLoader=null;
+  const loaderReady=import('./batman-loader.js').then(module=>{
+    activeLoader=module.createBatmanLoader(intro);return activeLoader;
+  }).catch(error=>{
     console.warn('3D loader unavailable; opening PLAY without WebGL.',error);
     return {finish:async()=>{intro.querySelector('.intro-loading').hidden=true;}};
   });
   let flickerFrame=0,flickerLast=0,flickerTime=0,flickerEnabled=false;
-  const clamp=value=>Math.max(0,Math.min(1,value));
   function randomAt(lane,step){
     let hash=(Math.imul(lane,374761393)^Math.imul(step,668265263))>>>0;
     hash=Math.imul(hash^(hash>>>13),1274126177)>>>0;
@@ -41,10 +44,8 @@
       const time=flickerTime*2,shared=noiseAt(0,time);
       letters.forEach((letter,index)=>{
         const noise=(noiseAt(index+1,time)*.5+shared*.5)/Math.SQRT1_2;
-        const opacity=Math.max(.3,Math.min(1,1-noise));
-        const glow=clamp((opacity-.6)/.4);
+        const opacity=Math.max(.94,Math.min(1,.97+noise*.03));
         letter.style.opacity=opacity.toFixed(3);
-        letter.style.textShadow=[[.08,.55],[.22,.35],[.5,.22]].map(([radius,alpha])=>`0 0 ${radius}em rgba(255,255,255,${(alpha*glow).toFixed(3)})`).join(',');
       });
     }
     flickerFrame=requestAnimationFrame(animateFlicker);
@@ -66,7 +67,7 @@
     setTimeout(async()=>{
       const loader=await loaderReady;
       await loader.finish();
-      intro.querySelector('.intro-loading').hidden=true;
+      intro.querySelector('.intro-loading').hidden=!intro.classList.contains('play-webgl');
       intro.querySelector('.intro-play').hidden=false;
       intro.classList.add('show-play');
       document.body.classList.add('batman-cursor-active');
@@ -111,6 +112,14 @@
         {transform:'scale(1)'},
         {transform:`scale(${targetScale})`}
       ],{duration,easing:'cubic-bezier(.65,0,.25,1)',fill:'forwards'}));
+      const surface=intro.querySelector('.batman-loader-stage>canvas');
+      if(surface&&intro.classList.contains('play-webgl')){
+        const surfaceBounds=surface.getBoundingClientRect();
+        surface.style.transformOrigin=`${bounds.left+bounds.width/2-surfaceBounds.left}px ${bounds.top+bounds.height/2-surfaceBounds.top}px`;
+        animations.push(surface.animate([{transform:'scale(1)'},{transform:`scale(${targetScale})`}],{
+          duration,easing:'cubic-bezier(.65,0,.25,1)',fill:'forwards'
+        }));
+      }
       // Let the solid button lead the zoom, with its details resolving early.
       for(const detail of button.querySelectorAll('.flow-label,.flow-arrow')){
         animations.push(detail.animate([{opacity:1},{opacity:0}],{
@@ -124,6 +133,7 @@
     }
     // Keep the underlying page inert until the visual transition has completed.
     await Promise.allSettled(animations.map(animation=>animation.finished));
+    activeLoader?.dispose?.();
     content.forEach(element=>element.inert=false);
     document.body.classList.remove('intro-active');
     intro.remove();

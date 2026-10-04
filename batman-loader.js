@@ -4,6 +4,12 @@ import { batmanOutline } from './batman-emblem.js';
 const clamp=value=>Math.max(0,Math.min(1,value));
 const smooth=value=>value*value*value*(value*(value*6-15)+10);
 
+function playBounds(button){
+  const bounds=button.getBoundingClientRect(),width=button.offsetWidth,height=button.offsetHeight;
+  // Measure the unscaled face so interaction transforms cannot stretch it.
+  return {width,height,left:bounds.left+(bounds.width-width)/2,top:bounds.top+(bounds.height-height)/2};
+}
+
 // Triangulators may discard points that are collinear in the bat but curved
 // in the button. Keep those points on the cap as well as on the side walls.
 function preserveCapBoundary(geometry,contour){
@@ -88,21 +94,23 @@ export async function morphBatmanIntoPlay(intro,reduced,prepareMesh){
   button.inert=true;play.hidden=false;
   intro.classList.add('play-morphing');
   intro.style.setProperty('--play-detail-opacity','0');
-  const buttonBounds=button.getBoundingClientRect(),stageBounds=stage.getBoundingClientRect();
+  const buttonBounds=playBounds(button),stageBounds=stage.getBoundingClientRect();
   const drawMesh=prepareMesh?.(buttonBounds,stageBounds);
+  const keepsMesh=Boolean(drawMesh);
+  if(keepsMesh)intro.classList.add('play-webgl');
   const bloom=document.createElement('div');bloom.className='intro-blue-bloom';
   bloom.setAttribute('aria-hidden','true');
   bloom.style.left=`${buttonBounds.left+buttonBounds.width/2}px`;
   bloom.style.top=`${buttonBounds.top+buttonBounds.height/2}px`;
   intro.prepend(bloom);
   const complete=()=>{
-    loading.hidden=true;intro.classList.add('show-play','play-morphed');
+    loading.hidden=!keepsMesh;intro.classList.add('show-play','play-morphed');
     intro.classList.remove('play-morphing');
     intro.style.removeProperty('--play-detail-opacity');
     button.inert=false;bloom.remove();
   };
   if(reduced){drawMesh?.(1);complete();return;}
-  const morphDuration=1400,bloomDelay=700,bloomDuration=1000;
+  const morphDuration=1700,bloomDelay=900,bloomDuration=1050;
   const bloomScale=Math.hypot(innerWidth,innerHeight)/64*1.05;
   let elapsed=0,last=0,meshDone=false,frame=0;
   await new Promise((resolve,reject)=>{
@@ -115,23 +123,25 @@ export async function morphBatmanIntoPlay(intro,reduced,prepareMesh){
       // Resume from the same visual state if the tab is temporarily hidden.
       if(document.hidden){last=0;return;}
       try{
-      elapsed+=last?Math.min(time-last,50):0;last=time;
-      const progress=clamp(elapsed/morphDuration);
-      if(!meshDone){
-        drawMesh?.(smooth(progress));
-        intro.style.setProperty('--play-detail-opacity',String(smooth(clamp((elapsed-850)/550))));
-        if(progress===1){
-          // The rendered pill now exactly matches the native button below it.
-          intro.classList.add('play-morphed');loading.hidden=true;meshDone=true;
+        elapsed+=last?Math.min(time-last,50):0;last=time;
+        const progress=clamp(elapsed/morphDuration);
+        if(!meshDone){
+          const deformation=smooth(progress);
+          drawMesh?.(deformation);
+          intro.style.setProperty('--play-detail-opacity',String(smooth(clamp((elapsed-1100)/600))));
+          if(progress===1){
+            // Keep the actual extrusion in place; the HTML only supplies its
+            // lettering, keyboard focus and click target.
+            intro.classList.add('play-morphed');loading.hidden=!keepsMesh;meshDone=true;
+          }
         }
-      }
-      const reveal=clamp((elapsed-bloomDelay)/bloomDuration);
-      const scale=bloomScale*(1-(1-reveal)**3);
-      bloom.style.transform=`translate(-50%,-50%) scale(${scale})`;
-      if(elapsed>=bloomDelay+bloomDuration){
-        document.removeEventListener('visibilitychange',resume);complete();resolve();
-      }
-      else frame=requestAnimationFrame(tick);
+        const reveal=clamp((elapsed-bloomDelay)/bloomDuration);
+        const scale=bloomScale*(1-(1-reveal)**3);
+        bloom.style.transform=`translate(-50%,-50%) scale(${scale})`;
+        if(elapsed>=bloomDelay+bloomDuration){
+          document.removeEventListener('visibilitychange',resume);complete();resolve();
+        }
+        else frame=requestAnimationFrame(tick);
       }catch(error){
         document.removeEventListener('visibilitychange',resume);
         cancelAnimationFrame(frame);reject(error);
@@ -159,9 +169,27 @@ export function createBatmanLoader(intro){
   const scene=new THREE.Scene();
   const view=new THREE.OrthographicCamera(-3.2,3.2,2.1,-2.1,.1,30);
   view.position.set(0,0,12);view.lookAt(0,0,0);
-  scene.add(new THREE.HemisphereLight(0xe9efff,0x303039,2.2));
+  const ambient=new THREE.HemisphereLight(0xe9efff,0x303039,2.2);scene.add(ambient);
   const key=new THREE.DirectionalLight(0xffffff,4);key.position.set(-4,5,6);scene.add(key);
   const edge=new THREE.DirectionalLight(0x77aeff,3);edge.position.set(4,2,-3);scene.add(edge);
+  // Reveal the lower-left bevel on PLAY without changing the loading bat.
+  const playRim=new THREE.DirectionalLight(0xffffff,0);
+  playRim.position.set(-3,-4,5);scene.add(playRim);
+  // One small, reusable contact shadow, rather than a live shadow-map pass.
+  const shadowCanvas=document.createElement('canvas');shadowCanvas.width=shadowCanvas.height=96;
+  const shadowContext=shadowCanvas.getContext('2d');
+  const shadowGradient=shadowContext.createRadialGradient(48,48,0,48,48,48);
+  shadowGradient.addColorStop(0,'rgba(0,0,0,.32)');
+  shadowGradient.addColorStop(.45,'rgba(0,0,0,.15)');
+  shadowGradient.addColorStop(1,'rgba(0,0,0,0)');
+  shadowContext.fillStyle=shadowGradient;shadowContext.fillRect(0,0,96,96);
+  const shadowTexture=new THREE.CanvasTexture(shadowCanvas);
+  const shadowGeometry=new THREE.PlaneGeometry(1,1);
+  const shadowMaterial=new THREE.MeshBasicMaterial({map:shadowTexture,color:0x000000,transparent:true,opacity:0,depthWrite:false,toneMapped:false});
+  const shadow=new THREE.Mesh(shadowGeometry,shadowMaterial);
+  // Compile and upload it during loading at zero opacity, avoiding a shader
+  // compilation or texture upload midway through the visible morph.
+  shadow.renderOrder=-1;scene.add(shadow);
   const shape=new THREE.Shape();
   const x=value=>(value-84)/28,y=value=>(73-value)/28;
   for(const [command,...values] of batmanOutline){
@@ -193,20 +221,27 @@ export function createBatmanLoader(intro){
   const position=geometry.getAttribute('position');
   const playPosition=position.clone();
   geometry.setAttribute('playPosition',playPosition);
-  const face=new THREE.MeshStandardMaterial({color:0xe7e7e7,metalness:.72,roughness:.28});
-  const side=new THREE.MeshStandardMaterial({color:0xaeb7c4,metalness:.8,roughness:.24});
+  const playNormal=geometry.getAttribute('normal').clone();
+  geometry.setAttribute('playNormal',playNormal);
+  const face=new THREE.MeshStandardMaterial({color:0xe7e7e7,metalness:.72,roughness:.28,transparent:false,opacity:1});
+  const side=new THREE.MeshStandardMaterial({color:0xaeb7c4,metalness:.8,roughness:.24,transparent:false,opacity:1});
   // Upload the target once; the GPU interpolates vertices and bevel normals.
   // Both materials share the same scalar, with no per-frame buffer uploads.
   const morph={value:0};
+  const faceBounds={value:new THREE.Vector2(0,1)};
   for(const material of [face,side]){
     material.onBeforeCompile=shader=>{
       shader.uniforms.playMorph=morph;
-      shader.vertexShader='attribute vec3 playPosition;\nuniform float playMorph;\n'+shader.vertexShader;
+      shader.uniforms.playFaceBounds=faceBounds;
+      shader.vertexShader='attribute vec3 playPosition;\nattribute vec3 playNormal;\nuniform float playMorph;\nuniform vec2 playFaceBounds;\nvarying float vPlayFaceHeight;\n'+shader.vertexShader;
       shader.vertexShader=shader.vertexShader
-        .replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed = mix(transformed, playPosition, playMorph);')
-        .replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\nobjectNormal = mix(objectNormal, vec3(0.0, 0.0, 1.0), playMorph);');
+        .replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed = mix(transformed, playPosition, playMorph);\nvPlayFaceHeight = (transformed.y - playFaceBounds.x) / playFaceBounds.y + 0.5;')
+        .replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\nobjectNormal = mix(objectNormal, playNormal, playMorph);');
+      shader.fragmentShader='uniform float playMorph;\nvarying float vPlayFaceHeight;\n'+shader.fragmentShader;
+      shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',
+        '#include <color_fragment>\ndiffuseColor.rgb *= mix(1.0, 0.88 + 0.12 * smoothstep(0.0, 1.0, vPlayFaceHeight), playMorph);');
     };
-    material.customProgramCacheKey=()=> 'batman-play-morph-v2';
+    material.customProgramCacheKey=()=> 'batman-play-morph-v4';
   }
   const model=new THREE.Mesh(geometry,[face,side]);scene.add(model);
   // A straight-on resting pose: lighting and bevels retain the model's depth.
@@ -215,12 +250,19 @@ export function createBatmanLoader(intro){
   let frame=0,last=0,angle=restYaw,spinTime=0,mode='spin',requested=false,disposed=false;
   let settleFrom=0,settleTo=0,settleTime=0,settleDuration=1;
   let finishPromise,resolveFinish;
+  let renderWidth=0,renderHeight=0;
   const spinSpeed=2.1;
   function resize(){
     const width=stage.clientWidth,height=stage.clientHeight;
     if(!width||!height||disposed)return;
-    renderer.setSize(width,height,false);
-    view.top=3.2*height/width;view.bottom=-view.top;view.updateProjectionMatrix();
+    if(width!==renderWidth||height!==renderHeight){
+      renderWidth=width;renderHeight=height;renderer.setSize(width,height,false);
+      view.top=3.2*height/width;view.bottom=-view.top;view.updateProjectionMatrix();
+    }
+    if(mode==='exit'&&morph.value===1&&intro.classList.contains('play-webgl')&&!intro.classList.contains('is-zooming')){
+      prepareMeshMorph(playBounds(intro.querySelector('.flow-play')),stage.getBoundingClientRect())(1);
+      return;
+    }
     renderer.render(scene,view);
   }
   function prepareMeshMorph(buttonBounds,stageBounds){
@@ -237,23 +279,32 @@ export function createBatmanLoader(intro){
     }
     const units=6.4/stageBounds.width;
     const radius=buttonBounds.height*units/2;
+    const sourceFront=geometry.boundingBox.max.z,sourceDepth=sourceFront-geometry.boundingBox.min.z;
+    // The finished button inherits the bat's complete depth, including bevels.
+    const depth=sourceDepth,rearX=-sourceDepth*.18,rearY=-sourceDepth*.45;
+    const rim=1.8*units;
     const straight=Math.max(0,buttonBounds.width*units/2-radius);
     const arc=Math.PI*radius/2,flat=straight*2,perimeter=4*arc+2*flat;
     const centerX=(buttonBounds.left+buttonBounds.width/2-stageBounds.left-stageBounds.width/2)*units;
     const centerY=-(buttonBounds.top+buttonBounds.height/2-stageBounds.top-stageBounds.height/2)*units;
+    faceBounds.value.set(centerY,radius*2);
+    shadow.scale.set(buttonBounds.width*units*1.35,buttonBounds.height*units*.45,1);
+    shadow.position.set(centerX+rearX*.5,centerY-radius+rearY-8*units,-depth-1);
     function capsule(distance){
-      let cx,cy;
+      let cx,cy,nx,ny;
       if(distance<arc){
-        const angle=Math.PI-distance/radius;cx=-straight+Math.cos(angle)*radius;cy=Math.sin(angle)*radius;
-      }else if((distance-=arc)<flat){cx=-straight+distance;cy=radius;}
+        const angle=Math.PI-distance/radius;nx=Math.cos(angle);ny=Math.sin(angle);
+        cx=-straight+nx*radius;cy=ny*radius;
+      }else if((distance-=arc)<flat){cx=-straight+distance;cy=radius;nx=0;ny=1;}
       else if((distance-=flat)<arc*2){
-        const angle=Math.PI/2-distance/radius;cx=straight+Math.cos(angle)*radius;cy=Math.sin(angle)*radius;
-      }else if((distance-=arc*2)<flat){cx=straight-distance;cy=-radius;}
+        const angle=Math.PI/2-distance/radius;nx=Math.cos(angle);ny=Math.sin(angle);
+        cx=straight+nx*radius;cy=ny*radius;
+      }else if((distance-=arc*2)<flat){cx=straight-distance;cy=-radius;nx=0;ny=-1;}
       else{
         distance-=flat;const angle=-Math.PI/2-distance/radius;
-        cx=-straight+Math.cos(angle)*radius;cy=Math.sin(angle)*radius;
+        nx=Math.cos(angle);ny=Math.sin(angle);cx=-straight+nx*radius;cy=ny*radius;
       }
-      return [cx+centerX,cy+centerY];
+      return [cx+centerX,cy+centerY,nx,ny];
     }
     const mapped=new Map();
     for(let i=0;i<position.count;i++){
@@ -268,17 +319,42 @@ export function createBatmanLoader(intro){
           const distance=ex*ex+ey*ey;
           if(distance<best){best=distance;along=distances[j]+segmentLength*fraction;}
         }
-        point=capsule(along/length*perimeter);mapped.set(key,point);
+        point=capsule(along/length*perimeter);
+        // Preserve the rounded bevel layers instead of flattening the walls.
+        point.push(clamp(Math.sqrt(best)/.045)*rim);mapped.set(key,point);
       }
-      target[offset]=point[0];target[offset+1]=point[1];target[offset+2]=0;
+      const back=clamp((sourceFront-source[offset+2])/sourceDepth);
+      target[offset]=point[0]+point[2]*point[4]+rearX*back;
+      target[offset+1]=point[1]+point[3]*point[4]+rearY*back;
+      target[offset+2]=-depth*back;
     }
     playPosition.needsUpdate=true;
-    const faceStart=face.color.clone(),sideStart=side.color.clone(),black=new THREE.Color(0x000000);
+    // Calculate the finished extrusion's normals once, rather than rebuilding
+    // a mesh or its normals at any point in the animation loop.
+    const targetGeometry=new THREE.BufferGeometry();
+    targetGeometry.setAttribute('position',playPosition.clone());
+    targetGeometry.computeVertexNormals();
+    playNormal.array.set(targetGeometry.getAttribute('normal').array);
+    playNormal.needsUpdate=true;targetGeometry.dispose();
+    const faceStart=face.color.clone(),sideStart=side.color.clone();
+    const graphite=new THREE.Color(0x242424),edgeGraphite=new THREE.Color(0x101010);
+    const skyStart=ambient.color.clone(),groundStart=ambient.groundColor.clone(),edgeStart=edge.color.clone();
+    const neutralLight=new THREE.Color(0xffffff),neutralGround=new THREE.Color(0x252525);
     return progress=>{
       morph.value=progress;
-      face.color.copy(faceStart).lerp(black,progress);side.color.copy(sideStart).lerp(black,progress);
-      face.metalness=.72*(1-progress);side.metalness=.8*(1-progress);
-      face.roughness=.28+.72*progress;side.roughness=.24+.76*progress;
+      // The outline leads; material and depth resolve into graphite without
+      // a late color snap or the previous flat-button replacement.
+      const materialProgress=smooth(clamp((progress-.08)/.82));
+      face.color.copy(faceStart).lerp(graphite,materialProgress);
+      side.color.copy(sideStart).lerp(edgeGraphite,materialProgress);
+      face.metalness=.72-.54*materialProgress;side.metalness=.8-.55*materialProgress;
+      face.roughness=.28+.12*materialProgress;side.roughness=.24+.11*materialProgress;
+      ambient.color.copy(skyStart).lerp(neutralLight,materialProgress);
+      ambient.groundColor.copy(groundStart).lerp(neutralGround,materialProgress);
+      edge.color.copy(edgeStart).lerp(neutralLight,materialProgress);
+      playRim.intensity=1.6*materialProgress;
+      const shadowProgress=smooth(clamp((progress-.4)/.6));
+      shadow.visible=shadowProgress>0;shadowMaterial.opacity=shadowProgress;
       renderer.render(scene,view);
     };
   }
@@ -286,8 +362,11 @@ export function createBatmanLoader(intro){
     if(disposed)return;disposed=true;cancelAnimationFrame(frame);
     resizeObserver.disconnect();document.removeEventListener('visibilitychange',wake);
     reduced.removeEventListener('change',onReduced);window.removeEventListener('pagehide',onPageHide);
-    geometry.dispose();face.dispose();side.dispose();renderer.dispose();
+    geometry.dispose();face.dispose();side.dispose();
+    shadowGeometry.dispose();shadowMaterial.dispose();shadowTexture.dispose();
+    renderer.dispose();
     renderer.domElement.remove();stage.classList.remove('batman-model-ready');
+    intro.classList.remove('play-webgl');
   }
   async function exit(){
     if(mode==='exit'||disposed)return;
@@ -295,7 +374,11 @@ export function createBatmanLoader(intro){
     // Let the stopped, upright silhouette read before its outline deforms.
     if(!reduced.matches)await new Promise(resolve=>setTimeout(resolve,180));
     if(disposed)return;
-    try{await morphBatmanIntoPlay(intro,reduced.matches,prepareMeshMorph);}
+    let keepSurface=false;
+    try{
+      await morphBatmanIntoPlay(intro,reduced.matches,prepareMeshMorph);
+      keepSurface=true;
+    }
     catch(error){
       console.warn('Loader transition unavailable; opening PLAY.',error);
       intro.querySelector('.intro-loading').hidden=true;
@@ -305,7 +388,10 @@ export function createBatmanLoader(intro){
       intro.classList.remove('play-morphing');
       intro.style.removeProperty('--play-detail-opacity');
       intro.querySelector('.intro-blue-bloom')?.remove();
-    }finally{dispose();resolveFinish?.();}
+    }finally{
+      // The settled PLAY is one frozen GPU surface, with no ongoing draw loop.
+      if(!keepSurface)dispose();resolveFinish?.();
+    }
   }
   function tick(time){
     frame=0;
@@ -344,10 +430,11 @@ export function createBatmanLoader(intro){
   function onReduced(){wake();}
   function onPageHide(event){if(!event.persisted)dispose();}
   const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(stage);
+  resizeObserver.observe(intro.querySelector('.flow-play'));
   document.addEventListener('visibilitychange',wake);
   reduced.addEventListener('change',onReduced);window.addEventListener('pagehide',onPageHide);
   resize();stage.classList.add('batman-model-ready');wake();
-  return {finish(){
+  return {dispose,finish(){
     if(!finishPromise)finishPromise=new Promise(resolve=>{resolveFinish=resolve;requested=true;wake();});
     return finishPromise;
   }};
