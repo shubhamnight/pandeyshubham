@@ -1,5 +1,5 @@
 // All skill holders share the hobby page's ordered animation clock.
-import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition } from './hobby-motion-clock.js';
+import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition, advanceProgress } from './hobby-motion-clock.js';
 import { sceneMotion, observeScene, setSkillExit } from './skills-hobbies-scene.js';
 
 const section = document.querySelector('#about');
@@ -12,10 +12,12 @@ const fastTime = 4 / entranceSpeed, blendTime = 1.8 / entranceSpeed, entranceDur
 const resolution = 256;
 let scheduled = 0, lastTime = null, measure = true;
 let mode = 'waiting', entered = false, travel = 0, entranceTime = 0, retreat = null;
+let orbitTime = 0, entranceRate = 1;
 let handoff = null, exitLength = 1;
 const exitPhase = Math.PI / 2;
 const exitPoints = new Float64Array((resolution + 1) * 2);
 let previousScroll = null;
+let retreatRequested = false;
 const reverseStart = .10, reverseEnd = .65;
 let visible = false, pointerInside = false, focusInside = false;
 let sectionTop = 0, sectionHeight = 0, centerX = 0, centerY = 0;
@@ -189,7 +191,7 @@ function beginHandoff() {
   const ends = distances.map(distance => distance < entryLength ? entryLength + exitAt :
     distance + wrap(exitAt - wrap(distance - entryLength)));
   const length = Math.max(...ends.map((end,index) => end-distances[index])) + exitLength;
-  handoff = { slots: distances, ends, length, progress: 0, resumeMode: mode };
+  handoff = { slots: distances, ends, length, progress: 0, value: 0, velocity: 0, resumeMode: mode };
   pointerInside = focusInside = false;
   mode = 'handoff';
 }
@@ -197,7 +199,7 @@ function beginRetreat() {
   const distances = slots.map((_, index) => distanceFor(index));
   const goal = Math.max(0, ...distances) + size;
   // Capture the current orbit phase so either scroll direction resumes without a jump.
-  retreat = { slots: distances, progress: 0, goal, resumeMode: mode };
+  retreat = { slots: distances, progress: 0, value: 0, velocity: 0, goal, resumeMode: mode };
   mode = 'retreat';
 }
 function stop() {
@@ -217,6 +219,10 @@ function tick(time) {
   // Start at 50% viewport coverage; keep the same reverse-trigger buffer.
   if (top <= innerHeight * .50) entered = true;
   else if (top >= innerHeight * .62) entered = false;
+  // Remember an upward request while the downstream stages return. Otherwise
+  // finishing the handoff after the wheel stops could strand the ring onscreen.
+  if (top <= innerHeight * reverseStart) retreatRequested = false;
+  else if (scrollingBack || !entered) retreatRequested = true;
   let paused = pointerInside || focusInside || bodyPaused;
   const reverseTarget = clamp((top / innerHeight - reverseStart) / (reverseEnd - reverseStart));
   if (reduced.matches) {
@@ -225,46 +231,55 @@ function tick(time) {
     if (mode === 'handoff' && (!sceneMotion.enabled || (sceneMotion.exit === 0 && handoff.progress === 0))) {
       mode = handoff.resumeMode; handoff = null;
     }
-    if (sceneMotion.enabled && sceneMotion.exit > 0 && mode !== 'handoff' && mode !== 'retreat') {
-      if (mode === 'waiting') { mode = 'orbit'; travel = entryLength + circumference; entranceTime = entranceDuration; }
-      beginHandoff();
-    }
-    if (entered && mode === 'waiting') { mode = 'entrance'; entranceTime = travel = 0; }
+    // Finish the entire train's approach before capturing an exit path. In
+    // particular, never capture holders still above the page or in its middle.
+    if (sceneMotion.enabled && sceneMotion.exit > 0 && mode === 'orbit' && orbitTime >= .25) beginHandoff();
+    if (entered && mode === 'waiting') { mode = 'entrance'; entranceTime = travel = orbitTime = 0; entranceRate = 1; retreatRequested = false; }
     else if ((mode === 'entrance' || mode === 'orbit') &&
-      (!entered || (scrollingBack && top > innerHeight * reverseStart))) beginRetreat();
+      retreatRequested) beginRetreat();
     // Hover still pauses the settled ring, but cannot block an exit caused by scrolling.
-    if (mode === 'retreat' || mode === 'handoff') paused = bodyPaused;
-    if (!visible && !entered) { mode = 'waiting'; travel = entranceTime = 0; retreat = handoff = null; }
+    if (mode === 'retreat' || mode === 'handoff' || (sceneMotion.enabled && sceneMotion.exit > 0)) paused = bodyPaused;
+    if (!visible && !entered) { mode = 'waiting'; travel = entranceTime = orbitTime = 0; retreat = handoff = null; }
     else if (!visible && scroll >= sectionTop + sectionHeight && mode === 'entrance') {
-      mode = 'orbit'; travel = entryLength + circumference; entranceTime = entranceDuration;
+      mode = 'orbit'; travel = entryLength + circumference; entranceTime = entranceDuration; orbitTime = .25;
+      if (sceneMotion.enabled) { beginHandoff(); handoff.progress = handoff.value = sceneMotion.exit; }
     } else if (!visible && scroll >= sectionTop + sectionHeight && mode === 'handoff') {
-      handoff.progress = sceneMotion.exit;
+      handoff.progress = handoff.value = sceneMotion.exit; handoff.velocity = 0;
     } else if (visible && !paused) {
       if (mode === 'entrance') {
-        const consumed = Math.min(dt, entranceDuration - entranceTime);
+        // Catch up gently if the scroll has already requested departure. Normal
+        // entry timing stays unchanged; a skipped target still forms the circle.
+        const rateTarget = sceneMotion.enabled && sceneMotion.exit > 0 && entranceTime < fastTime ? 1.35 : 1;
+        entranceRate += (rateTarget - entranceRate) * (1 - Math.exp(-8 * dt));
+        const consumed = Math.min(dt * entranceRate, entranceDuration - entranceTime);
         entranceTime += consumed; travel = entranceDistance(entranceTime);
-        if (entranceTime >= entranceDuration) { mode = 'orbit'; travel += cruiseSpeed * (dt - consumed); }
-      } else if (mode === 'orbit') travel += cruiseSpeed * dt;
+        if (entranceTime >= entranceDuration) {
+          mode = 'orbit'; orbitTime = Math.max(0, dt - consumed / entranceRate);
+          travel += cruiseSpeed * orbitTime;
+        }
+      } else if (mode === 'orbit') { travel += cruiseSpeed * dt; orbitTime += dt; }
       else if (mode === 'retreat') {
         // Scrub the return path with scrolling, smoothing input without a timed exit.
-        retreat.progress += (reverseTarget - retreat.progress) * (1 - Math.exp(-14 * dt));
-        if (Math.abs(reverseTarget - retreat.progress) < .0001) retreat.progress = reverseTarget;
+        retreat.progress = advanceProgress(retreat, reverseTarget, dt, 1.8);
         if (reverseTarget === 0 && retreat.progress === 0) { mode = retreat.resumeMode; retreat = null; }
         else if (retreat.progress === 1) {
-          mode = 'waiting'; travel = entranceTime = 0; retreat = null;
+          mode = 'waiting'; travel = entranceTime = orbitTime = 0; retreat = null;
         }
       } else if (mode === 'handoff') {
-        handoff.progress += (sceneMotion.exit - handoff.progress) * (1 - Math.exp(-14 * dt));
-        if (Math.abs(sceneMotion.exit-handoff.progress) < .0001) handoff.progress = sceneMotion.exit;
+        // On return, let the models use the shared outlet before skills enter it.
+        const returnFloor = sceneMotion.modelArrival > 0 ? .78 + .22 * sceneMotion.modelArrival : 0;
+        const target = Math.max(sceneMotion.exit, returnFloor);
+        handoff.progress = advanceProgress(handoff, target, dt);
       }
     }
   }
   setSkillExit(mode === 'handoff' ? handoff.progress : 0);
   draw();
-  const retreatMoving = mode === 'retreat' && Math.abs(retreat.progress - reverseTarget) > .0001;
+  const retreatMoving = mode === 'retreat' && (retreat.progress !== reverseTarget || retreat.velocity !== 0);
   const running = visible && !paused && !reduced.matches && mode !== 'waiting' &&
     (mode !== 'retreat' || retreatMoving) &&
-    (mode !== 'handoff' || Math.abs(handoff.progress-sceneMotion.exit) > .0001);
+    (mode !== 'handoff' || handoff.velocity !== 0 || handoff.progress !== Math.max(sceneMotion.exit,
+      sceneMotion.modelArrival > 0 ? .78 + .22 * sceneMotion.modelArrival : 0));
   if (section.classList.contains('skills-orbit-running') !== running) section.classList.toggle('skills-orbit-running', running);
   if (running) scheduled = requestHobbyFrame(tick, 15);
   else stop();

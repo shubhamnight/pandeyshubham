@@ -93,6 +93,10 @@ body.badge-entering #home .badge-rig{will-change:transform,opacity;transform-ori
 .portfolio-intro{background:#0c0d10;color:#e7e7e7}
 .portfolio-intro .intro-loading{position:absolute;inset:0;z-index:4;display:flex;justify-content:center;gap:0;background:#0c0d10;overflow:hidden}
 .portfolio-intro .intro-loading[hidden]{display:none}
+/* Measure and upload the final surface before it is needed on screen. */
+.portfolio-intro.play-preparing .intro-play{display:flex!important;position:absolute;top:50%;left:0;right:0;translate:0 -50%;visibility:hidden;pointer-events:none}
+.portfolio-intro.play-preparing .intro-play .flow-play{animation:none;translate:0 0;transform:none;transition:none}
+.portfolio-intro.play-preparing .flow-label>span{animation:none;translate:0 0}
 .batman-loader-stage{position:relative;width:min(76vw,400px);height:min(49.4vw,260px);flex:none;transform-origin:center}
 .batman-loader-stage>canvas{position:absolute;inset:0;display:block;width:100%;height:100%;visibility:hidden;pointer-events:none;filter:drop-shadow(0 16px 16px #1111111c)}
 .batman-loader-stage.batman-model-ready>canvas{visibility:visible}
@@ -102,8 +106,11 @@ body.badge-entering #home .badge-rig{will-change:transform,opacity;transform-ori
 .play-morphing .batman-loader-stage>canvas{filter:none}
 .portfolio-intro.play-morphing .intro-play{position:absolute;top:50%;left:0;right:0;translate:0 -50%;z-index:6;pointer-events:none}
 .portfolio-intro.play-morphing .flow-play{background:transparent!important;border-color:transparent!important;color:#fff;transform:none!important;translate:0 0;animation:none;transition:none;box-shadow:none}
-.portfolio-intro.play-morphing.play-morphed .flow-play{background:#000!important;border-color:#000!important;border-radius:100px}
+.portfolio-intro.play-morphing:not(.play-webgl) .flow-play{background:#242424!important;border-color:#626262!important;border-radius:100px}
 .play-morphing .flow-label,.play-morphing .flow-arrow{opacity:var(--play-detail-opacity,0)}
+.portfolio-intro.play-morphing .intro-play .flow-play .flow-label{transform:translateX(-12px);transition:none}
+.portfolio-intro.play-morphing .intro-play .flow-play .flow-arrow-left{left:-25%;transition:none}
+.portfolio-intro.play-morphing .intro-play .flow-play .flow-arrow-right{right:20px;transition:none}
 .portfolio-intro.play-morphing .flow-arrow{fill:#fff;stroke:none}
 .play-morphing .flow-label>span,.play-morphed .flow-label>span{animation:none;translate:0 0}
 .play-morphed .intro-play .flow-play{animation:none;translate:0 0}
@@ -119,9 +126,12 @@ body.badge-entering #home .badge-rig{will-change:transform,opacity;transform-ori
 .portfolio-intro.play-webgl .batman-loader-stage>canvas{filter:none;transition:translate .25s cubic-bezier(.22,1,.36,1)}
 .portfolio-intro.show-play.play-webgl:not(.is-zooming) .flow-play{transition:translate .25s cubic-bezier(.22,1,.36,1)}
 @media(hover:hover) and (pointer:fine){
-  .portfolio-intro.show-play.play-webgl:not(.is-zooming) .flow-play:hover{transform:none;translate:0 -3px}
-  .portfolio-intro.show-play.play-webgl:not(.is-zooming):has(.flow-play:hover) .batman-loader-stage>canvas{translate:0 -3px}
+  .portfolio-intro.show-play.play-webgl.play-hover-ready:not(.is-zooming) .flow-play:hover{transform:none;translate:0 -3px}
+  .portfolio-intro.show-play.play-webgl.play-hover-ready:not(.is-zooming):has(.flow-play:hover) .batman-loader-stage>canvas{translate:0 -3px}
 }
+.portfolio-intro:not(.play-hover-ready) .intro-play .flow-play .flow-label{transform:translateX(-12px)}
+.portfolio-intro:not(.play-hover-ready) .intro-play .flow-play .flow-arrow-left{left:-25%}
+.portfolio-intro:not(.play-hover-ready) .intro-play .flow-play .flow-arrow-right{right:20px}
 .portfolio-intro.show-play.play-webgl:not(.is-zooming) .flow-play:active{transform:none;translate:0 3px}
 .portfolio-intro.show-play.play-webgl:not(.is-zooming):has(.flow-play:active) .batman-loader-stage>canvas{translate:0 3px}
 .portfolio-intro.is-zooming.play-webgl .intro-loading{overflow:visible}

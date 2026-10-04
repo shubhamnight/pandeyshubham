@@ -159,7 +159,7 @@ badge.addEventListener('blur', () => { releaseBadge(); settleBadge(); });
 window.addEventListener('blur', stopBadge);
 document.addEventListener('visibilitychange', () => { if (document.hidden) stopBadge(); });
 reducedMotion.addEventListener('change', () => { if (!motionAllowed()) stopBadge(); });
-new MutationObserver(() => { if (!motionAllowed()) stopBadge(); }).observe(document.body, {attributes:true, attributeFilter:['class']});
+new MutationObserver(() => { if (!motionAllowed() && (frame || dragging || poseKeys.some(key=>pose[key]!==0))) stopBadge(); }).observe(document.body, {attributes:true, attributeFilter:['class']});
 new MutationObserver(() => { if (!motionAllowed() && (frame || dragging)) stopBadge(); }).observe(hero, {attributes:true, attributeFilter:['class']});
 document.querySelector('#year').textContent = new Date().getFullYear();
 

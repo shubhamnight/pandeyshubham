@@ -5,8 +5,9 @@ const clamp=value=>Math.max(0,Math.min(1,value));
 const smooth=value=>value*value*value*(value*(value*6-15)+10);
 
 function playBounds(button){
-  const bounds=button.getBoundingClientRect(),width=button.offsetWidth,height=button.offsetHeight;
-  // Measure the unscaled face so interaction transforms cannot stretch it.
+  const bounds=button.parentElement.getBoundingClientRect(),width=button.offsetWidth,height=button.offsetHeight;
+  // The centered container is stable even while the button is hovered or
+  // pressed; its canvas supplies those same interaction offsets separately.
   return {width,height,left:bounds.left+(bounds.width-width)/2,top:bounds.top+(bounds.height-height)/2};
 }
 
@@ -85,75 +86,150 @@ function preserveCapBoundary(geometry,contour){
   geometry.addGroup(capCount,positions.length/3-capCount,1);
 }
 
+// Match the upper and lower silhouettes independently. A single perimeter
+// fraction made the right wing drift past the button's right edge mid-morph.
+// Bake contour projection during loading; resizing only scales these samples.
+function bakeMorphCorrespondence(contour,position,bounds){
+  const segments=[],distances=new Float64Array(contour.length);
+  let length=0,right=0;
+  for(let index=0;index<contour.length;index++){
+    const from=contour[index],to=contour[(index+1)%contour.length];
+    const dx=to.x-from.x,dy=to.y-from.y,squared=dx*dx+dy*dy;
+    const segmentLength=Math.sqrt(squared);
+    if(from.x>contour[right].x)right=index;
+    distances[index]=length;length+=segmentLength;
+    segments.push({from,dx,dy,squared,length:segmentLength});
+  }
+  const upperLength=distances[right],lowerLength=length-upperLength;
+  const samples=new Float64Array(position.count*3),mapped=new Map(),source=position.array;
+  const depth=bounds.max.z-bounds.min.z;
+  for(let index=0;index<position.count;index++){
+    const offset=index*3,key=`${source[offset]},${source[offset+1]}`;
+    let point=mapped.get(key);
+    if(!point){
+      let along=0,best=Infinity;
+      for(let segment=0;segment<segments.length;segment++){
+        const {from,dx,dy,squared,length:segmentLength}=segments[segment];
+        const fraction=clamp(((source[offset]-from.x)*dx+(source[offset+1]-from.y)*dy)/Math.max(squared,1e-12));
+        const ex=source[offset]-from.x-dx*fraction,ey=source[offset+1]-from.y-dy*fraction;
+        const distance=ex*ex+ey*ey;
+        if(distance<best){best=distance;along=distances[segment]+segmentLength*fraction;}
+      }
+      const phase=along<=upperLength?along/upperLength*.5:.5+(along-upperLength)/lowerLength*.5;
+      point=[phase,clamp(Math.sqrt(best)/.045)];mapped.set(key,point);
+    }
+    samples[offset]=point[0];samples[offset+1]=point[1];
+    samples[offset+2]=clamp((bounds.max.z-source[offset+2])/depth);
+  }
+  return samples;
+}
+
 // The mesh and the actual control share one position and one silhouette.
 // A separate compositor layer carries blue outward from that same center.
-export async function morphBatmanIntoPlay(intro,reduced,prepareMesh){
+export async function morphBatmanIntoPlay(intro,reduced,prepareMesh,signal){
+  if(signal?.aborted)return;
   const loading=intro.querySelector('.intro-loading');
   const stage=intro.querySelector('.batman-loader-stage');
   const play=intro.querySelector('.intro-play'),button=play.querySelector('button');
+  const details=[...button.querySelectorAll('.flow-label,.flow-arrow')];
+  details.forEach(detail=>{detail.style.opacity='0';});
   button.inert=true;play.hidden=false;
   intro.classList.add('play-morphing');
-  intro.style.setProperty('--play-detail-opacity','0');
+  intro.classList.remove('play-preparing');
   const buttonBounds=playBounds(button),stageBounds=stage.getBoundingClientRect();
   const drawMesh=prepareMesh?.(buttonBounds,stageBounds);
   const keepsMesh=Boolean(drawMesh);
   if(keepsMesh)intro.classList.add('play-webgl');
   const bloom=document.createElement('div');bloom.className='intro-blue-bloom';
   bloom.setAttribute('aria-hidden','true');
-  bloom.style.left=`${buttonBounds.left+buttonBounds.width/2}px`;
-  bloom.style.top=`${buttonBounds.top+buttonBounds.height/2}px`;
+  bloom.style.left='50%';bloom.style.top='50%';
   intro.prepend(bloom);
   const complete=()=>{
+    // Commit the exact endpoint before removing transition styles. The GPU
+    // surface, label and background must already match their resting state.
+    drawMesh?.(1);
     loading.hidden=!keepsMesh;intro.classList.add('show-play','play-morphed');
     intro.classList.remove('play-morphing');
     intro.style.removeProperty('--play-detail-opacity');
+    details.forEach(detail=>{detail.style.removeProperty('opacity');detail.style.removeProperty('translate');});
     button.inert=false;bloom.remove();
   };
   if(reduced){drawMesh?.(1);complete();return;}
-  const morphDuration=1700,bloomDelay=900,bloomDuration=1050;
-  const bloomScale=Math.hypot(innerWidth,innerHeight)/64*1.05;
-  let elapsed=0,last=0,meshDone=false,frame=0;
+  // Shape and blue finish together. A short settled beat completes the reveal
+  // before the people, flicker and interactions take over.
+  const transitionSpeed=1.2;
+  const morphDuration=1840,bloomDelay=1100,bloomDuration=morphDuration-bloomDelay;
+  const detailStart=1160,detailDuration=580,totalDuration=morphDuration+160;
+  const startScale=buttonBounds.height/64;
+  let bloomScale=Math.hypot(innerWidth,innerHeight)/64*1.08;
+  let elapsed=0,last=0,meshDone=false,frame=0,lastDetail=-1,lastBloom=-1,done=false;
+  const preference=matchMedia('(prefers-reduced-motion: reduce)');
   await new Promise((resolve,reject)=>{
+    function cleanup(){
+      done=true;cancelAnimationFrame(frame);frame=0;
+      document.removeEventListener('visibilitychange',resume);
+      window.removeEventListener('resize',resizeBloom);
+      preference.removeEventListener('change',preferenceChanged);
+      signal?.removeEventListener('abort',abort);
+    }
+    function abort(){
+      cleanup();bloom.remove();
+      details.forEach(detail=>{detail.style.removeProperty('opacity');detail.style.removeProperty('translate');});
+      resolve();
+    }
+    function resizeBloom(){bloomScale=Math.hypot(innerWidth,innerHeight)/64*1.08;lastBloom=-1;}
+    function preferenceChanged(){if(preference.matches){elapsed=totalDuration;resume();}}
     function resume(){
       cancelAnimationFrame(frame);frame=0;last=0;
-      if(!document.hidden)frame=requestAnimationFrame(tick);
+      if(!done&&!document.hidden)frame=requestAnimationFrame(tick);
     }
     function tick(time){
       frame=0;
       // Resume from the same visual state if the tab is temporarily hidden.
       if(document.hidden){last=0;return;}
       try{
-        elapsed+=last?Math.min(time-last,50):0;last=time;
+        elapsed+=last?Math.min(time-last,50)*transitionSpeed:0;last=time;
         const progress=clamp(elapsed/morphDuration);
         if(!meshDone){
-          const deformation=smooth(progress);
-          drawMesh?.(deformation);
-          intro.style.setProperty('--play-detail-opacity',String(smooth(clamp((elapsed-1100)/600))));
+          drawMesh?.(progress);
           if(progress===1){
             // Keep the actual extrusion in place; the HTML only supplies its
             // lettering, keyboard focus and click target.
-            intro.classList.add('play-morphed');loading.hidden=!keepsMesh;meshDone=true;
+            meshDone=true;
           }
         }
+        // Lettering resolves only once there is a readable button face. Write
+        // opacity on these three layers instead of invalidating the entire intro.
+        const detailProgress=smooth(clamp((elapsed-detailStart)/detailDuration));
+        if(detailProgress!==lastDetail){
+          lastDetail=detailProgress;
+          details.forEach(detail=>{
+            detail.style.opacity=String(detailProgress);
+          });
+        }
         const reveal=clamp((elapsed-bloomDelay)/bloomDuration);
-        const scale=bloomScale*(1-(1-reveal)**3);
-        bloom.style.transform=`translate(-50%,-50%) scale(${scale})`;
-        if(elapsed>=bloomDelay+bloomDuration){
-          document.removeEventListener('visibilitychange',resume);complete();resolve();
+        const scale=reveal>0?startScale+(bloomScale-startScale)*smooth(reveal):0;
+        if(scale!==lastBloom){lastBloom=scale;bloom.style.transform=`translate(-50%,-50%) scale(${scale})`;}
+        if(elapsed>=totalDuration){
+          cleanup();complete();resolve();
         }
         else frame=requestAnimationFrame(tick);
       }catch(error){
-        document.removeEventListener('visibilitychange',resume);
-        cancelAnimationFrame(frame);reject(error);
+        cleanup();details.forEach(detail=>{detail.style.removeProperty('opacity');detail.style.removeProperty('translate');});
+        reject(error);
       }
     }
-    document.addEventListener('visibilitychange',resume);resume();
+    document.addEventListener('visibilitychange',resume);
+    window.addEventListener('resize',resizeBloom,{passive:true});
+    preference.addEventListener('change',preferenceChanged);resume();
+    signal?.addEventListener('abort',abort,{once:true});
   });
 }
 
 export function createBatmanLoader(intro){
   const stage=intro.querySelector('.batman-loader-stage');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const transition=new AbortController();
   let renderer;
   try{
     renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
@@ -219,6 +295,7 @@ export function createBatmanLoader(intro){
   geometry.translate(-origin.x,-origin.y,-origin.z);
   for(const point of contour){point.x-=origin.x;point.y-=origin.y;}
   const position=geometry.getAttribute('position');
+  const correspondence=bakeMorphCorrespondence(contour,position,geometry.boundingBox);
   const playPosition=position.clone();
   geometry.setAttribute('playPosition',playPosition);
   const playNormal=geometry.getAttribute('normal').clone();
@@ -226,7 +303,7 @@ export function createBatmanLoader(intro){
   const face=new THREE.MeshStandardMaterial({color:0x4b6584,metalness:.72,roughness:.28,transparent:false,opacity:1});
   const side=new THREE.MeshStandardMaterial({color:0x344b68,metalness:.8,roughness:.24,transparent:false,opacity:1});
   // Upload the target once; the GPU interpolates vertices and bevel normals.
-  // Both materials share the same scalar, with no per-frame buffer uploads.
+  // Both materials share uniform blends, with no per-frame buffer uploads.
   const morph={value:0};
   const faceBounds={value:new THREE.Vector2(0,1)};
   for(const material of [face,side]){
@@ -241,7 +318,7 @@ export function createBatmanLoader(intro){
       shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',
         '#include <color_fragment>\ndiffuseColor.rgb *= mix(1.0, 0.88 + 0.12 * smoothstep(0.0, 1.0, vPlayFaceHeight), playMorph);');
     };
-    material.customProgramCacheKey=()=> 'batman-play-morph-v4';
+    material.customProgramCacheKey=()=> 'batman-play-morph-v6';
   }
   const model=new THREE.Mesh(geometry,[face,side]);scene.add(model);
   // A straight-on resting pose: lighting and bevels retain the model's depth.
@@ -251,32 +328,39 @@ export function createBatmanLoader(intro){
   let settleFrom=0,settleTo=0,settleTime=0,settleDuration=1;
   let finishPromise,resolveFinish;
   let renderWidth=0,renderHeight=0;
+  let targetSignature='',morphStarted=false,currentMorph=0,lastPaint=-1;
+  const faceStart=face.color.clone(),sideStart=side.color.clone();
+  const graphite=new THREE.Color(0x242424),edgeGraphite=new THREE.Color(0x101010);
+  const skyStart=ambient.color.clone(),groundStart=ambient.groundColor.clone(),edgeStart=edge.color.clone();
+  const neutralLight=new THREE.Color(0xffffff),neutralGround=new THREE.Color(0x252525);
+  const playButton=intro.querySelector('.flow-play');
+  playButton.inert=true;intro.classList.add('play-preparing');
   const spinSpeed=2.1;
   function resize(){
+    if(disposed||intro.classList.contains('is-zooming'))return;
     const width=stage.clientWidth,height=stage.clientHeight;
-    if(!width||!height||disposed)return;
+    if(!width||!height)return;
+    const buttonBounds=playBounds(playButton),stageBounds=stage.getBoundingClientRect();
     if(width!==renderWidth||height!==renderHeight){
       renderWidth=width;renderHeight=height;renderer.setSize(width,height,false);
       view.top=3.2*height/width;view.bottom=-view.top;view.updateProjectionMatrix();
     }
-    if(mode==='exit'&&morph.value===1&&intro.classList.contains('play-webgl')&&!intro.classList.contains('is-zooming')){
-      prepareMeshMorph(playBounds(intro.querySelector('.flow-play')),stage.getBoundingClientRect())(1);
+    // Warm both target attributes during loading. Fonts and viewport changes
+    // can refresh them, but entering the morph normally reuses these buffers.
+    prepareMeshMorph(buttonBounds,stageBounds);
+    if(morphStarted){
+      paintMorph(currentMorph);
       return;
     }
     renderer.render(scene,view);
   }
   function prepareMeshMorph(buttonBounds,stageBounds){
-    const source=position.array,target=playPosition.array;
-    // Project onto contour segments, preserving the original ordering and all
-    // subdivisions, including those on the originally straight wing edges.
-    const distances=new Float64Array(contour.length),segments=[];let length=0;
-    for(let i=0;i<contour.length;i++){
-      const from=contour[i],to=contour[(i+1)%contour.length];
-      const dx=to.x-from.x,dy=to.y-from.y,squared=dx*dx+dy*dy;
-      const segmentLength=Math.sqrt(squared);
-      distances[i]=length;length+=segmentLength;
-      segments.push({from,dx,dy,squared,length:segmentLength});
-    }
+    if(!buttonBounds.width||!buttonBounds.height||!stageBounds.width)return paintMorph;
+    const signature=[buttonBounds.width,buttonBounds.height,buttonBounds.left,buttonBounds.top,
+      stageBounds.width,stageBounds.height,stageBounds.left,stageBounds.top].join(':');
+    if(signature===targetSignature)return paintMorph;
+    targetSignature=signature;lastPaint=-1;
+    const target=playPosition.array;
     const units=6.4/stageBounds.width;
     const radius=buttonBounds.height*units/2;
     const sourceFront=geometry.boundingBox.max.z,sourceDepth=sourceFront-geometry.boundingBox.min.z;
@@ -290,7 +374,7 @@ export function createBatmanLoader(intro){
     faceBounds.value.set(centerY,radius*2);
     shadow.scale.set(buttonBounds.width*units*1.35,buttonBounds.height*units*.45,1);
     shadow.position.set(centerX+rearX*.5,centerY-radius+rearY-8*units,-depth-1);
-    function capsule(distance){
+    function capsule(distance,point){
       let cx,cy,nx,ny;
       if(distance<arc){
         const angle=Math.PI-distance/radius;nx=Math.cos(angle);ny=Math.sin(angle);
@@ -304,28 +388,14 @@ export function createBatmanLoader(intro){
         distance-=flat;const angle=-Math.PI/2-distance/radius;
         nx=Math.cos(angle);ny=Math.sin(angle);cx=-straight+nx*radius;cy=ny*radius;
       }
-      return [cx+centerX,cy+centerY,nx,ny];
+      point[0]=cx+centerX;point[1]=cy+centerY;point[2]=nx;point[3]=ny;
     }
-    const mapped=new Map();
+    const point=new Float64Array(4);
     for(let i=0;i<position.count;i++){
-      const offset=i*3,key=`${source[offset]},${source[offset+1]}`;
-      let point=mapped.get(key);
-      if(!point){
-        let along=0,best=Infinity;
-        for(let j=0;j<contour.length;j++){
-          const {from,dx,dy,squared,length:segmentLength}=segments[j];
-          const fraction=clamp(((source[offset]-from.x)*dx+(source[offset+1]-from.y)*dy)/squared);
-          const ex=source[offset]-from.x-dx*fraction,ey=source[offset+1]-from.y-dy*fraction;
-          const distance=ex*ex+ey*ey;
-          if(distance<best){best=distance;along=distances[j]+segmentLength*fraction;}
-        }
-        point=capsule(along/length*perimeter);
-        // Preserve the rounded bevel layers instead of flattening the walls.
-        point.push(clamp(Math.sqrt(best)/.045)*rim);mapped.set(key,point);
-      }
-      const back=clamp((sourceFront-source[offset+2])/sourceDepth);
-      target[offset]=point[0]+point[2]*point[4]+rearX*back;
-      target[offset+1]=point[1]+point[3]*point[4]+rearY*back;
+      const offset=i*3,bevel=correspondence[offset+1]*rim,back=correspondence[offset+2];
+      capsule(correspondence[offset]*perimeter,point);
+      target[offset]=point[0]+point[2]*bevel+rearX*back;
+      target[offset+1]=point[1]+point[3]*bevel+rearY*back;
       target[offset+2]=-depth*back;
     }
     playPosition.needsUpdate=true;
@@ -336,15 +406,15 @@ export function createBatmanLoader(intro){
     targetGeometry.computeVertexNormals();
     playNormal.array.set(targetGeometry.getAttribute('normal').array);
     playNormal.needsUpdate=true;targetGeometry.dispose();
-    const faceStart=face.color.clone(),sideStart=side.color.clone();
-    const graphite=new THREE.Color(0x242424),edgeGraphite=new THREE.Color(0x101010);
-    const skyStart=ambient.color.clone(),groundStart=ambient.groundColor.clone(),edgeStart=edge.color.clone();
-    const neutralLight=new THREE.Color(0xffffff),neutralGround=new THREE.Color(0x252525);
-    return progress=>{
-      morph.value=progress;
-      // The outline leads; material and depth resolve into graphite without
-      // a late color snap or the previous flat-button replacement.
-      const materialProgress=smooth(clamp((progress-.08)/.82));
+    return paintMorph;
+  }
+  function paintMorph(progress){
+      if(disposed||progress===lastPaint)return;
+      lastPaint=currentMorph=progress;
+      // One blend for the silhouette, depth and normals: the wings, ears and
+      // bevels finish together rather than leaving a trailing vertical stretch.
+      morph.value=progress===1?1:smooth(progress);
+      const materialProgress=progress===1?1:smooth(clamp((progress-.16)/.84));
       face.color.copy(faceStart).lerp(graphite,materialProgress);
       side.color.copy(sideStart).lerp(edgeGraphite,materialProgress);
       face.metalness=.72-.54*materialProgress;side.metalness=.8-.55*materialProgress;
@@ -353,20 +423,21 @@ export function createBatmanLoader(intro){
       ambient.groundColor.copy(groundStart).lerp(neutralGround,materialProgress);
       edge.color.copy(edgeStart).lerp(neutralLight,materialProgress);
       playRim.intensity=1.6*materialProgress;
-      const shadowProgress=smooth(clamp((progress-.4)/.6));
+      const shadowProgress=smooth(clamp((progress-.52)/.48));
       shadow.visible=shadowProgress>0;shadowMaterial.opacity=shadowProgress;
       renderer.render(scene,view);
-    };
   }
   function dispose(){
     if(disposed)return;disposed=true;cancelAnimationFrame(frame);
+    transition.abort();resolveFinish?.();
     resizeObserver.disconnect();document.removeEventListener('visibilitychange',wake);
+    window.removeEventListener('pageshow',wake);
     reduced.removeEventListener('change',onReduced);window.removeEventListener('pagehide',onPageHide);
     geometry.dispose();face.dispose();side.dispose();
     shadowGeometry.dispose();shadowMaterial.dispose();shadowTexture.dispose();
     renderer.dispose();
     renderer.domElement.remove();stage.classList.remove('batman-model-ready');
-    intro.classList.remove('play-webgl');
+    intro.classList.remove('play-webgl','play-preparing');
   }
   async function exit(){
     if(mode==='exit'||disposed)return;
@@ -376,7 +447,9 @@ export function createBatmanLoader(intro){
     if(disposed)return;
     let keepSurface=false;
     try{
-      await morphBatmanIntoPlay(intro,reduced.matches,prepareMeshMorph);
+      await morphBatmanIntoPlay(intro,reduced.matches,(buttonBounds,stageBounds)=>{
+        prepareMeshMorph(buttonBounds,stageBounds);morphStarted=true;return paintMorph;
+      },transition.signal);
       keepSurface=true;
     }
     catch(error){
@@ -387,6 +460,7 @@ export function createBatmanLoader(intro){
       intro.classList.add('show-play','play-morphed');
       intro.classList.remove('play-morphing');
       intro.style.removeProperty('--play-detail-opacity');
+      intro.querySelectorAll('.flow-label,.flow-arrow').forEach(detail=>{detail.style.removeProperty('opacity');detail.style.removeProperty('translate');});
       intro.querySelector('.intro-blue-bloom')?.remove();
     }finally{
       // The settled PLAY is one frozen GPU surface, with no ongoing draw loop.
@@ -402,15 +476,16 @@ export function createBatmanLoader(intro){
       if(requested&&spinTime>=1.2){
         mode='settle';settleFrom=angle;
         settleTo=Math.ceil((angle-restYaw)/(Math.PI*2))*Math.PI*2+restYaw;
-        // Give a nearly completed turn enough room to brake without reversing.
-        if(settleTo-settleFrom<.5)settleTo+=Math.PI*2;
-        settleDuration=Math.max(.65,Math.min(1.4,(settleTo-settleFrom)/spinSpeed*1.15));
+        // Brake through the remaining turn instead of accelerating to squeeze
+        // it into a fixed duration, or adding a whole extra rotation near home.
+        settleDuration=Math.max(.20,2*(settleTo-settleFrom)/spinSpeed);
       }
     }else if(mode==='settle'){
       settleTime+=dt;
       const t=Math.min(1,settleTime/settleDuration),t2=t*t,t3=t2*t;
-      // Match the running spin at the start and reach zero velocity upright.
-      angle=settleFrom+(3*t2-2*t3)*(settleTo-settleFrom)+(t3-2*t2+t)*spinSpeed*settleDuration;
+      // Integrate a smooth decrease in angular velocity: no speed-up, overshoot
+      // or reversal, and zero acceleration at both ends of the braking curve.
+      angle=settleFrom+(settleTo-settleFrom)*(2*t-2*t3+t3*t);
       if(t===1){
         model.rotation.set(restPitch,restYaw,0);renderer.render(scene,view);exit();return;
       }
@@ -428,13 +503,15 @@ export function createBatmanLoader(intro){
     if(!frame)frame=requestAnimationFrame(tick);
   }
   function onReduced(){wake();}
-  function onPageHide(event){if(!event.persisted)dispose();}
+  function onPageHide(event){if(!event.persisted)dispose();else{cancelAnimationFrame(frame);frame=0;last=0;}}
   const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(stage);
   resizeObserver.observe(intro.querySelector('.flow-play'));
   document.addEventListener('visibilitychange',wake);
+  window.addEventListener('pageshow',wake);
   reduced.addEventListener('change',onReduced);window.addEventListener('pagehide',onPageHide);
   resize();stage.classList.add('batman-model-ready');wake();
   return {dispose,finish(){
+    if(disposed)return Promise.resolve();
     if(!finishPromise)finishPromise=new Promise(resolve=>{resolveFinish=resolve;requested=true;wake();});
     return finishPromise;
   }};

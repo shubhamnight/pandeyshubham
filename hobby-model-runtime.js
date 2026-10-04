@@ -46,7 +46,7 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
   let visible=false, targetX=0, targetY=0, last=0, dirty=true;
   let pointer=null, rect=null, width=0, height=0, contextLost=false,compiling=true,disposed=false;
   const bodyIsPaused=()=>document.body.classList.contains('photography-gallery-open') ||
-    document.body.classList.contains('motion-paused');
+    document.body.classList.contains('motion-paused') || document.body.classList.contains('intro-active');
   let bodyPaused=bodyIsPaused();
   const renderedTransform = new Float64Array(10);
   renderedTransform.fill(NaN);
@@ -65,7 +65,8 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
     dirty=false;
   }
   button.dataset.hobbyCompiling='true';
-  const allowed=()=>visible && !document.hidden && !contextLost && !compiling && !disposed && !bodyPaused;
+  const allowed=()=>visible && hobbyIntro.motion.get(button)?.visible!==false &&
+    !document.hidden && !contextLost && !compiling && !disposed && !bodyPaused;
   const stop=()=>{deactivate(render);last=0;};
   function render(time) {
     if (!allowed()) {stop();return;}
@@ -133,11 +134,13 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
   renderer.compileAsync(scene,view).catch(error=>console.warn('Model shader warm-up failed',error)).finally(()=>{
     compiling=false;button.dataset.hobbyCompiling='false';dirty=true;wake();
   });
+  window.addEventListener('pageshow',wake);
   window.addEventListener('pagehide',e=>{
-    if(e.persisted)return;
-    disposed=true;stop();unobserveIntro();resize.disconnect();intersection.disconnect();state.disconnect();
+    stop();if(e.persisted)return;
+    disposed=true;unobserveIntro();resize.disconnect();intersection.disconnect();state.disconnect();
     window.removeEventListener('scroll',invalidateRect);
     document.removeEventListener('visibilitychange',wake);
+    window.removeEventListener('pageshow',wake);
     const resources=new Set();
     model.traverse(node=>{
       if(node.geometry)resources.add(node.geometry);

@@ -1,4 +1,4 @@
-import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
+import { requestHobbyFrame, cancelHobbyFrame, advanceProgress } from './hobby-motion-clock.js';
 (() => {
   const section=document.querySelector('#projects');
   if(!section)return;
@@ -74,8 +74,7 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
     if(withdrawal){
       // Follow the upward scroll promptly; reverse the same captured positions
       // when the user scrolls down again, including during an unfinished entrance.
-      withdrawal.progress+=(withdrawal.target-withdrawal.progress)*(1-Math.exp(-14*elapsed/1000));
-      if(Math.abs(withdrawal.target-withdrawal.progress)<.00001)withdrawal.progress=withdrawal.target;
+      withdrawal.progress=advanceProgress(withdrawal,withdrawal.target,elapsed/1000,1.8);
       if(withdrawal.progress===1){entrance=0;withdrawal=null;phase=.74;}
       else if(withdrawal.progress===0&&withdrawal.target===0)withdrawal=null;
     }else if(entrance!==entranceTarget){
@@ -110,7 +109,8 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
     const shouldRun=visible&&!document.hidden&&!reduced.matches&&
       (withdrawal?withdrawal.progress!==withdrawal.target:entrance===1||entrance!==entranceTarget)&&
       !document.body.classList.contains('motion-paused')&&
-      !document.body.classList.contains('photography-gallery-open');
+      !document.body.classList.contains('photography-gallery-open')&&
+      !document.body.classList.contains('intro-active');
     if(section.classList.contains('orbits-running')!==shouldRun)section.classList.toggle('orbits-running',shouldRun);
     if(shouldRun===running)return;
     running=shouldRun;lastTime=null;
@@ -206,8 +206,14 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
   });resizeObserver.observe(section);
   const visibilityObserver=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;update();});visibilityObserver.observe(section);
   document.addEventListener('visibilitychange',update);
-  reduced.addEventListener('change',update);
-  const motionObserver=new MutationObserver(update);
+  function preferenceChanged(){
+    if(reduced.matches){withdrawal=null;entrance=entranceTarget=1;draw();}
+    update();
+  }
+  reduced.addEventListener('change',preferenceChanged);
+  const pauseState=()=>['motion-paused','photography-gallery-open','intro-active'].some(name=>document.body.classList.contains(name));
+  let bodyPaused=pauseState();
+  const motionObserver=new MutationObserver(()=>{const next=pauseState();if(next!==bodyPaused){bodyPaused=next;update();}});
   motionObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
   function entranceChanged(){
     const next=section.hobbyEntranceProgress??0;
@@ -216,7 +222,7 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
       const slots=Array.from({length:count},(_,i)=>entrance===1?(phase-i/count+1)%1:arriving-i/count);
       // Retreat all slots by the same distance from their current positions.
       // Keep their spacing and artwork, and allow a mid-return direction change.
-      withdrawal={slots,distance:Math.max(0,...slots)+.04,progress:0,target:0,startTarget:entranceTarget};
+      withdrawal={slots,distance:Math.max(0,...slots)+.04,progress:0,value:0,velocity:0,target:0,startTarget:entranceTarget};
     }
     if(withdrawal)withdrawal.target=1-Math.max(0,Math.min(1,next/withdrawal.startTarget));
     entranceTarget=next;
@@ -233,12 +239,15 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
     update();
   }
   section.addEventListener('hobby-intro-progress',entranceChanged);
+  window.addEventListener('pageshow',update);
   window.addEventListener('pagehide',event=>{
+    cancelHobbyFrame(tick);frame=0;running=false;lastTime=null;
     if(event.persisted)return;
-    cancelHobbyFrame(tick);cancelAnimationFrame(resizeFrame);
+    cancelAnimationFrame(resizeFrame);
     resizeObserver.disconnect();visibilityObserver.disconnect();motionObserver.disconnect();
     document.removeEventListener('visibilitychange',update);
-    reduced.removeEventListener('change',update);
+    reduced.removeEventListener('change',preferenceChanged);
+    window.removeEventListener('pageshow',update);
     section.removeEventListener('hobby-intro-progress',entranceChanged);
   });
   layout();

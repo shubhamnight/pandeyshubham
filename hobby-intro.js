@@ -1,6 +1,6 @@
 // Scroll positioning is shared by the four existing model canvases.
-import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition } from './hobby-motion-clock.js';
-import { sceneMotion, observeScene } from './skills-hobbies-scene.js';
+import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition, advanceProgress, clampMotionProgress as clamp } from './hobby-motion-clock.js';
+import { sceneMotion, observeScene, setModelProgress } from './skills-hobbies-scene.js';
 const section=document.querySelector('#projects');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const listeners=new Set();
@@ -11,16 +11,18 @@ let orbitAngle=0,centerX=0,centerY=0,radius=0;
 let previousIntroState=null,previousReveal=-1,bounds=null,boundsDirty=true,modelsReady=false;
 let sectionTop=0,sectionHeight=0;
 let imagesStarted=false;
+const arrivalMotion={value:0,velocity:0},spreadMotion={value:0,velocity:0};
+let orbitTime=0;
 let atHandoff=false;
 const travelSpan=.10/(.65*.90);
-const clamp=value=>Math.max(0,Math.min(1,value));
 const smooth=value=>value*value*value*(value*(value*6-15)+10);
 function draw(dt,paused){
   const spread=smooth(progress);
   hobbyIntro.strength=reduced.matches?0:1-spread;
-  const modelEntry=sceneMotion.enabled ? Math.min(sceneMotion.modelEntry, clamp((sceneMotion.skillExit-.78)/.22)) : 1;
+  const modelEntry=sceneMotion.enabled ? arrivalMotion.value : 1;
   const active=visible&&hobbyIntro.strength>.001&&(!sceneMotion.enabled||modelEntry>0);
   const stateChanged=active!==previousIntroState;
+  let modelStateChanged=false;
   centers.forEach((center,index)=>{
     const {element,homeX,homeY,angle,motion}=center;
     const theta=angle+orbitAngle;
@@ -37,13 +39,15 @@ function draw(dt,paused){
       y=u*u*u*startY+3*u*u*t*(startY-sectionHeight*.35)+3*u*t*t*controlY+t*t*t*orbitY-homeY;
       const showing=arrival>0&&modelsReady;
       if(center.showing!==showing){
-        center.showing=showing;element.classList.toggle('scene-model-visible',showing);
+        center.showing=showing;modelStateChanged=true;element.classList.toggle('scene-model-visible',showing);
       }
       const opacity=clamp(arrival*8).toFixed(3);
       if(center.opacity!==opacity){center.opacity=opacity;element.style.setProperty('--scene-model-opacity',opacity);}
     }else if(center.showing!==true){
-      center.showing=true;element.classList.remove('scene-model-visible');element.style.removeProperty('--scene-model-opacity');
+      center.showing=true;modelStateChanged=true;element.classList.remove('scene-model-visible');element.style.removeProperty('--scene-model-opacity');
     }
+    const modelVisible=visible&&center.showing;
+    if(motion.visible!==modelVisible){motion.visible=modelVisible;modelStateChanged=true;}
     const offsetX=x*hobbyIntro.strength,offsetY=y*hobbyIntro.strength;
     // Use the same positions as the orbit, without any extra layout reads.
     // The direction also follows the return journey when scrolling upward.
@@ -78,7 +82,7 @@ function draw(dt,paused){
     section.dispatchEvent(new Event('hobby-intro-progress'));
   }
   if(!section.classList.contains('hobbies-intro-ready'))section.classList.add('hobbies-intro-ready');
-  if(stateChanged){
+  if(stateChanged||modelStateChanged){
     previousIntroState=active;
     listeners.forEach(callback=>callback());
   }
@@ -98,7 +102,8 @@ function tick(time){
   visible=sceneMotion.enabled?sceneMotion.visible:top<innerHeight&&top+sectionHeight>0;
   // Widen the travel interval for the initial 35% speed reduction and
   // another 10%, while retaining the arrival point at 95% coverage.
-  // The quintic easing in draw keeps both ends gentle without a timed delay.
+  // Keep the original scroll landmarks. The rendered stages catch up in order
+  // rather than jumping to those landmarks after a large input.
   const target=sceneMotion.enabled?sceneMotion.spread:clamp((innerHeight*(.05+travelSpan)-top)/(innerHeight*travelSpan));
   if(measure){
     const elements=[...section.querySelectorAll('.hobby-orbit-center')];
@@ -121,26 +126,53 @@ function tick(time){
     measure=false;
   }
   const dt=last?Math.min((time-last)/1000,.05):1/60;last=time;
-  const paused=document.body.classList.contains('photography-gallery-open')||document.body.classList.contains('motion-paused');
-  if(reduced.matches)progress=1;
-  else if(!paused&&(progress<1||target<1)){
-    if(!modelsReady)modelsReady=centers.every(({button})=>(button?.classList.contains('camera-ready')&&button.dataset.hobbyCompiling!=='true')||button?.dataset.hobbyModelFailed==='true');
-    if(modelsReady){
-      // Follow the site's existing smooth scroll directly, so the models
-      // are already home at 95% and reverse naturally when scrolling back.
-      progress=target;
-      if(visible)orbitAngle+=dt*.65*(1-smooth(progress));
+  const paused=bodyIsPaused();
+  if(reduced.matches){progress=spreadMotion.value=arrivalMotion.value=1;spreadMotion.velocity=arrivalMotion.velocity=0;}
+  else if(!paused){
+    if(!visible){
+      // Skipped, invisible stages need no catch-up frames. Returning into the
+      // stage still follows the same continuous path from its last endpoint.
+      progress=spreadMotion.value=top<0?target:0;
+      arrivalMotion.value=sceneMotion.enabled&&top<0?sceneMotion.modelEntry:0;
+      spreadMotion.velocity=arrivalMotion.velocity=0;orbitTime=0;
+    }else if(modelsReady){
+      const arrivalTarget=sceneMotion.enabled?Math.min(sceneMotion.modelEntry,clamp((sceneMotion.skillExit-.78)/.22)):1;
+      // Reverse the spread first, then leave the circle through the shared outlet.
+      const entryTarget=progress>0?1:arrivalTarget;
+      advanceProgress(arrivalMotion,entryTarget,dt,1.2,18);
+      if(arrivalMotion.value===1)orbitTime+=dt;else orbitTime=0;
+      const spreadTarget=arrivalMotion.value===1&&orbitTime>=.25?target:0;
+      progress=advanceProgress(spreadMotion,spreadTarget,dt,.95,18);
+      if(arrivalMotion.value>0)orbitAngle+=dt*.65*(1-smooth(progress));
     }
   }
+  setModelProgress(sceneMotion.enabled?arrivalMotion.value:1,progress);
   draw(dt,paused);
-  const waitingForHandoff=sceneMotion.enabled&&sceneMotion.modelEntry===0;
-  if(visible&&!waitingForHandoff&&(progress<1||progress!==target)&&!reduced.matches&&!paused)frame=requestHobbyFrame(tick,20);
+  const entryRequested=!sceneMotion.enabled||
+    (sceneMotion.modelEntry>0&&sceneMotion.skillExit>.78)||arrivalMotion.value>0||progress>0;
+  const moving=arrivalMotion.velocity!==0||spreadMotion.velocity!==0||progress!==target||
+    (arrivalMotion.value>0&&progress<1)||(!sceneMotion.enabled&&progress<1);
+  if(visible&&entryRequested&&modelsReady&&moving&&!reduced.matches&&!paused)frame=requestHobbyFrame(tick,20);
   else{cancelHobbyFrame(tick);last=0;}
 }
 function wake(){if(!frame)frame=requestHobbyFrame(tick,20);}
 function onScroll(){wake();}
 function onResize(){measure=true;boundsDirty=true;previousIntroState=null;wake();}
+function bodyIsPaused(){
+  const classes=document.body.classList;
+  return classes.contains('photography-gallery-open')||classes.contains('motion-paused')||classes.contains('intro-active');
+}
 if(section){
+  const buttons=new Set(section.querySelectorAll('.hobby-orbit-center button'));
+  function readyChanged(){
+    const ready=buttons.size>0&&[...buttons].every(button=>
+      (button.classList.contains('camera-ready')&&button.dataset.hobbyCompiling!=='true')||button.dataset.hobbyModelFailed==='true');
+    if(ready!==modelsReady){modelsReady=ready;wake();}
+  }
+  // Shader compilation wakes the intro once; do not poll it in an idle RAF loop.
+  const readiness=new MutationObserver(records=>{if(records.some(record=>buttons.has(record.target)))readyChanged();});
+  readiness.observe(section,{subtree:true,attributes:true,attributeFilter:['class','data-hobby-compiling','data-hobby-model-failed']});
+  readyChanged();
   const unobserveScene=observeScene(()=>{
     const next=sceneMotion.enabled&&sceneMotion.modelEntry>0;
     // The hero's entry scale/rotation has finished by this point. Measure the
@@ -158,7 +190,10 @@ if(section){
   window.addEventListener('load',onResize,{once:true});
   reduced.addEventListener('change',()=>{measure=true;wake();});
   document.addEventListener('visibilitychange',wake);
-  const state=new MutationObserver(wake);state.observe(document.body,{attributes:true,attributeFilter:['class']});
+  let bodyPaused=bodyIsPaused();
+  const state=new MutationObserver(()=>{const next=bodyIsPaused();if(next!==bodyPaused){bodyPaused=next;wake();}});
+  state.observe(document.body,{attributes:true,attributeFilter:['class']});
   wake();
-  window.addEventListener('pagehide',event=>{if(event.persisted)return;cancelHobbyFrame(tick);resize.disconnect();state.disconnect();unobserveScene();window.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onResize);document.removeEventListener('visibilitychange',wake);listeners.clear();});
+  window.addEventListener('pageshow',onResize);
+  window.addEventListener('pagehide',event=>{cancelHobbyFrame(tick);frame=0;last=0;if(event.persisted)return;resize.disconnect();state.disconnect();readiness.disconnect();unobserveScene();window.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onResize);window.removeEventListener('pageshow',onResize);document.removeEventListener('visibilitychange',wake);listeners.clear();});
 }

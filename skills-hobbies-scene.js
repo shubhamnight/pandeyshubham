@@ -1,17 +1,19 @@
 // One pinned stage and scroll timeline for the skills-to-hobbies handoff.
-import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition } from './hobby-motion-clock.js';
+import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition, clampMotionProgress as clamp } from './hobby-motion-clock.js';
 
 const skills = document.querySelector('#about');
 const hobbies = document.querySelector('#projects');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const listeners = new Set();
-const clamp = value => Math.max(0, Math.min(1, value));
 const ease = value => value * value * (3 - 2 * value);
 // Only the idle holds shrink. Each moving stage keeps its original scroll span.
 const idleScrollScale = .4;
 const afterSkillsIdleScale = .85;
 const skillsHoldScale = 1.15;
 const hobbiesHoldScale = 1.10 * 1.25 * 1.10 * 1.10;
+// The two latest +10% requests add page-height scroll, rather than multiplying
+// the short existing hold (which added only a few pixels per request).
+const extraHobbiesEndScroll = .10 + .10;
 const timeline = {
   skillsHold: .90 * idleScrollScale * skillsHoldScale,
   skillsExit: .90,
@@ -19,7 +21,7 @@ const timeline = {
   modelEntry: .55,
   modelOrbitHold: .30 * idleScrollScale * afterSkillsIdleScale,
   modelSpread: .40,
-  hobbiesHold: .35 * idleScrollScale * afterSkillsIdleScale * hobbiesHoldScale
+  hobbiesHold: .35 * idleScrollScale * afterSkillsIdleScale * hobbiesHoldScale + extraHobbiesEndScroll
 };
 const exitStart = timeline.skillsHold;
 const modelStart = exitStart + timeline.skillsExit - timeline.entryOverlap;
@@ -29,13 +31,18 @@ const scrollLength = 1 + modelsAtHome + timeline.hobbiesHold;
 export const sceneMotion = {
   element: null, viewport: null, enabled: false, visible: false,
   top: 0, height: 1, stageHeight: 1, advance: 0, exit: 0,
-  modelEntry: 0, spread: 0, skillExit: 0, outletX: 0, outletY: 0
+  modelEntry: 0, spread: 0, skillExit: 0, modelArrival: 0, modelSpread: 0, outletX: 0, outletY: 0
 };
 export function observeScene(callback) { listeners.add(callback); return () => listeners.delete(callback); }
 export function setSkillExit(value) {
   if (sceneMotion.skillExit === value) return;
   sceneMotion.skillExit = value;
-  listeners.forEach(callback => callback());
+  wake();
+}
+export function setModelProgress(arrival, spread) {
+  if (sceneMotion.modelArrival === arrival && sceneMotion.modelSpread === spread) return;
+  sceneMotion.modelArrival = arrival; sceneMotion.modelSpread = spread;
+  wake();
 }
 export function sceneAnchorPosition(hash) {
   if (!sceneMotion.enabled || (hash !== '#about' && hash !== '#projects')) return null;
@@ -43,6 +50,7 @@ export function sceneAnchorPosition(hash) {
   return top + (hash === '#projects' ? sceneMotion.stageHeight * modelsAtHome : 0);
 }
 let frame = 0, measure = true, previous = '', previousSkillsInert = null, previousHobbiesInert = null;
+let previousSkillsCopy = null, previousHobbiesCopy = null;
 
 function update() {
   cancelHobbyFrame(update); frame = 0;
@@ -65,16 +73,19 @@ function update() {
   sceneMotion.modelEntry = clamp((sceneMotion.advance - modelStart) / timeline.modelEntry);
   sceneMotion.spread = clamp((sceneMotion.advance - spreadStart) / timeline.modelSpread);
   const key = [sceneMotion.enabled, sceneMotion.visible, sceneMotion.exit, sceneMotion.modelEntry, sceneMotion.spread,
+    sceneMotion.skillExit, sceneMotion.modelArrival, sceneMotion.modelSpread,
     sceneMotion.stageHeight, sceneMotion.outletX].join(':');
   if (key === previous) return;
   previous = key;
   if (sceneMotion.enabled) {
-    const skillsCopy = 1 - ease(clamp((sceneMotion.exit - .55) / .30));
-    const hobbiesCopy = ease(clamp((sceneMotion.modelEntry - .40) / .60));
-    element.style.setProperty('--scene-skills-copy', skillsCopy);
-    element.style.setProperty('--scene-hobbies-copy', hobbiesCopy);
-    const skillsInert = sceneMotion.exit > 0 || !sceneMotion.visible;
-    const hobbiesInert = sceneMotion.spread < 1 || !sceneMotion.visible;
+    // Copy and interaction follow the rendered sequence, not a scroll target
+    // that may have skipped several stages in a single wheel event.
+    const skillsCopy = 1 - ease(clamp((sceneMotion.skillExit - .55) / .30));
+    const hobbiesCopy = ease(clamp((sceneMotion.modelArrival - .40) / .60));
+    if (skillsCopy !== previousSkillsCopy) { element.style.setProperty('--scene-skills-copy', skillsCopy); previousSkillsCopy = skillsCopy; }
+    if (hobbiesCopy !== previousHobbiesCopy) { element.style.setProperty('--scene-hobbies-copy', hobbiesCopy); previousHobbiesCopy = hobbiesCopy; }
+    const skillsInert = sceneMotion.skillExit > 0 || !sceneMotion.visible;
+    const hobbiesInert = sceneMotion.modelSpread < 1 || !sceneMotion.visible;
     if (skillsInert !== previousSkillsInert) { skills.inert = skillsInert; previousSkillsInert = skillsInert; }
     if (hobbiesInert !== previousHobbiesInert) { hobbies.inert = hobbiesInert; previousHobbiesInert = hobbiesInert; }
   } else {
@@ -101,7 +112,9 @@ if (skills && hobbies) {
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(element); resizeObserver.observe(viewport);
   const hero = document.querySelector('#home'); if (hero) resizeObserver.observe(hero);
-  const stateObserver = new MutationObserver(wake);
+  const pauseState = () => ['intro-active', 'photography-gallery-open', 'motion-paused'].map(name => document.body.classList.contains(name)).join(':');
+  let bodyState = pauseState();
+  const stateObserver = new MutationObserver(() => { const next = pauseState(); if (next !== bodyState) { bodyState = next; wake(); } });
   stateObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
   window.addEventListener('scroll', wake, { passive: true });
   window.addEventListener('resize', resize, { passive: true });

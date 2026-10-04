@@ -421,7 +421,7 @@ main>.section,main>dialog,#study-dialog,.hero-skills-transition>#about{--paper:#
 .skills-hobbies-scene{position:relative;background:#0c0d10}
 .skills-hobbies-viewport{position:relative;transform-origin:50% 0}
 .hero-skills-transition.transition-running .skills-hobbies-viewport{will-change:transform}
-.scene-pinned{height:calc(max(860px,100dvh + 48px)*var(--scene-scroll-length,3.36398625))}
+.scene-pinned{height:calc(max(860px,100dvh + 48px)*var(--scene-scroll-length,3.56398625))}
 .scene-pinned .skills-hobbies-viewport{position:sticky;top:var(--scene-sticky-top,-48px);height:max(860px,calc(100dvh + 48px));overflow:clip;isolation:isolate;transform:scale(var(--enter-scale,1)) rotate(var(--enter-rotation,0deg))}
 .scene-pinned #about,.scene-pinned #projects{position:absolute;inset:0;height:100%;min-height:0;max-height:none;padding:0;border:0;border-radius:0;box-shadow:none;background:transparent;transform:none;pointer-events:none}
 .scene-pinned #about{z-index:2}
@@ -434,5 +434,5 @@ main>.section,main>dialog,#study-dialog,.hero-skills-transition>#about{--paper:#
 .scene-pinned #projects .hobby-orbit-center.scene-model-visible{visibility:visible}
 .scene-pinned #projects .hobby-orbits{overflow:clip}
 .scene-pinned #projects .hobby-arc-stream{opacity:var(--scene-hobby-media,0)}
-@media(max-width:900px){.scene-pinned{height:calc(max(780px,100dvh + 48px)*var(--scene-scroll-length,3.36398625))}.scene-pinned .skills-hobbies-viewport{height:max(780px,calc(100dvh + 48px))}}
+@media(max-width:900px){.scene-pinned{height:calc(max(780px,100dvh + 48px)*var(--scene-scroll-length,3.56398625))}.scene-pinned .skills-hobbies-viewport{height:max(780px,calc(100dvh + 48px))}}
 @media(prefers-reduced-motion:reduce){.skills-hobbies-viewport{transform:none}.skills-hobbies-scene #about,.skills-hobbies-scene #projects{transform:none;border-radius:0;box-shadow:none;background:#0c0d10}}

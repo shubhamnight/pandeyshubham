@@ -48,9 +48,13 @@
     for(let sample=0;sample<=384;sample++){
       const offset=sample/384,time=offset*32;
       const noise=(noiseAt(index+1,time)*.5+noiseAt(0,time)*.5)/Math.SQRT1_2;
-      const opacity=Math.max(.3,Math.min(1,1-noise));
+      const strength=Math.min(1,Math.min(time,32-time)/1.6);
+      const envelope=strength*strength*strength*(strength*(strength*6-15)+10);
+      // Start at the brightness used by the reveal, then ease into flicker.
+      // Matching both ends also keeps the repeating cycle free of a flash.
+      const opacity=1+(Math.max(.3,Math.min(1,1-noise))-1)*envelope;
       brightness.push({offset,opacity});
-      glow.push({offset,opacity:Math.max(0,Math.min(1,(opacity-.6)/.4))});
+      glow.push({offset,opacity:Math.max(0,Math.min(1,(opacity-.6)/.4))*envelope});
     }
     return {letter,light:glows[index],brightness,glow};
   });
@@ -91,6 +95,9 @@
       intro.querySelector('.intro-play').hidden=false;
       intro.classList.add('show-play');
       document.body.classList.add('batman-cursor-active');
+      // A stationary pointer over the center must not pull the new button
+      // into its hover pose at the exact instant the morph finishes.
+      intro.addEventListener('pointermove',()=>intro.classList.add('play-hover-ready'),{once:true,passive:true});
       // Begin the people only after the button and blue expansion have landed.
       requestAnimationFrame(()=>intro.classList.add('crowd-ready'));
       flickerEnabled=true;
@@ -106,7 +113,7 @@
   intro.addEventListener('keydown',event=>{
     if(event.key!=='Tab') return;
     intro.classList.add('keyboard-navigation');
-    const items=[...intro.querySelectorAll('button,a')].filter(el=>el.getClientRects().length);
+    const items=[...intro.querySelectorAll('button,a')].filter(el=>!el.inert&&el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden');
     if(!items.length){event.preventDefault();return;}
     if(event.shiftKey && document.activeElement===items[0]){event.preventDefault();items.at(-1).focus();}
     else if(!event.shiftKey && document.activeElement===items.at(-1)){event.preventDefault();items[0].focus();}
