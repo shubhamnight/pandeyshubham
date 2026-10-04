@@ -38,8 +38,8 @@ export function deferHobbyModel(button,build) {
   observer.observe(document.querySelector('#projects')||button);
 }
 
-export function connectHobbyMotion({button,renderer,scene,view,model}) {
-  // Only the root moves on hover; its detailed geometry remains rigid.
+export function connectHobbyMotion({button,renderer,scene,view,model,orientModel=null}) {
+  // Only the root turns with the orbit or hover; detailed geometry stays rigid.
   // Reuse each child's local matrix rather than rebuilding it every render.
   model.traverse(node=>{if(node!==model){node.updateMatrix();node.matrixAutoUpdate=false;}});
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -60,20 +60,30 @@ export function connectHobbyMotion({button,renderer,scene,view,model}) {
     }
     const dt=last?Math.min((time-last)/1000,.05):1/60;last=time;
     const strength=reduced.matches?0:hobbyIntro.strength;
-    if(strength>.001){
+    const orbiting=strength>.001;
+    const motion=hobbyIntro.motion.get(button);
+    let rotationX=targetX,rotationY=targetY,rotationZ=0;
+    if(orbiting){
       targetX=targetY=0;
       pointer=null;rect=null;
+      rotationX=motion?.pitch||0;rotationY=motion?.yaw||0;rotationZ=motion?.roll||0;
     }
-    const blend=1-Math.exp(-12*dt);
-    model.rotation.x+=(targetX-model.rotation.x)*blend;
-    model.rotation.y+=(targetY-model.rotation.y)*blend;
-    const settled=Math.abs(targetX-model.rotation.x)+Math.abs(targetY-model.rotation.y)<.0004;
-    if(settled) model.rotation.set(targetX,targetY,0);
+    const blend=1-Math.exp(-(orbiting?9:12)*dt);
+    let settled;
+    if(orientModel){
+      settled=orientModel(orbiting,motion,rotationX,rotationY,rotationZ,blend,dt);
+    }else{
+      model.rotation.x+=(rotationX-model.rotation.x)*blend;
+      model.rotation.y+=(rotationY-model.rotation.y)*blend;
+      model.rotation.z+=(rotationZ-model.rotation.z)*blend;
+      settled=Math.abs(rotationX-model.rotation.x)+Math.abs(rotationY-model.rotation.y)+Math.abs(rotationZ-model.rotation.z)<.0004;
+      if(settled) model.rotation.set(rotationX,rotationY,rotationZ);
+    }
     renderer.render(scene,view);dirty=false;
-    if(settled)stop();
+    if(settled&&!orbiting)stop();
   }
   const wake=()=>{
-    if(allowed() && (dirty || pointer || Math.abs(targetX-model.rotation.x)+Math.abs(targetY-model.rotation.y)>=.0004))activate(render);
+    if(allowed() && (dirty || pointer || (!reduced.matches&&hobbyIntro.strength>.001) || Math.abs(targetX-model.rotation.x)+Math.abs(targetY-model.rotation.y)+Math.abs(model.rotation.z)>=.0004))activate(render);
     else if(!allowed())stop();
   };
   const follow=e=>{

@@ -23,8 +23,8 @@ function buildWalkman() {
   button.classList.add('camera-ready');
   const scene = new THREE.Scene();
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
-  // A straight-on resting view keeps the camera face centered.
-  view.position.set(2.3, .9, 6.8); view.lookAt(0, .19, 0);
+  // A near-frontal, level view keeps the player upright with a little depth.
+  view.position.set(0, .34, 7.2); view.lookAt(0, .19, 0);
   scene.add(new THREE.HemisphereLight(0xffffff, 0x353d50, 1.8));
   const light = new THREE.DirectionalLight(0xfff5ed, 2.6); light.position.set(-3, 5, 5); scene.add(light);
   const rim = new THREE.DirectionalLight(0xc5d8ff, 2); rim.position.set(4, 1, -2); scene.add(rim);
@@ -120,5 +120,27 @@ function buildWalkman() {
   // a short second branch for the left earcup. It follows the model as a unit.
   tube([[-.06,1.38,0],[-.04,1.78,-.02],[.12,1.72,-.02],[.14,.65,-.30],[.73,-1.45,-.40],[1.42,-1.50,-.1],[1.30,-1.03,-.03]],.015,black,80);
   tube([[-1.21,-1.10,-.04],[-1.25,-1.22,-.04],[-.90,-1.30,-.28],[-.55,-.85,-.36]],.014,black);
-  connectHobbyMotion({ button, renderer, scene, view, model });
+  // A critically damped spring follows movement with restrained, symmetric
+  // sway. There is no permanent roll offset or decorative leftward lean.
+  const axes=['x','y','z'],velocity=new Float64Array(3);
+  const targets=new Float64Array(3),angles=new Float64Array(3);
+  function orientModel(orbiting,motion,x,y,z,blend,dt){
+    targets[0]=orbiting?(motion?.pitch||0)*.55:x;
+    targets[1]=orbiting?(motion?.yaw||0)*.65:y;
+    targets[2]=orbiting?(motion?.roll||0)*.35:z;
+    const frequency=orbiting?8:12,decay=Math.exp(-frequency*dt);
+    let errorSum=0;
+    for(let i=0;i<3;i++){
+      const error=model.rotation[axes[i]]-targets[i];
+      const impulse=velocity[i]+frequency*error;
+      angles[i]=targets[i]+(error+impulse*dt)*decay;
+      velocity[i]=(velocity[i]-frequency*impulse*dt)*decay;
+      errorSum+=Math.abs(angles[i]-targets[i])+Math.abs(velocity[i]);
+    }
+    const settled=errorSum<.0004;
+    if(settled){angles.set(targets);velocity.fill(0);}
+    model.rotation.set(angles[0],angles[1],angles[2]);
+    return settled;
+  }
+  connectHobbyMotion({ button, renderer, scene, view, model, orientModel });
 }

@@ -23,7 +23,7 @@ function buildPlane() {
   button.classList.add('camera-ready');
   const scene = new THREE.Scene();
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
-  // A straight-on resting view keeps the camera face centered.
+  // Preserve the reference's three-quarter resting view.
   view.position.set(6.5, 4.4, 8.0); view.lookAt(0, .14, 0);
   scene.add(new THREE.HemisphereLight(0xffffff, 0x353d50, 1.8));
   const light = new THREE.DirectionalLight(0xfff5ed, 2.6); light.position.set(-3, 5, 5); scene.add(light);
@@ -108,5 +108,47 @@ function buildPlane() {
   const uv=finSurface.geometry.attributes.uv,positions=finSurface.geometry.attributes.position;
   for(let i=0;i<uv.count;i++)uv.setXY(i,(positions.getX(i)+2.78)/.86,(positions.getY(i)-.15)/1.30);
   finSurface.position.z=.035;model.add(finSurface);
-  connectHobbyMotion({ button, renderer, scene, view, model });
+  // Map the screen tangent onto a horizontal flight plane. Heading rotates
+  // about world UP, so a complete orbit never rolls the aircraft upside down.
+  const right=new THREE.Vector3(1,0,0).applyQuaternion(view.quaternion);
+  const up=new THREE.Vector3(0,1,0).applyQuaternion(view.quaternion);
+  const determinant=right.x*up.z-right.z*up.x;
+  const targetPose=new THREE.Quaternion(),bankPose=new THREE.Quaternion();
+  const yawAxis=new THREE.Vector3(0,1,0),bankAxis=new THREE.Vector3(1,0,0);
+  const hoverPose=new THREE.Euler(),hoverQuaternion=new THREE.Quaternion();
+  const limit=(value,max)=>Math.max(-max,Math.min(max,value));
+  const angleDelta=value=>Math.atan2(Math.sin(value),Math.cos(value));
+  let yaw=0,turnRate=0,bank=0,previousDesiredYaw=null;
+  function orientModel(orbiting,motion,x,y,z,blend,dt){
+    let desiredYaw=0;
+    if(orbiting&&motion){
+      const dx=Math.cos(motion.heading),dy=Math.sin(motion.heading);
+      const worldX=(dx*up.z-right.z*dy)/determinant;
+      const worldZ=(right.x*dy-dx*up.x)/determinant;
+      desiredYaw=Math.atan2(-worldZ,worldX);
+    }
+    const desiredRate=orbiting&&previousDesiredYaw!==null?limit(angleDelta(desiredYaw-previousDesiredYaw)/dt,2.4):0;
+    previousDesiredYaw=orbiting?desiredYaw:null;
+    // Damped angular dynamics, with bounded acceleration and turn rate.
+    // Small integration steps keep the response stable at varying frame rates.
+    const steps=Math.max(1,Math.ceil(dt*120)),step=dt/steps;
+    for(let i=0;i<steps;i++){
+      const acceleration=limit(36*angleDelta(desiredYaw-yaw)+12*(desiredRate-turnRate),8);
+      turnRate=limit(turnRate+acceleration*step,2.4);
+      yaw=angleDelta(yaw+turnRate*step);
+    }
+    // Coordinated-turn relation tan(bank)=speed*turnRate/gravity, using
+    // a scaled flight speed for this orbit. Limit bank to 12 degrees.
+    const speed=orbiting?Math.min(8,(motion?.speed||0)*5):0;
+    const desiredBank=limit(-Math.atan(speed*turnRate/9.81),Math.PI/15);
+    bank+=(desiredBank-bank)*(1-Math.exp(-6*dt));
+    targetPose.setFromAxisAngle(yawAxis,yaw);
+    bankPose.setFromAxisAngle(bankAxis,bank);targetPose.multiply(bankPose);
+    if(!orbiting)targetPose.multiply(hoverQuaternion.setFromEuler(hoverPose.set(x,y,z)));
+    model.quaternion.slerp(targetPose,blend);
+    const settled=Math.abs(angleDelta(desiredYaw-yaw))+Math.abs(turnRate)+Math.abs(desiredBank-bank)<.0004&&model.quaternion.angleTo(targetPose)<.0004;
+    if(settled)model.quaternion.copy(targetPose);
+    return settled;
+  }
+  connectHobbyMotion({ button, renderer, scene, view, model, orientModel });
 }

@@ -3,7 +3,7 @@ import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition } from './hobby-
 const section=document.querySelector('#projects');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const listeners=new Set();
-export const hobbyIntro={strength:0};
+export const hobbyIntro={strength:0,motion:new WeakMap()};
 export function observeHobbyIntro(callback){listeners.add(callback);return()=>listeners.delete(callback);}
 let centers=[],frame=0,last=0,progress=0,visible=false,measure=true;
 let orbitAngle=0,centerX=0,centerY=0,radius=0;
@@ -13,15 +13,35 @@ let imagesStarted=false;
 const travelSpan=.10/(.65*.90);
 const clamp=value=>Math.max(0,Math.min(1,value));
 const smooth=value=>value*value*value*(value*(value*6-15)+10);
-function draw(){
+function draw(dt,paused){
   const spread=smooth(progress);
   hobbyIntro.strength=reduced.matches?0:1-spread;
   const active=visible&&hobbyIntro.strength>.001;
   const stateChanged=active!==previousIntroState;
-  centers.forEach(({element,homeX,homeY,angle})=>{
+  centers.forEach(center=>{
+    const {element,homeX,homeY,angle,motion}=center;
     const x=centerX+Math.cos(angle+orbitAngle)*radius-homeX;
     const y=centerY+Math.sin(angle+orbitAngle)*radius-homeY;
-    const translate=`${(x*hobbyIntro.strength).toFixed(2)}px ${(y*hobbyIntro.strength).toFixed(2)}px`;
+    const offsetX=x*hobbyIntro.strength,offsetY=y*hobbyIntro.strength;
+    // Use the same positions as the orbit, without any extra layout reads.
+    // The direction also follows the return journey when scrolling upward.
+    if(active&&!paused&&center.tracking){
+      const speed=Math.max(radius*.65,1);
+      const dx=offsetX-center.lastX,dy=offsetY-center.lastY;
+      const vx=Math.max(-1,Math.min(1,dx/(dt*speed)));
+      const vy=Math.max(-1,Math.min(1,dy/(dt*speed)));
+      motion.speed=Math.min(2,Math.hypot(dx,dy)/(dt*speed));
+      // Preserve the last heading when stationary; screen Y points downward.
+      if(dx*dx+dy*dy>.000001)motion.heading=Math.atan2(-dy,dx);
+      motion.pitch=vy*.16*hobbyIntro.strength;
+      motion.yaw=vx*.28*hobbyIntro.strength;
+      motion.roll=-vx*.14*hobbyIntro.strength;
+    }else if(active&&!paused){
+      motion.heading=Math.atan2(-Math.cos(angle+orbitAngle),-Math.sin(angle+orbitAngle));
+      motion.speed=hobbyIntro.strength*hobbyIntro.strength;
+    }else if(!active){motion.pitch=motion.yaw=motion.roll=motion.speed=0;}
+    center.lastX=offsetX;center.lastY=offsetY;center.tracking=active&&!paused;
+    const translate=`${offsetX.toFixed(2)}px ${offsetY.toFixed(2)}px`;
     if(element.introTranslate!==translate){element.introTranslate=translate;element.style.translate=translate;}
     if(stateChanged)element.style.willChange=active?'translate':'';
   });
@@ -67,7 +87,10 @@ function tick(time){
     radius=Math.min(width*.28,height*.28,250);
     centers=elements.map((element,index)=>{
       const rect=element.getBoundingClientRect();
-      return {element,button:element.querySelector('button'),homeX:rect.left-bounds.left+rect.width/2,homeY:rect.top-top+rect.height/2,angle:[-3,-1,3,1][index]*Math.PI/4};
+      const button=element.querySelector('button');
+      let motion=hobbyIntro.motion.get(button);
+      if(!motion){motion={pitch:0,yaw:0,roll:0,heading:0,speed:0};hobbyIntro.motion.set(button,motion);}
+      return {element,button,motion,tracking:false,homeX:rect.left-bounds.left+rect.width/2,homeY:rect.top-top+rect.height/2,angle:[-3,-1,3,1][index]*Math.PI/4};
     });
     measure=false;
   }
@@ -83,7 +106,7 @@ function tick(time){
       if(visible)orbitAngle+=dt*.65*(1-smooth(progress));
     }
   }
-  draw();
+  draw(dt,paused);
   if(visible&&(progress<1||progress!==target)&&!reduced.matches&&!paused)frame=requestHobbyFrame(tick,20);
   else{cancelHobbyFrame(tick);last=0;}
 }
