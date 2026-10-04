@@ -45,10 +45,27 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   let visible=false, targetX=0, targetY=0, last=0, dirty=true;
   let pointer=null, rect=null, width=0, height=0, contextLost=false,compiling=true,disposed=false;
+  const bodyIsPaused=()=>document.body.classList.contains('photography-gallery-open') ||
+    document.body.classList.contains('motion-paused');
+  let bodyPaused=bodyIsPaused();
+  const renderedTransform = new Float64Array(10);
+  renderedTransform.fill(NaN);
+  function drawIfChanged() {
+    const position=model.position, rotation=model.quaternion, scale=model.scale;
+    const changed = dirty || renderedTransform[0]!==position.x || renderedTransform[1]!==position.y ||
+      renderedTransform[2]!==position.z || renderedTransform[3]!==rotation.x ||
+      renderedTransform[4]!==rotation.y || renderedTransform[5]!==rotation.z ||
+      renderedTransform[6]!==rotation.w || renderedTransform[7]!==scale.x ||
+      renderedTransform[8]!==scale.y || renderedTransform[9]!==scale.z;
+    if (!changed) return;
+    renderer.render(scene,view);
+    renderedTransform[0]=position.x;renderedTransform[1]=position.y;renderedTransform[2]=position.z;
+    renderedTransform[3]=rotation.x;renderedTransform[4]=rotation.y;renderedTransform[5]=rotation.z;renderedTransform[6]=rotation.w;
+    renderedTransform[7]=scale.x;renderedTransform[8]=scale.y;renderedTransform[9]=scale.z;
+    dirty=false;
+  }
   button.dataset.hobbyCompiling='true';
-  const allowed=()=>visible && !document.hidden && !contextLost && !compiling && !disposed &&
-    !document.body.classList.contains('photography-gallery-open') &&
-    !document.body.classList.contains('motion-paused');
+  const allowed=()=>visible && !document.hidden && !contextLost && !compiling && !disposed && !bodyPaused;
   const stop=()=>{deactivate(render);last=0;};
   function render(time) {
     if (!allowed()) {stop();return;}
@@ -79,7 +96,7 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
       settled=Math.abs(rotationX-model.rotation.x)+Math.abs(rotationY-model.rotation.y)+Math.abs(rotationZ-model.rotation.z)<.0004;
       if(settled) model.rotation.set(rotationX,rotationY,rotationZ);
     }
-    renderer.render(scene,view);dirty=false;
+    drawIfChanged();
     if(settled&&!orbiting)stop();
   }
   const wake=()=>{
@@ -93,7 +110,7 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
   button.addEventListener('pointerenter',e=>{rect=button.getBoundingClientRect();follow(e);});
   button.addEventListener('pointermove',follow,{passive:true});
   button.addEventListener('pointerleave',()=>{pointer=null;rect=null;targetX=targetY=0;wake();});
-  const unobserveIntro=observeHobbyIntro(()=>{rect=null;if(hobbyIntro.strength<=.001)targetX=targetY=0;dirty=true;wake();});
+  const unobserveIntro=observeHobbyIntro(()=>{rect=null;if(hobbyIntro.strength<=.001)targetX=targetY=0;wake();});
   const resize=new ResizeObserver(()=>{
     rect=null;
     const w=button.clientWidth,h=button.clientHeight;
@@ -101,7 +118,10 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
     width=w;height=h;renderer.setSize(w,h,false);view.aspect=w/h;view.updateProjectionMatrix();dirty=true;wake();
   });resize.observe(button);
   const intersection=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;rect=null;wake();});intersection.observe(button);
-  const state=new MutationObserver(wake);state.observe(document.body,{attributes:true,attributeFilter:['class']});
+  const state=new MutationObserver(()=>{
+    const next=bodyIsPaused();
+    if(next!==bodyPaused){bodyPaused=next;wake();}
+  });state.observe(document.body,{attributes:true,attributeFilter:['class']});
   document.addEventListener('visibilitychange',wake);
   const invalidateRect=()=>{rect=null;};
   window.addEventListener('scroll',invalidateRect,{passive:true});

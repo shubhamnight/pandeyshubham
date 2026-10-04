@@ -23,12 +23,12 @@ function buildCamera() {
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
   // A straight-on resting view keeps the camera face centered.
   view.position.set(0, .14, 6.8); view.lookAt(0, .14, 0);
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x555b72, 2.4));
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x4c5565, 2.4));
   const light = new THREE.DirectionalLight(0xffeee0, 3.2); light.position.set(-3, 5, 5); scene.add(light);
-  const rim = new THREE.DirectionalLight(0x99bcff, 1.6); rim.position.set(4, 1, -2); scene.add(rim);
+  const rim = new THREE.DirectionalLight(0xd5dfec, 1.6); rim.position.set(4, 1, -2); scene.add(rim);
   const model = new THREE.Group(); scene.add(model);
   const material = (color, roughness = .5, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
-  const cream = material(0xf2dfc7), black = material(0x17191d), trim = material(0x36383b), silver = material(0xb7b5ae, .3, .5);
+  const cream = material(0x353639), black = material(0x17191d), trim = material(0x36383b), silver = material(0xb7b5ae, .3, .5);
   function box(w, h, d, x, y, z, mat, radius = .05) {
     const mesh = new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 2, radius), mat);
     mesh.position.set(x, y, z); model.add(mesh); return mesh;
@@ -55,8 +55,8 @@ function buildCamera() {
   disc(.19, .025, .05, .52, .28, material(0x171d30, .12, .45));
   disc(.065, .01, -.005, .59, .297, material(0x6b9470, .2, .3));
   disc(.17, .05, -.76, -.08, -.10, silver);
-  disc(.125, .06, -.76, -.08, -.06, material(0xdf442e, .3));
-  [0xe94542, 0xee8d35, 0xecd348, 0x69a367, 0x5681b8].forEach((color, i) => {
+  disc(.125, .06, -.76, -.08, -.06, material(0x183f73, .3));
+  [0x102b52, 0x214b80, 0x183f73, 0x4577b5, 0x5685c1].forEach((color, i) => {
     const mat = material(color);
     box(.055, .42, .014, -.07 + i * .057, -.16, -.157, mat, .003);
     box(.055, .012, 1.12, -.07 + i * .057, -.307, .32, mat, .003);

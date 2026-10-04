@@ -1,216 +1,317 @@
-// Adapt the supplied fill-and-tooltip interaction to the existing vanilla site.
-document.querySelectorAll('#about .skill-tool').forEach((tool, index) => {
-  const icon = tool.querySelector('svg, img, span');
-  if (!icon) return;
-  const label = [...tool.childNodes].filter(node => node.nodeType === Node.TEXT_NODE)
-    .map(node => node.textContent).join('').trim();
-  const disc = document.createElement('span');
-  disc.className = 'skill-icon-disc';
-  disc.append(icon);
-  const name = document.createElement('span');
-  name.className = 'skill-icon-name';
-  name.textContent = label;
-  const tooltip = document.createElement('span');
-  tooltip.className = 'skill-icon-tooltip';
-  tooltip.id = 'skill-tooltip-' + index;
-  tooltip.setAttribute('role', 'tooltip');
-  tooltip.textContent = label;
-  tool.replaceChildren(disc, name, tooltip);
-  tool.tabIndex = 0;
-  tool.setAttribute('aria-describedby', tooltip.id);
-  tool.addEventListener('keydown', event => {
-    if (event.key === 'Escape') tool.classList.add('tooltip-dismissed');
-  });
-  ['pointerenter', 'focus'].forEach(type => tool.addEventListener(type, () => {
-    tool.classList.remove('tooltip-dismissed');
-  }));
-});
-// One animation loop for all cards; it sleeps as soon as the springs settle.
-const cardMotionPreference = matchMedia('(prefers-reduced-motion: reduce)');
-const cardPointerPreference = matchMedia('(hover: hover) and (pointer: fine)');
-const movingSkillCards = new Set();
-let skillMotionFrame = 0;
-let skillMotionTime = 0;
-const skillMotionStates = [];
-let skillMotionDirty=false;
-function animateSkillCards(time) {
-  const dt = Math.min((time - (skillMotionTime || time - 16)) / 1000, .025);
-  skillMotionTime = time;
-  movingSkillCards.forEach(state => {
-    let unsettled = false;
-    ['x', 'y', 'z'].forEach(axis => {
-      state.velocity[axis] += ((state.target[axis] - state.pose[axis]) * 400 - state.velocity[axis] * 35) * dt / .8;
-      state.pose[axis] += state.velocity[axis] * dt;
-      if (Math.abs(state.target[axis] - state.pose[axis]) > .01 || Math.abs(state.velocity[axis]) > .02) unsettled = true;
-    });
-    if (!unsettled) Object.assign(state.pose, state.target);
-    state.card.style.transform = 'perspective(1200px) translateZ(' + state.pose.z + 'px) rotateX(' + state.pose.x + 'deg) rotateY(' + state.pose.y + 'deg)';
-    state.card.style.setProperty('--sheen-angle', (135 + state.pose.y) + 'deg');
-    if (!unsettled) {
-      movingSkillCards.delete(state);
-      state.card.classList.remove('tilt-moving');
-    }
-  });
-  skillMotionFrame = movingSkillCards.size ? requestAnimationFrame(animateSkillCards) : 0;
-  if (!skillMotionFrame) skillMotionTime = 0;
-}
-function queueSkillMotion(state) {
-  skillMotionDirty=true;
-  movingSkillCards.add(state);
-  state.card.classList.add('tilt-moving');
-  if (!skillMotionFrame) skillMotionFrame = requestAnimationFrame(animateSkillCards);
-}
-function resetSkillMotion() {
-  if(!skillMotionDirty)return;
-  skillMotionDirty=false;
-  cancelAnimationFrame(skillMotionFrame);
-  skillMotionFrame = skillMotionTime = 0;
-  movingSkillCards.clear();
-  skillMotionStates.forEach(state => {
-    ['pose', 'target', 'velocity'].forEach(key => state[key] = {x:0,y:0,z:0});
-    state.card.style.removeProperty('transform');
-    state.card.classList.remove('tilt-active', 'tilt-moving');
-  });
-}
-document.querySelectorAll('#about .skill-card').forEach(card => {
-  const state = {card, pose:{x:0,y:0,z:0}, target:{x:0,y:0,z:0}, velocity:{x:0,y:0,z:0}, bounds:null};
-  skillMotionStates.push(state);
-  card.classList.add('tilt-card');
-  const layers = document.createElement('div');
-  layers.className = 'skill-glass-layers';
-  layers.setAttribute('aria-hidden', 'true');
-  for (let index = 0; index < 4; index++) {
-    const ring = document.createElement('span');
-    ring.style.setProperty('--layer', index);
-    layers.append(ring);
-  }
-  card.prepend(layers);
-  card.querySelectorAll('.skill-tool').forEach((tool, index) => {
-    tool.style.setProperty('--tool-order', index);
-  });
-  card.addEventListener('pointerenter', event => {
-    if (card.parentElement.classList.contains('is-shuffling') || event.pointerType === 'touch' || cardMotionPreference.matches || !cardPointerPreference.matches) return;
-    // Use the layout box, excluding our own tilt, to avoid cursor feedback jitter.
-    const previous = card.style.transform;
-    card.style.transform = 'none';
-    state.bounds = card.getBoundingClientRect();
-    card.style.transform = previous;
-    card.classList.add('tilt-active');
-    state.target.z = 12;
-    queueSkillMotion(state);
-  });
-  card.addEventListener('pointermove', event => {
-    if (!card.classList.contains('tilt-active')) return;
-    const rect = state.bounds;
-    const x = Math.max(-.5, Math.min(.5, (event.clientX - rect.left) / rect.width - .5));
-    const y = Math.max(-.5, Math.min(.5, (event.clientY - rect.top) / rect.height - .5));
-    state.target.x = -y * 12;
-    state.target.y = x * 12;
-    queueSkillMotion(state);
-  });
-  ['pointerleave', 'pointercancel'].forEach(type => card.addEventListener(type, () => {
-    if (!card.classList.contains('tilt-active')) return;
-    card.classList.remove('tilt-active');
-    state.target = {x:0,y:0,z:0};
-    queueSkillMotion(state);
-  }));
-});
-cardMotionPreference.addEventListener('change', resetSkillMotion);
-cardPointerPreference.addEventListener('change', resetSkillMotion);
-window.addEventListener('scroll', resetSkillMotion, {passive:true});
-window.addEventListener('resize', resetSkillMotion, {passive:true});
-document.addEventListener('visibilitychange', resetSkillMotion);
-const skillFilters = document.querySelectorAll('[data-skill-filter]');
-const skillCards = document.querySelectorAll('[data-skill-category]');
-const skillGrid = document.querySelector('#about .skills-grid');
-let shuffleVersion = 0;
-let shuffleAnimations = [];
-let activeSkillFilter = 'all';
-function stopSkillShuffle() {
-  shuffleVersion++;
-  shuffleAnimations.forEach(animation => animation.cancel());
-  shuffleAnimations = [];
-  skillCards.forEach(card => {
-    ['position','left','top','width','height','z-index'].forEach(property => card.style.removeProperty(property));
-    card.hidden = activeSkillFilter !== 'all' && activeSkillFilter !== card.dataset.skillCategory;
-  });
-  skillGrid.classList.remove('is-shuffling');
-  skillGrid.style.removeProperty('height');
-}
-function shuffleCard(card, frames, options = {}) {
-  const animation = card.animate(frames, {
-    duration:504, easing:'cubic-bezier(.22,1,.36,1)', fill:'both', ...options
-  });
-  shuffleAnimations.push(animation);
-  return animation.finished.catch(() => {});
-}
-skillFilters.forEach(button => button.addEventListener('click', async () => {
-  if (button.getAttribute('aria-pressed') === 'true') return;
-  // Capture the current visual positions before cancelling an interrupted shuffle.
-  const gridBox = skillGrid.getBoundingClientRect();
-  const previous = new Map([...skillCards].filter(card => !card.hidden).map(card => [card, {
-    box:card.getBoundingClientRect()
-  }]));
-  stopSkillShuffle();
-  resetSkillMotion();
-  const version = shuffleVersion;
-  activeSkillFilter = button.dataset.skillFilter;
-  const matches = card => activeSkillFilter === 'all' || activeSkillFilter === card.dataset.skillCategory;
-  skillFilters.forEach(filter => filter.setAttribute('aria-pressed', String(filter === button)));
-  skillCards.forEach(card => { card.hidden = !matches(card); });
-  if (cardMotionPreference.matches) return;
+// All skill holders share the hobby page's ordered animation clock.
+import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition } from './hobby-motion-clock.js';
+import { sceneMotion, observeScene, setSkillExit } from './skills-hobbies-scene.js';
 
-  // Measure the final layout once, then animate all cards together.
-  const finalHeight = skillGrid.getBoundingClientRect().height;
-  const incoming = [...skillCards].filter(matches);
-  const boxes = incoming.map(card => card.getBoundingClientRect());
-  skillGrid.classList.add('is-shuffling');
-  skillGrid.style.height = finalHeight + 'px';
-  const motions = [shuffleCard(skillGrid, [
-    {height:gridBox.height+'px'}, {height:finalHeight+'px'}
-  ], {duration:504})];
-  [...skillCards].filter(card => !matches(card) && previous.has(card)).forEach((card, index) => {
-    const {box} = previous.get(card);
-    card.hidden = false;
-    Object.assign(card.style, {
-      position:'absolute', left:(box.left-gridBox.left)+'px', top:(box.top-gridBox.top)+'px',
-      width:box.width+'px', height:box.height+'px', zIndex:'0'
-    });
-    motions.push(shuffleCard(card, [
-      {transform:'translate3d(0,0,0)'},
-      {transform:`translate3d(${(gridBox.left-box.left)}px,${(gridBox.top-box.top)}px,0)`}
-    ], {duration:504}));
-  });
-  incoming.forEach((card, index) => {
-    const box = boxes[index];
-    const from = previous.get(card);
-    const x = (from ? from.box.left : gridBox.left) - box.left;
-    const y = (from ? from.box.top : gridBox.top) - box.top;
-    card.style.zIndex = '2';
-    motions.push(shuffleCard(card, [
-      {transform:`translate3d(${x}px,${y}px,0)`},
-      {transform:'translate3d(0,0,0)'}
-    ], {duration:504}));
-  });
-  await Promise.all(motions);
-  if (version === shuffleVersion) stopSkillShuffle();
-}));
-function sizeSkillCards() {
-  stopSkillShuffle();
-  skillGrid.style.removeProperty('--skill-card-height');
-  skillCards.forEach(card => { card.hidden = false; });
-  const height = Math.ceil(Math.max(...[...skillCards].map(card => card.getBoundingClientRect().height)));
-  skillGrid.style.setProperty('--skill-card-height', height + 'px');
-  skillCards.forEach(card => {
-    card.hidden = activeSkillFilter !== 'all' && activeSkillFilter !== card.dataset.skillCategory;
-  });
+const section = document.querySelector('#about');
+const stage = section?.querySelector('.skills-orbit-stage');
+const slots = [...(stage?.querySelectorAll('.skills-orbit-slot') || [])];
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const TAU = Math.PI * 2, joinAngle = -Math.PI * .75;
+const entranceSpeed = 1.2;
+const fastTime = 4 / entranceSpeed, blendTime = 1.8 / entranceSpeed, entranceDuration = fastTime + blendTime;
+const resolution = 256;
+let scheduled = 0, lastTime = null, measure = true;
+let mode = 'waiting', entered = false, travel = 0, entranceTime = 0, retreat = null;
+let handoff = null, exitLength = 1;
+const exitPhase = Math.PI / 2;
+const exitPoints = new Float64Array((resolution + 1) * 2);
+let previousScroll = null;
+const reverseStart = .10, reverseEnd = .65;
+let visible = false, pointerInside = false, focusInside = false;
+let sectionTop = 0, sectionHeight = 0, centerX = 0, centerY = 0;
+let radius = 1, size = 1, circumference = TAU, spacing = 1, entryLength = 1;
+let cruiseSpeed = 1, fastSpeed = 1, entryPoints = new Float64Array((resolution + 1) * 2);
+const orbitOffsets = slots.map((_, index) => {
+  const angle = index * TAU / slots.length;
+  return { cosine: Math.cos(angle), sine: Math.sin(angle) };
+});
+let lastDrawMode = null, lastDrawTravel = null, lastDrawRetreat = null, lastDrawExit = null;
+let measuredWidth = -1, measuredHeight = -1, measuredSize = -1;
+function bodyIsPaused() {
+  const classes = document.body.classList;
+  return classes.contains('motion-paused') || classes.contains('photography-gallery-open') || classes.contains('intro-active');
 }
-let skillSizeFrame = 0;
-window.addEventListener('resize', () => {
-  cancelAnimationFrame(skillSizeFrame);
-  skillSizeFrame = requestAnimationFrame(sizeSkillCards);
-}, {passive:true});
-sizeSkillCards();
-document.fonts.ready.then(sizeSkillCards);
-cardMotionPreference.addEventListener('change', stopSkillShuffle);
-document.addEventListener('visibilitychange', () => { if (document.hidden) stopSkillShuffle(); });
+let bodyPaused = bodyIsPaused();
+const clamp = value => Math.max(0, Math.min(1, value));
+const wrap = value => ((value % circumference) + circumference) % circumference;
+
+// The integrated velocity blend preserves speed at both the entrance and orbit joins.
+function entranceDistance(time) {
+  if (time <= fastTime) return time * fastSpeed;
+  const u = clamp((time - fastTime) / blendTime);
+  return fastTime * fastSpeed + blendTime *
+    (fastSpeed * u + (cruiseSpeed - fastSpeed) * (u * u * u - .5 * u * u * u * u));
+}
+function retreatDistance() {
+  const u = retreat.progress;
+  return retreat.goal * u * u * (3 - 2 * u);
+}
+function distanceFor(index, retreatOffset = mode === 'retreat' ? retreatDistance() : 0) {
+  if (mode === 'handoff') return handoff.slots[index] + handoff.progress * handoff.length;
+  if (mode === 'retreat') return retreat.slots[index] - retreatOffset;
+  if (mode === 'orbit') return entryLength + wrap(travel - entryLength - index * spacing);
+  return travel - index * spacing;
+}
+function draw() {
+  const retreatOffset = mode === 'retreat' ? retreatDistance() : 0;
+  const exitOffset = mode === 'handoff' ? handoff.progress : 0;
+  if (lastDrawMode === mode && lastDrawTravel === travel && lastDrawRetreat === retreatOffset && lastDrawExit === exitOffset) return;
+  lastDrawMode = mode; lastDrawTravel = travel; lastDrawRetreat = retreatOffset; lastDrawExit = exitOffset;
+  // A rigid circular orbit needs only one sine/cosine pair per frame.
+  const baseAngle = joinAngle - wrap(travel - entryLength) / radius;
+  const baseCosine = mode === 'orbit' ? Math.cos(baseAngle) : 0;
+  const baseSine = mode === 'orbit' ? Math.sin(baseAngle) : 0;
+  for (let index = 0; index < slots.length; index++) {
+    const slot = slots[index], distance = distanceFor(index, retreatOffset);
+    const exiting = mode === 'handoff' && distance >= handoff.ends[index];
+    const showing = mode !== 'waiting' && distance >= 0 &&
+      !(exiting && distance >= handoff.ends[index] + exitLength);
+    const visibility = showing ? 'visible' : 'hidden';
+    if (slot.orbitVisibility !== visibility) {
+      slot.orbitVisibility = visibility;
+      slot.style.visibility = visibility;
+    }
+    if (!showing) continue;
+    let x, y;
+    if (distance < entryLength || exiting) {
+      const points = exiting ? exitPoints : entryPoints;
+      const at = (exiting ? (distance - handoff.ends[index]) / exitLength : distance / entryLength) * resolution;
+      const point = Math.min(resolution - 1, Math.floor(at)), mix = at - point;
+      const offset = point * 2;
+      x = points[offset] + (points[offset + 2] - points[offset]) * mix;
+      y = points[offset + 1] + (points[offset + 3] - points[offset + 1]) * mix;
+    } else if (mode === 'orbit') {
+      const offset = orbitOffsets[index];
+      x = centerX + radius * (baseCosine * offset.cosine - baseSine * offset.sine);
+      y = centerY + radius * (baseSine * offset.cosine + baseCosine * offset.sine);
+    } else {
+      // One radius on both axes keeps the orbit a true circle at every screen size.
+      const angle = joinAngle - (distance - entryLength) / radius;
+      x = centerX + radius * Math.cos(angle);
+      y = centerY + radius * Math.sin(angle);
+    }
+    const transform = 'translate3d(' + (x - size / 2).toFixed(3) + 'px,' +
+      (y - size / 2).toFixed(3) + 'px,0)';
+    if (slot.orbitTransform !== transform) {
+      slot.orbitTransform = transform;
+      slot.style.transform = transform;
+    }
+  }
+}
+function layout() {
+  measure = false;
+  const oldEntry = entryLength, oldCircle = circumference;
+  const width = stage.clientWidth, height = stage.clientHeight;
+  const nextSize = slots[0].offsetWidth;
+  // Refresh the normal document position even when only the hero height changed.
+  const wrapper = section.closest('.hero-skills-transition');
+  if (sceneMotion.element) sectionTop = sceneMotion.element.getBoundingClientRect().top + window.scrollY;
+  else if (wrapper) sectionTop = wrapper.getBoundingClientRect().top + window.scrollY +
+    document.querySelector('#home').offsetHeight;
+  else sectionTop = section.getBoundingClientRect().top + window.scrollY;
+  sectionHeight = sceneMotion.enabled ? sceneMotion.element.offsetHeight : section.offsetHeight;
+  if (width === measuredWidth && height === measuredHeight && nextSize === measuredSize) return;
+  measuredWidth = width; measuredHeight = height; measuredSize = nextSize;
+  lastDrawMode = null;
+  size = nextSize;
+  centerX = width / 2; centerY = height / 2;
+  radius = Math.max(1, Math.min((width - size - 32) / 2, (height - size - 80) / 2, 320));
+  circumference = TAU * radius; spacing = circumference / slots.length;
+  const end = [centerX + Math.cos(joinAngle) * radius, centerY + Math.sin(joinAngle) * radius];
+  const points = [
+    [centerX + radius * .15, -size - 40],
+    [centerX + radius * .1, centerY - radius - 80],
+    [end[0] + radius * .45, end[1] - radius * .45],
+    end
+  ];
+  // Bake only the approach curve. Its final tangent matches the circular orbit.
+  const samples = []; let length = 0;
+  for (let index = 0; index <= resolution; index++) {
+    const t = index / resolution, u = 1 - t;
+    const point = [0, 1].map(axis => u * u * u * points[0][axis] +
+      3 * u * u * t * points[1][axis] + 3 * u * t * t * points[2][axis] + t * t * t * points[3][axis]);
+    if (index) length += Math.hypot(point[0] - samples[index - 1].x, point[1] - samples[index - 1].y);
+    samples.push({ x: point[0], y: point[1], distance: length });
+  }
+  entryLength = length;
+  let cursor = 0;
+  for (let index = 0; index <= resolution; index++) {
+    const distance = index / resolution * entryLength;
+    while (cursor < resolution - 1 && samples[cursor + 1].distance < distance) cursor++;
+    const a = samples[cursor], b = samples[cursor + 1];
+    const mix = (distance - a.distance) / Math.max(.0001, b.distance - a.distance);
+    entryPoints[index * 2] = a.x + (b.x - a.x) * mix;
+    entryPoints[index * 2 + 1] = a.y + (b.y - a.y) * mix;
+  }
+  // Peel off at the lower-left tangent, through the same outlet the models use.
+  const exitAngle = joinAngle - exitPhase;
+  const start = [centerX + radius * Math.cos(exitAngle), centerY + radius * Math.sin(exitAngle)];
+  const outlet = [width * .45, height + 128];
+  const departure = [start, [start[0] + radius * .45, start[1] + radius * .45],
+    [outlet[0], height - size], outlet];
+  const exitSamples = []; let exitDistance = 0;
+  for (let index = 0; index <= resolution; index++) {
+    const t = index / resolution, u = 1 - t;
+    const x = u*u*u*departure[0][0] + 3*u*u*t*departure[1][0] + 3*u*t*t*departure[2][0] + t*t*t*departure[3][0];
+    const y = u*u*u*departure[0][1] + 3*u*u*t*departure[1][1] + 3*u*t*t*departure[2][1] + t*t*t*departure[3][1];
+    if (index) exitDistance += Math.hypot(x-exitSamples[index-1].x, y-exitSamples[index-1].y);
+    exitSamples.push({x,y,distance:exitDistance});
+  }
+  exitLength = exitDistance; cursor = 0;
+  for (let index = 0; index <= resolution; index++) {
+    const distance = index / resolution * exitLength;
+    while (cursor < resolution-1 && exitSamples[cursor+1].distance < distance) cursor++;
+    const a = exitSamples[cursor], b = exitSamples[cursor+1];
+    const mix = (distance-a.distance) / Math.max(.0001,b.distance-a.distance);
+    exitPoints[index*2] = a.x+(b.x-a.x)*mix; exitPoints[index*2+1] = a.y+(b.y-a.y)*mix;
+  }
+  cruiseSpeed = circumference / 34;
+  fastSpeed = (entryLength + circumference - cruiseSpeed * blendTime / 2) / (fastTime + blendTime / 2);
+  const remap = distance => distance < oldEntry ? distance / oldEntry * entryLength :
+    entryLength + (distance - oldEntry) / oldCircle * circumference;
+  if (mode === 'orbit') travel = remap(travel);
+  else if (mode === 'entrance') travel = entranceDistance(entranceTime);
+  else if (retreat) {
+    retreat.slots = retreat.slots.map(remap);
+    retreat.goal = Math.max(0, ...retreat.slots) + size;
+    travel = retreat.resumeMode === 'orbit' ? remap(travel) : entranceDistance(entranceTime);
+  } else if (handoff) {
+    handoff.slots = handoff.slots.map(remap); handoff.ends = handoff.ends.map(remap);
+    handoff.length = Math.max(...handoff.ends.map((end,index) => end-handoff.slots[index])) + exitLength;
+    travel = handoff.resumeMode === 'orbit' ? remap(travel) : entranceDistance(entranceTime);
+  }
+  section.style.setProperty('--skills-ring-radius', radius.toFixed(2) + 'px');
+  section.classList.add('skills-orbit-ready');
+}
+function beginHandoff() {
+  const distances = slots.map((_, index) => distanceFor(index));
+  const exitAt = exitPhase * radius;
+  const ends = distances.map(distance => distance < entryLength ? entryLength + exitAt :
+    distance + wrap(exitAt - wrap(distance - entryLength)));
+  const length = Math.max(...ends.map((end,index) => end-distances[index])) + exitLength;
+  handoff = { slots: distances, ends, length, progress: 0, resumeMode: mode };
+  pointerInside = focusInside = false;
+  mode = 'handoff';
+}
+function beginRetreat() {
+  const distances = slots.map((_, index) => distanceFor(index));
+  const goal = Math.max(0, ...distances) + size;
+  // Capture the current orbit phase so either scroll direction resumes without a jump.
+  retreat = { slots: distances, progress: 0, goal, resumeMode: mode };
+  mode = 'retreat';
+}
+function stop() {
+  cancelHobbyFrame(tick); scheduled = 0; lastTime = null;
+  if (section.classList.contains('skills-orbit-running')) section.classList.remove('skills-orbit-running');
+}
+function tick(time) {
+  scheduled = 0;
+  if (document.hidden) { stop(); return; }
+  if (measure) layout();
+  const scroll = getSmoothPosition(), top = sectionTop - scroll;
+  const scrollingBack = previousScroll !== null && scroll < previousScroll - .1;
+  previousScroll = scroll;
+  visible = top < innerHeight && scroll < sectionTop + sectionHeight;
+  const dt = lastTime === null ? 0 : Math.min((time - lastTime) / 1000, .05);
+  lastTime = time;
+  // Start at 50% viewport coverage; keep the same reverse-trigger buffer.
+  if (top <= innerHeight * .50) entered = true;
+  else if (top >= innerHeight * .62) entered = false;
+  let paused = pointerInside || focusInside || bodyPaused;
+  const reverseTarget = clamp((top / innerHeight - reverseStart) / (reverseEnd - reverseStart));
+  if (reduced.matches) {
+    mode = 'orbit'; travel = entryLength + circumference; retreat = handoff = null;
+  } else {
+    if (mode === 'handoff' && (!sceneMotion.enabled || (sceneMotion.exit === 0 && handoff.progress === 0))) {
+      mode = handoff.resumeMode; handoff = null;
+    }
+    if (sceneMotion.enabled && sceneMotion.exit > 0 && mode !== 'handoff' && mode !== 'retreat') {
+      if (mode === 'waiting') { mode = 'orbit'; travel = entryLength + circumference; entranceTime = entranceDuration; }
+      beginHandoff();
+    }
+    if (entered && mode === 'waiting') { mode = 'entrance'; entranceTime = travel = 0; }
+    else if ((mode === 'entrance' || mode === 'orbit') &&
+      (!entered || (scrollingBack && top > innerHeight * reverseStart))) beginRetreat();
+    // Hover still pauses the settled ring, but cannot block an exit caused by scrolling.
+    if (mode === 'retreat' || mode === 'handoff') paused = bodyPaused;
+    if (!visible && !entered) { mode = 'waiting'; travel = entranceTime = 0; retreat = handoff = null; }
+    else if (!visible && scroll >= sectionTop + sectionHeight && mode === 'entrance') {
+      mode = 'orbit'; travel = entryLength + circumference; entranceTime = entranceDuration;
+    } else if (!visible && scroll >= sectionTop + sectionHeight && mode === 'handoff') {
+      handoff.progress = sceneMotion.exit;
+    } else if (visible && !paused) {
+      if (mode === 'entrance') {
+        const consumed = Math.min(dt, entranceDuration - entranceTime);
+        entranceTime += consumed; travel = entranceDistance(entranceTime);
+        if (entranceTime >= entranceDuration) { mode = 'orbit'; travel += cruiseSpeed * (dt - consumed); }
+      } else if (mode === 'orbit') travel += cruiseSpeed * dt;
+      else if (mode === 'retreat') {
+        // Scrub the return path with scrolling, smoothing input without a timed exit.
+        retreat.progress += (reverseTarget - retreat.progress) * (1 - Math.exp(-14 * dt));
+        if (Math.abs(reverseTarget - retreat.progress) < .0001) retreat.progress = reverseTarget;
+        if (reverseTarget === 0 && retreat.progress === 0) { mode = retreat.resumeMode; retreat = null; }
+        else if (retreat.progress === 1) {
+          mode = 'waiting'; travel = entranceTime = 0; retreat = null;
+        }
+      } else if (mode === 'handoff') {
+        handoff.progress += (sceneMotion.exit - handoff.progress) * (1 - Math.exp(-14 * dt));
+        if (Math.abs(sceneMotion.exit-handoff.progress) < .0001) handoff.progress = sceneMotion.exit;
+      }
+    }
+  }
+  setSkillExit(mode === 'handoff' ? handoff.progress : 0);
+  draw();
+  const retreatMoving = mode === 'retreat' && Math.abs(retreat.progress - reverseTarget) > .0001;
+  const running = visible && !paused && !reduced.matches && mode !== 'waiting' &&
+    (mode !== 'retreat' || retreatMoving) &&
+    (mode !== 'handoff' || Math.abs(handoff.progress-sceneMotion.exit) > .0001);
+  if (section.classList.contains('skills-orbit-running') !== running) section.classList.toggle('skills-orbit-running', running);
+  if (running) scheduled = requestHobbyFrame(tick, 15);
+  else stop();
+}
+function wake() {
+  if (!scheduled && !document.hidden) scheduled = requestHobbyFrame(tick, 15);
+}
+function resize() { measure = true; wake(); }
+function visibilityChanged() { if (document.hidden) stop(); else wake(); }
+function pointerEnter() { pointerInside = true; wake(); }
+function pointerLeave() { pointerInside = false; wake(); }
+function focusIn() { focusInside = true; wake(); }
+function focusOut(event) { focusInside = stage.contains(event.relatedTarget); wake(); }
+if (slots.length) {
+  const unobserveScene = observeScene(wake);
+  stage.addEventListener('pointerover', event => {
+    if (event.target.closest('.skills-orbit-disc')) pointerEnter();
+  });
+  stage.addEventListener('pointerout', event => {
+    if (!event.relatedTarget?.closest?.('.skills-orbit-disc')) pointerLeave();
+  });
+  stage.addEventListener('focusin', focusIn);
+  stage.addEventListener('focusout', focusOut);
+  window.addEventListener('scroll', wake, { passive: true });
+  window.addEventListener('resize', resize, { passive: true });
+  window.addEventListener('load', resize, { once: true });
+  reduced.addEventListener('change', wake);
+  document.addEventListener('visibilitychange', visibilityChanged);
+  const observer = new ResizeObserver(resize);
+  observer.observe(stage);
+  const hero = document.querySelector('#home'); if (hero) observer.observe(hero);
+  const bodyObserver = new MutationObserver(() => {
+    const next = bodyIsPaused();
+    if (next !== bodyPaused) { bodyPaused = next; wake(); }
+  });
+  bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  document.fonts?.ready.then(resize);
+  window.addEventListener('pagehide', event => {
+    stop();
+    if (event.persisted) return;
+    observer.disconnect(); bodyObserver.disconnect(); unobserveScene();
+    window.removeEventListener('scroll', wake);
+    window.removeEventListener('resize', resize);
+    window.removeEventListener('load', resize);
+    reduced.removeEventListener('change', wake);
+    document.removeEventListener('visibilitychange', visibilityChanged);
+  });
+  window.addEventListener('pageshow', resize);
+  wake();
+}

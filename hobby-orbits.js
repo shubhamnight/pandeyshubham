@@ -9,8 +9,9 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
   let visible=false, running=false, phase=.74, duration=1;
   let entrance=section.hobbyEntranceProgress||0,withdrawal=null;
   let entranceTarget=entrance;
-  const entranceSpeed=(.74/4800)*1.20,transitionDuration=1800;
-  let entranceDuration=4800,fastDuration=4800;
+  const baseEntranceSpeed=(.74/4800)*1.20,transitionDuration=1800;
+  const entranceTimeScale=.60;
+  let entranceSpeed=baseEntranceSpeed,entranceDuration=4800,fastDuration=4800;
   let frame=0, resizeFrame=0, lastTime=null, previousSize='', streams=[];
   const positions=new Float64Array(count);
   const indices=new Uint16Array(count),mixes=new Float64Array(count);
@@ -27,13 +28,19 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
   }
   function draw() {
     // A zero target starts withdrawal; hide only once it has completed.
-    const showing=entrance>0;
+    const showing=withdrawal?withdrawal.progress<1:entrance>0;
     if(section.classList.contains('hobby-images-entering')!==showing)section.classList.toggle('hobby-images-entering',showing);
+    // Let path visibility remove the cards. A parent opacity based on model
+    // progress used to hide the return before the cards could reach their exit.
+    const mediaOpacity=showing?'1':'0';
+    if(section.hobbyMediaOpacity!==mediaOpacity){
+      section.hobbyMediaOpacity=mediaOpacity;section.style.setProperty('--scene-hobby-media',mediaOpacity);
+    }
     // Compute each slot's progress once and reuse it for every hobby.
     const arriving=entrancePhase(entrance);
     for(let i=0;i<count;i++){
-      const raw=entrance===1?((phase-i/count+1)%1)*resolution:
-        withdrawal?(withdrawal.slots[i]-withdrawal.distance*(1-entrance))*resolution:(arriving-i/count)*resolution;
+      const raw=withdrawal?(withdrawal.slots[i]-withdrawal.distance*withdrawal.progress)*resolution:
+        entrance===1?((phase-i/count+1)%1)*resolution:(arriving-i/count)*resolution;
       positions[i]=raw;
       const at=Math.max(0,Math.min(resolution-.000001,raw));
       indices[i]=Math.floor(at);mixes[i]=at-indices[i];
@@ -44,7 +51,7 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
         const slot=slots[i];
         const visibility=!showing||raw<0?'hidden':'visible';
         if(slot.arcVisibility!==visibility){slot.arcVisibility=visibility;slot.style.visibility=visibility;}
-        if(entrance===1 && slot.arcPosition!==undefined && at<slot.arcPosition)slot.dispatchEvent(new Event('hobby-cycle'));
+        if(!withdrawal && entrance===1 && slot.arcPosition!==undefined && at<slot.arcPosition)slot.dispatchEvent(new Event('hobby-cycle'));
         slot.arcPosition=at;
         const offset=index*2;
         const x=points[offset]+(points[offset+2]-points[offset])*mix,y=points[offset+1]+(points[offset+3]-points[offset+1])*mix;
@@ -64,11 +71,19 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
     frame=0;
     if(!running){cancelHobbyFrame(tick);return;}
     const elapsed=lastTime===null?0:Math.min(time-lastTime,50)*playbackSpeed;
-    if(entrance!==entranceTarget){
+    if(withdrawal){
+      // Follow the upward scroll promptly; reverse the same captured positions
+      // when the user scrolls down again, including during an unfinished entrance.
+      withdrawal.progress+=(withdrawal.target-withdrawal.progress)*(1-Math.exp(-14*elapsed/1000));
+      if(Math.abs(withdrawal.target-withdrawal.progress)<.00001)withdrawal.progress=withdrawal.target;
+      if(withdrawal.progress===1){entrance=0;withdrawal=null;phase=.74;}
+      else if(withdrawal.progress===0&&withdrawal.target===0)withdrawal=null;
+    }else if(entrance!==entranceTarget){
       // All arcs share the fast entrance and its gradual slowdown.
-      const remaining=Math.abs(entranceTarget-entrance)*entranceDuration;
+      const transitionTime=entranceDuration;
+      const remaining=Math.abs(entranceTarget-entrance)*transitionTime;
       const consumed=Math.min(elapsed,remaining);
-      entrance+=Math.sign(entranceTarget-entrance)*consumed/entranceDuration;
+      entrance+=Math.sign(entranceTarget-entrance)*consumed/transitionTime;
       if(Math.abs(entranceTarget-entrance)<.000001)entrance=entranceTarget;
       // Carry the unused frame time into the orbit; never insert a held frame
       // between the entrance and continuous movement.
@@ -83,7 +98,7 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
     draw();
     // Visibility and pause changes already wake update through observers.
     // Only a completed partial entrance needs a running-state change here.
-    if(entrance===entranceTarget&&entrance!==1)update();
+    if(withdrawal?withdrawal.progress===withdrawal.target:entrance===entranceTarget&&entrance!==1)update();
     if(running)frame=requestHobbyFrame(tick,30);
   }
   function update() {
@@ -93,7 +108,7 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
       entrance=0;withdrawal=null;phase=.74;draw();
     }
     const shouldRun=visible&&!document.hidden&&!reduced.matches&&
-      (entrance===1||entrance!==entranceTarget)&&
+      (withdrawal?withdrawal.progress!==withdrawal.target:entrance===1||entrance!==entranceTarget)&&
       !document.body.classList.contains('motion-paused')&&
       !document.body.classList.contains('photography-gallery-open');
     if(section.classList.contains('orbits-running')!==shouldRun)section.classList.toggle('orbits-running',shouldRun);
@@ -153,8 +168,13 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
     duration=Math.max(...tracks.map(track=>track.length))/(narrow?18:24)*1000;
     // The blend covers the average of fast and cruise velocity. Shorten the
     // constant-speed portion accordingly to retain the existing final spacing.
-    fastDuration=(.74-transitionDuration*(entranceSpeed+1/duration)/2)/entranceSpeed;
-    entranceDuration=fastDuration+transitionDuration;
+    const baseFastDuration=(.74-transitionDuration*(baseEntranceSpeed+1/duration)/2)/baseEntranceSpeed;
+    const baseEntranceDuration=baseFastDuration+transitionDuration;
+    entranceDuration=baseEntranceDuration*entranceTimeScale;
+    fastDuration=entranceDuration-transitionDuration;
+    // Fit the same path into 60% of the original entrance time. The final
+    // velocity still equals cruise, so the orbit joins without a speed jump.
+    entranceSpeed=(.74-transitionDuration/duration/2)/(fastDuration+transitionDuration/2);
     streams=groups.map((group,index)=>{
       const {samples,length,entryDistance,exitDistance}=tracks[index];
       const offsetAt=distance=>{
@@ -191,14 +211,17 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
   motionObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
   function entranceChanged(){
     const next=section.hobbyEntranceProgress??0;
-    if(entrance===1&&next<1&&!withdrawal){
-      const slots=Array.from({length:count},(_,i)=>(phase-i/count+1)%1);
+    if(next<entranceTarget&&entrance>0&&!withdrawal&&!reduced.matches){
+      const arriving=entrancePhase(entrance);
+      const slots=Array.from({length:count},(_,i)=>entrance===1?(phase-i/count+1)%1:arriving-i/count);
       // Retreat all slots by the same distance from their current positions.
       // Keep their spacing and artwork, and allow a mid-return direction change.
-      withdrawal={slots,distance:Math.max(...slots)};
+      withdrawal={slots,distance:Math.max(0,...slots)+.04,progress:0,target:0,startTarget:entranceTarget};
     }
+    if(withdrawal)withdrawal.target=1-Math.max(0,Math.min(1,next/withdrawal.startTarget));
     entranceTarget=next;
     if(reduced.matches){
+      withdrawal=null;
       entrance=next;
       if(next===0){withdrawal=null;phase=.74;}
     }

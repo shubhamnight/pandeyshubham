@@ -25,12 +25,12 @@ function buildController() {
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
   // A straight-on resting view keeps the camera face centered.
   view.position.set(0, -.12, 8.0); view.lookAt(0, -.12, 0);
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x353d50, 1.8));
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x303846, 1.8));
   const light = new THREE.DirectionalLight(0xfff5ed, 2.6); light.position.set(-3, 5, 5); scene.add(light);
-  const rim = new THREE.DirectionalLight(0xc5d8ff, 2); rim.position.set(4, 1, -2); scene.add(rim);
+  const rim = new THREE.DirectionalLight(0xd5dfec, 2); rim.position.set(4, 1, -2); scene.add(rim);
   const model = new THREE.Group(); scene.add(model);
   const material = (color, roughness = .5, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
-  const shell = material(0x12366b,.52), seam = material(0x081c38,.65);
+  const shell = material(0x292a2d,.52), seam = material(0x121316,.65);
   const rubber = material(0x363940,.87), buttonMat = material(0x24272e,.38);
   const grain=new Uint8Array(64*64*4);let seed=43;
   for(let i=0;i<grain.length;i+=4){seed=(Math.imul(seed,1664525)+1013904223)>>>0;grain[i]=grain[i+1]=grain[i+2]=100+(seed>>>27);grain[i+3]=255;}
@@ -154,7 +154,7 @@ function buildController() {
     const face=new THREE.Mesh(new THREE.PlaneGeometry(.245,.245),new THREE.MeshBasicMaterial({map,transparent:true,depthWrite:false}));
     face.position.set(x,y,z);model.add(face);
   }
-  const buttons=[[1.23,.79,'triangle','#54ccc8'],[1.67,.35,'circle','#db7496'],[1.23,-.09,'cross','#99bbf8'],[.79,.35,'square','#d990bc']];
+  const buttons=[[1.23,.79,'triangle','#5685c1'],[1.67,.35,'circle','#183f73'],[1.23,-.09,'cross','#96b7df'],[.79,.35,'square','#315e97']];
   buttons.forEach(([x,y,symbol,color])=>{
     disc(.172,.025,x,y,.323,seam);
     disc(.148,.052,x,y,.359,buttonMat);

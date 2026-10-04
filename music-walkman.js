@@ -25,13 +25,13 @@ function buildWalkman() {
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
   // A near-frontal, level view keeps the player upright with a little depth.
   view.position.set(0, .34, 7.2); view.lookAt(0, .19, 0);
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x353d50, 1.8));
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x303846, 1.8));
   const light = new THREE.DirectionalLight(0xfff5ed, 2.6); light.position.set(-3, 5, 5); scene.add(light);
-  const rim = new THREE.DirectionalLight(0xc5d8ff, 2); rim.position.set(4, 1, -2); scene.add(rim);
+  const rim = new THREE.DirectionalLight(0xd5dfec, 2); rim.position.set(4, 1, -2); scene.add(rim);
   const model = new THREE.Group(); scene.add(model);
   const material = (color, roughness = .5, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
-  const navy=material(0x182441,.5), black=material(0x11151a,.55), gray=material(0x69716f,.57,.2);
-  const metal=material(0xb1b8b6,.28,.65), orange=material(0xf2a020,.94), cassette=material(0xaaa996,.74);
+  const navy=material(0x242529,.5), black=material(0x11151a,.55), gray=material(0x69716f,.57,.2);
+  const metal=material(0xb1b8b6,.28,.65), orange=material(0x183f73,.94), cassette=material(0xaaa996,.74);
   // Static grain gives the pads and enclosure their fabric/plastic surface.
   const grain=new Uint8Array(128*128*4);let seed=23;
   for(let i=0;i<grain.length;i+=4){seed=(Math.imul(seed,1664525)+1013904223)>>>0;grain[i]=grain[i+1]=grain[i+2]=90+(seed>>>25);grain[i+3]=255;}
@@ -67,7 +67,7 @@ function buildWalkman() {
   // A real cassette under a clear cover: colored label, tape reels and hubs.
   box(.49,1.48,.014,-.46,-.57,.400,metal,.017);
   box(.441,1.425,.009,-.46,-.57,.412,cassette,.012);
-  box(.061,1.37,.012,-.635,-.57,.421,material(0xb46c6b,.8),.004);
+  box(.061,1.37,.012,-.635,-.57,.421,material(0x16365f,.8),.004);
   const tape=material(0x655d4c,.8),hubMat=material(0xd0d0bc,.6);
   const teeth=new THREE.InstancedMesh(new THREE.BoxGeometry(.013,.032,.012),hubMat,24);
   const pose=new THREE.Object3D();let toothIndex=0;
@@ -88,8 +88,8 @@ function buildWalkman() {
   const eject=new THREE.Mesh(new THREE.ShapeGeometry(arrow),metal);eject.position.set(.075,-.60,.405);model.add(eject);
   disc(.020,.009,.525,-.82,.427,material(0xb8ba8d,.5));
   // Top stop control, headphone plug, tape transport switches and right-side ribs.
-  box(.29,.11,.19,-.52,1.035,.09,material(0xf2af28,.65),.007);
-  for(let i=0;i<6;i++)box(.26,.009,.006,-.52,1.00+i*.012,.19,material(0xd99013,.7),.002);
+  box(.29,.11,.19,-.52,1.035,.09,material(0x5685c1,.65),.007);
+  for(let i=0;i<6;i++)box(.26,.009,.006,-.52,1.00+i*.012,.19,material(0x16365f,.7),.002);
   const plug=disc(.055,.31,-.06,1.16,0,black);plug.rotation.x=0;
   disc(.036,.10,-.06,1.34,0,black).rotation.x=0;
   for(let i=0;i<4;i++){
@@ -98,7 +98,7 @@ function buildWalkman() {
   }
   const sideRibs=new THREE.InstancedMesh(new THREE.BoxGeometry(.013,.006,.50),black,52);
   for(let i=0;i<52;i++){pose.position.set(.739,-1.46+i*.045,-.04);pose.rotation.set(0,0,0);pose.updateMatrix();sideRibs.setMatrixAt(i,pose.matrix);}model.add(sideRibs);
-  box(.012,.85,.16,.76,-.24,.09,material(0x9ca96a,.8),.003);
+  box(.012,.85,.16,.76,-.24,.09,material(0x315e97,.8),.003);
   for(let i=0;i<15;i++)box(.018,.006,.16,.771,-.65+i*.054,.09,gray,.002);
   const port=disc(.055,.02,.778,-1.17,-.14,black);port.rotation.y=Math.PI/2;
   // Headphones sit behind the Walkman: flat padded band, sprung steel rails.
@@ -114,7 +114,7 @@ function buildWalkman() {
     const cupBack=disc(.285,.018,side*1.30,-.85,-.04,gray);cupBack.rotation.set(0,0,Math.PI/2);
     const pad=new THREE.Mesh(new THREE.TorusGeometry(.265,.115,18,56),orange);
     pad.rotation.y=Math.PI/2;pad.position.set(side*1.10,-.85,-.04);model.add(pad);
-    const padCenter=disc(.207,.046,side*1.095,-.85,-.04,material(0x7f5e25,.94));padCenter.rotation.set(0,0,Math.PI/2);
+    const padCenter=disc(.207,.046,side*1.095,-.85,-.04,material(0x172f54,.94));padCenter.rotation.set(0,0,Math.PI/2);
   });
   // A single continuous cable loops from the jack to the right earcup, with
   // a short second branch for the left earcup. It follows the model as a unit.

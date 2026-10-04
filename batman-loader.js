@@ -169,9 +169,9 @@ export function createBatmanLoader(intro){
   const scene=new THREE.Scene();
   const view=new THREE.OrthographicCamera(-3.2,3.2,2.1,-2.1,.1,30);
   view.position.set(0,0,12);view.lookAt(0,0,0);
-  const ambient=new THREE.HemisphereLight(0xe9efff,0x303039,2.2);scene.add(ambient);
+  const ambient=new THREE.HemisphereLight(0xd5dfec,0x2c3440,2.2);scene.add(ambient);
   const key=new THREE.DirectionalLight(0xffffff,4);key.position.set(-4,5,6);scene.add(key);
-  const edge=new THREE.DirectionalLight(0x77aeff,3);edge.position.set(4,2,-3);scene.add(edge);
+  const edge=new THREE.DirectionalLight(0x8a9fb9,3);edge.position.set(4,2,-3);scene.add(edge);
   // Reveal the lower-left bevel on PLAY without changing the loading bat.
   const playRim=new THREE.DirectionalLight(0xffffff,0);
   playRim.position.set(-3,-4,5);scene.add(playRim);
@@ -223,8 +223,8 @@ export function createBatmanLoader(intro){
   geometry.setAttribute('playPosition',playPosition);
   const playNormal=geometry.getAttribute('normal').clone();
   geometry.setAttribute('playNormal',playNormal);
-  const face=new THREE.MeshStandardMaterial({color:0xe7e7e7,metalness:.72,roughness:.28,transparent:false,opacity:1});
-  const side=new THREE.MeshStandardMaterial({color:0xaeb7c4,metalness:.8,roughness:.24,transparent:false,opacity:1});
+  const face=new THREE.MeshStandardMaterial({color:0x4b6584,metalness:.72,roughness:.28,transparent:false,opacity:1});
+  const side=new THREE.MeshStandardMaterial({color:0x344b68,metalness:.8,roughness:.24,transparent:false,opacity:1});
   // Upload the target once; the GPU interpolates vertices and bevel normals.
   // Both materials share the same scalar, with no per-frame buffer uploads.
   const morph={value:0};

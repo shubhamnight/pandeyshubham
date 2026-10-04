@@ -1,5 +1,6 @@
 // Scroll positioning is shared by the four existing model canvases.
 import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition } from './hobby-motion-clock.js';
+import { sceneMotion, observeScene } from './skills-hobbies-scene.js';
 const section=document.querySelector('#projects');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const listeners=new Set();
@@ -10,22 +11,43 @@ let orbitAngle=0,centerX=0,centerY=0,radius=0;
 let previousIntroState=null,previousReveal=-1,bounds=null,boundsDirty=true,modelsReady=false;
 let sectionTop=0,sectionHeight=0;
 let imagesStarted=false;
+let atHandoff=false;
 const travelSpan=.10/(.65*.90);
 const clamp=value=>Math.max(0,Math.min(1,value));
 const smooth=value=>value*value*value*(value*(value*6-15)+10);
 function draw(dt,paused){
   const spread=smooth(progress);
   hobbyIntro.strength=reduced.matches?0:1-spread;
-  const active=visible&&hobbyIntro.strength>.001;
+  const modelEntry=sceneMotion.enabled ? Math.min(sceneMotion.modelEntry, clamp((sceneMotion.skillExit-.78)/.22)) : 1;
+  const active=visible&&hobbyIntro.strength>.001&&(!sceneMotion.enabled||modelEntry>0);
   const stateChanged=active!==previousIntroState;
-  centers.forEach(center=>{
+  centers.forEach((center,index)=>{
     const {element,homeX,homeY,angle,motion}=center;
-    const x=centerX+Math.cos(angle+orbitAngle)*radius-homeX;
-    const y=centerY+Math.sin(angle+orbitAngle)*radius-homeY;
+    const theta=angle+orbitAngle;
+    const orbitX=centerX+Math.cos(theta)*radius,orbitY=centerY+Math.sin(theta)*radius;
+    let x=orbitX-homeX,y=orbitY-homeY;
+    if(sceneMotion.enabled){
+      // All four models emerge from the skills' outlet, then join the moving orbit.
+      const arrival=clamp(modelEntry*1.45-index*.15);
+      const t=smooth(arrival),u=1-t;
+      const startX=sceneMotion.outletX,startY=sceneMotion.outletY;
+      const controlX=orbitX+Math.sin(theta)*radius*.35;
+      const controlY=orbitY-Math.cos(theta)*radius*.35;
+      x=u*u*u*startX+3*u*u*t*startX+3*u*t*t*controlX+t*t*t*orbitX-homeX;
+      y=u*u*u*startY+3*u*u*t*(startY-sectionHeight*.35)+3*u*t*t*controlY+t*t*t*orbitY-homeY;
+      const showing=arrival>0&&modelsReady;
+      if(center.showing!==showing){
+        center.showing=showing;element.classList.toggle('scene-model-visible',showing);
+      }
+      const opacity=clamp(arrival*8).toFixed(3);
+      if(center.opacity!==opacity){center.opacity=opacity;element.style.setProperty('--scene-model-opacity',opacity);}
+    }else if(center.showing!==true){
+      center.showing=true;element.classList.remove('scene-model-visible');element.style.removeProperty('--scene-model-opacity');
+    }
     const offsetX=x*hobbyIntro.strength,offsetY=y*hobbyIntro.strength;
     // Use the same positions as the orbit, without any extra layout reads.
     // The direction also follows the return journey when scrolling upward.
-    if(active&&!paused&&center.tracking){
+    if(active&&!paused&&center.tracking&&dt>0){
       const speed=Math.max(radius*.65,1);
       const dx=offsetX-center.lastX,dy=offsetY-center.lastY;
       const vx=Math.max(-1,Math.min(1,dx/(dt*speed)));
@@ -66,17 +88,18 @@ function tick(time){
   if(document.hidden){cancelHobbyFrame(tick);last=0;return;}
   if(boundsDirty||!bounds){
     bounds=section.getBoundingClientRect();
-    sectionTop=bounds.top+window.scrollY;sectionHeight=bounds.height;
+    sectionTop=sceneMotion.enabled?sceneMotion.top:bounds.top+window.scrollY;
+    sectionHeight=sceneMotion.enabled?section.clientHeight:bounds.height;
     boundsDirty=false;
   }
   // The section's document position is stable during scrolling. Reuse it
   // instead of forcing a layout read after each set of animation writes.
   const top=sectionTop-getSmoothPosition();
-  visible=top<innerHeight&&top+sectionHeight>0;
+  visible=sceneMotion.enabled?sceneMotion.visible:top<innerHeight&&top+sectionHeight>0;
   // Widen the travel interval for the initial 35% speed reduction and
   // another 10%, while retaining the arrival point at 95% coverage.
   // The quintic easing in draw keeps both ends gentle without a timed delay.
-  const target=clamp((innerHeight*(.05+travelSpan)-top)/(innerHeight*travelSpan));
+  const target=sceneMotion.enabled?sceneMotion.spread:clamp((innerHeight*(.05+travelSpan)-top)/(innerHeight*travelSpan));
   if(measure){
     const elements=[...section.querySelectorAll('.hobby-orbit-center')];
     // Clear all transforms first, then batch the measurements to avoid four
@@ -90,7 +113,10 @@ function tick(time){
       const button=element.querySelector('button');
       let motion=hobbyIntro.motion.get(button);
       if(!motion){motion={pitch:0,yaw:0,roll:0,heading:0,speed:0};hobbyIntro.motion.set(button,motion);}
-      return {element,button,motion,tracking:false,homeX:rect.left-bounds.left+rect.width/2,homeY:rect.top-top+rect.height/2,angle:[-3,-1,3,1][index]*Math.PI/4};
+      return {element,button,motion,tracking:false,
+        homeX:(rect.left-bounds.left+rect.width/2)*width/Math.max(1,bounds.width),
+        homeY:(rect.top-bounds.top+rect.height/2)*height/Math.max(1,bounds.height),
+        angle:[-3,-1,3,1][index]*Math.PI/4};
     });
     measure=false;
   }
@@ -107,13 +133,21 @@ function tick(time){
     }
   }
   draw(dt,paused);
-  if(visible&&(progress<1||progress!==target)&&!reduced.matches&&!paused)frame=requestHobbyFrame(tick,20);
+  const waitingForHandoff=sceneMotion.enabled&&sceneMotion.modelEntry===0;
+  if(visible&&!waitingForHandoff&&(progress<1||progress!==target)&&!reduced.matches&&!paused)frame=requestHobbyFrame(tick,20);
   else{cancelHobbyFrame(tick);last=0;}
 }
 function wake(){if(!frame)frame=requestHobbyFrame(tick,20);}
 function onScroll(){wake();}
 function onResize(){measure=true;boundsDirty=true;previousIntroState=null;wake();}
 if(section){
+  const unobserveScene=observeScene(()=>{
+    const next=sceneMotion.enabled&&sceneMotion.modelEntry>0;
+    // The hero's entry scale/rotation has finished by this point. Measure the
+    // resting positions once here, rather than retaining its early visual bounds.
+    if(next&&!atHandoff){measure=true;boundsDirty=true;}
+    atHandoff=next;wake();
+  });
   window.addEventListener('scroll',onScroll,{passive:true});
   window.addEventListener('resize',onResize,{passive:true});
   const resize=new ResizeObserver(onResize);resize.observe(section);
@@ -126,5 +160,5 @@ if(section){
   document.addEventListener('visibilitychange',wake);
   const state=new MutationObserver(wake);state.observe(document.body,{attributes:true,attributeFilter:['class']});
   wake();
-  window.addEventListener('pagehide',event=>{if(event.persisted)return;cancelHobbyFrame(tick);resize.disconnect();state.disconnect();window.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onResize);document.removeEventListener('visibilitychange',wake);listeners.clear();});
+  window.addEventListener('pagehide',event=>{if(event.persisted)return;cancelHobbyFrame(tick);resize.disconnect();state.disconnect();unobserveScene();window.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onResize);document.removeEventListener('visibilitychange',wake);listeners.clear();});
 }

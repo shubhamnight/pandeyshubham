@@ -19,9 +19,9 @@ const revealObserver = new IntersectionObserver(entries => entries.forEach(entry
 }), {threshold:0.1});
 document.querySelectorAll('.reveal').forEach(element => revealObserver.observe(element));
 const studies = {
-  type: {title:'Form & feeling', category:'01 / TYPOGRAPHIC STUDY', copy:'An exploration of expressive type: oversized letterforms, a warm orange palette, and a rotating asterisk. A study in making a simple identity feel unmistakably its own.', art:'.type-art', background:'#ff704b'},
-  interface: {title:'Daylight', category:'02 / INTERFACE CONCEPT', copy:'A fictional focus dashboard exploring a calmer digital workspace. Soft sky blue, generous spacing, and a simple visual rhythm put everyday intentions first. This is a visual concept, not a released product.', art:'.ui-art', background:'#aed4ec'},
-  motion: {title:'Out of orbit', category:'03 / MOTION EXPERIMENT', copy:'Three elliptical paths and one playful center. This experiment explores how repetition, rotation, and a small shift in perspective can give simple geometry a sense of life.', art:'.orbit-art', background:'#232923'}
+  type: {title:'Form & feeling', category:'01 / TYPOGRAPHIC STUDY', copy:'An exploration of expressive type: oversized letterforms, a warm orange palette, and a rotating asterisk. A study in making a simple identity feel unmistakably its own.', art:'.type-art', background:'#183f73'},
+  interface: {title:'Daylight', category:'02 / INTERFACE CONCEPT', copy:'A fictional focus dashboard exploring a calmer digital workspace. Soft sky blue, generous spacing, and a simple visual rhythm put everyday intentions first. This is a visual concept, not a released product.', art:'.ui-art', background:'#11233c'},
+  motion: {title:'Out of orbit', category:'03 / MOTION EXPERIMENT', copy:'Three elliptical paths and one playful center. This experiment explores how repetition, rotation, and a small shift in perspective can give simple geometry a sense of life.', art:'.orbit-art', background:'#202124'}
 };
 const dialog = document.querySelector('#study-dialog');
 let lastStudy;
@@ -56,7 +56,7 @@ document.querySelectorAll('[data-color]').forEach(button => button.addEventListe
 }));
 // Scroll-linked parallax: update only visible layers, at most once per frame.
 const parallaxLayers = [...document.querySelectorAll('[data-scroll-parallax]')];
-const parallaxSections = [...document.querySelectorAll('.scroll-section:not(#projects):not(#playground)')];
+const parallaxSections = [...document.querySelectorAll('.scroll-section:not(#about):not(#projects):not(#playground)')];
 const visibleParallax = new Set();
 const visibleSections = new Set();
 let parallaxFrame = 0;

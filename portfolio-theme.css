@@ -1,14 +1,14 @@
 /* Hero-to-skills transition: preserve the full height of the skills content. */
-.hero-skills-transition{position:relative;isolation:isolate;background:#141414;overflow:clip}
+.hero-skills-transition{position:relative;isolation:isolate;background:#0c0d10;overflow:clip}
 .hero-skills-transition>#home{position:sticky;top:var(--hero-sticky-top,0px);transform:scale(var(--exit-scale,1)) rotate(var(--exit-rotation,0deg));transform-origin:50% 50%;z-index:0}
-.hero-skills-transition>#about{position:sticky;top:var(--skills-sticky-top,0px);z-index:1;transform:scale(var(--enter-scale,.8)) rotate(var(--enter-rotation,5deg));transform-origin:50% 0;--paper:#f8f4ea;--ink:#fafafa;--blue:#2774d8;--accent:#2774d8;padding-block:clamp(72px,8vw,128px)}
+.hero-skills-transition>#about{position:sticky;top:var(--skills-sticky-top,0px);z-index:1;transform:scale(var(--enter-scale,.8)) rotate(var(--enter-rotation,5deg));transform-origin:50% 0;--paper:#e7ebf0;--ink:#fafafa;--blue:#183f73;--accent:#183f73;padding-block:clamp(72px,8vw,128px)}
 .hero-skills-transition>#about{border-radius:32px;box-shadow:0 -12px 36px #00000024}
 @media(max-width:700px){.hero-skills-transition>#about{border-radius:22px}}
 .hero-skills-transition.transition-running>#home,.hero-skills-transition.transition-running>#about{will-change:transform}
 .hero-skills-transition>#projects{position:relative;z-index:2;border-radius:0;box-shadow:0 -18px 45px #0005;transform:translateZ(0)}
 @media(prefers-reduced-motion:reduce){.hero-skills-transition>#home{position:relative;top:auto;transform:none}.hero-skills-transition>#about{position:relative;top:auto;transform:none}}
 /* The canvas replaces only the hero grid, retaining its spacing and texture. */
-#home.kinetic-grid-ready{background-image:none;background-color:#141414}
+#home.kinetic-grid-ready{background-image:none;background-color:#0c0d10}
 #home .hero-kinetic-grid{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
 #home .name-track{z-index:1}
 /* Scoped 3D skills cards, preserving tooltip overflow and existing layout. */
@@ -24,99 +24,99 @@
 /* Skill icon interaction: bottom-up fill and a sliding tooltip. */
 #about .skill-tool{position:relative;overflow:visible;gap:9px;padding:7px 12px 7px 7px;cursor:default}
 #about .skill-tool:hover{transform:none}
-#about .skill-tool>.skill-icon-disc{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:0 0 44px;border-radius:50%;overflow:hidden;background:#f8f4ea;transition:box-shadow .3s}
-#about .skill-icon-disc:before{content:"";position:absolute;inset:0;background:#2168c4;transform:translateY(101%);transition:transform .3s ease-in-out;z-index:-1}
+#about .skill-tool>.skill-icon-disc{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:0 0 44px;border-radius:50%;overflow:hidden;background:#e7ebf0;transition:box-shadow .3s}
+#about .skill-icon-disc:before{content:"";position:absolute;inset:0;background:#183f73;transform:translateY(101%);transition:transform .3s ease-in-out;z-index:-1}
 #about .skill-icon-disc>svg,#about .skill-icon-disc>img,#about .skill-icon-disc>span{position:relative;width:28px;height:28px;display:grid;place-items:center;color:#171717;line-height:1;font-size:28px;transition:filter .3s,color .3s}
 #about .skill-tool>.skill-icon-name{display:inline;width:auto;height:auto;font-size:12px}
-#about .skill-tool>.skill-icon-tooltip{position:absolute;z-index:10;top:calc(100% + 5px);left:50%;display:block;width:max-content;height:auto;max-width:220px;padding:8px 12px;border-radius:7px;background:#174d94;color:#fff;font-size:12px;font-weight:500;line-height:1.4;opacity:0;visibility:hidden;transform:translate(-50%,-5px);transition:opacity .3s,transform .3s,visibility .3s;pointer-events:auto}
+#about .skill-tool>.skill-icon-tooltip{position:absolute;z-index:10;top:calc(100% + 5px);left:50%;display:block;width:max-content;height:auto;max-width:220px;padding:8px 12px;border-radius:7px;background:#102b52;color:#fff;font-size:12px;font-weight:500;line-height:1.4;opacity:0;visibility:hidden;transform:translate(-50%,-5px);transition:opacity .3s,transform .3s,visibility .3s;pointer-events:auto}
 #about .skill-icon-tooltip:before{content:"";position:absolute;bottom:100%;left:0;right:0;height:10px}
 #about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc:before{transform:translateY(0)}
-#about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc{box-shadow:0 5px 12px #14141430}
+#about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc{box-shadow:0 5px 12px #0c0d1030}
 #about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc>svg,#about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc>img{filter:drop-shadow(0 1px 1px #ffffff80)}
 #about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc>span{color:#fff}
 #about .skill-tool:is(:hover,:focus-visible):not(.tooltip-dismissed)>.skill-icon-tooltip{opacity:1;visibility:visible;transform:translate(-50%,3px)}
 @media(prefers-reduced-motion:reduce){#about .skill-icon-disc,#about .skill-icon-disc:before,#about .skill-icon-disc>svg,#about .skill-icon-disc>img,#about .skill-icon-disc>span,#about .skill-tool>.skill-icon-tooltip{transition:none}}
 /* All rules intentionally exclude #home and the floating navigation. */
 main>.section, #study-dialog{
-  --paper:#f8f4ea;--ink:#fafafa;--blue:#2774d8;--accent:#2774d8;
-  --surface-black:#141414;--surface-white:#f8f4ea;
+  --paper:#e7ebf0;--ink:#fafafa;--blue:#183f73;--accent:#183f73;
+  --surface-black:#0c0d10;--surface-white:#e7ebf0;
 }
 main>.section{padding-block:clamp(72px,8vw,128px)}
-#about{background:#f8f4ea}
+#about{background:#e7ebf0}
 #about .skill-design .skill-tool,#about .skill-human .skill-tool,
-.personal .polaroid,:is(#projects,#study-dialog) .mini-window{background:#f8f4ea}
-main>.section ::selection,#study-dialog ::selection{background:#2774d8;color:#fff}
+.personal .polaroid,:is(#projects,#study-dialog) .mini-window{background:#e7ebf0}
+main>.section ::selection,#study-dialog ::selection{background:#183f73;color:#fff}
 #about .skill-logo [fill="#E44D26" i],#about .skill-logo [fill="#F16529" i],
-#about .skill-logo [fill="#F24E1E" i],#about .skill-logo [fill="#FF7262" i]{fill:#2774d8}
+#about .skill-logo [fill="#F24E1E" i],#about .skill-logo [fill="#FF7262" i]{fill:#183f73}
 #about .skills-heading{padding-bottom:36px;border-bottom:1px solid #17171724}
-#about .skills-kicker{color:#2168c4}
+#about .skills-kicker{color:#183f73}
 #about .skills-grid{gap:24px;align-items:stretch}
-#about .skill-card{display:flex;flex-direction:column;border-radius:18px;padding:clamp(24px,3vw,42px);box-shadow:0 8px 14px #14141414,0 20px 36px -12px #14141438}
+#about .skill-card{display:flex;flex-direction:column;border-radius:18px;padding:clamp(24px,3vw,42px);box-shadow:0 8px 14px #0c0d1014,0 20px 36px -12px #0c0d1038}
 #about .skill-card[hidden]{display:none}
 #about .skill-detail{margin-top:auto}
-#about .skill-design,#about .skill-human{background:#2774d8;color:#fff;--card-accent:#fff}
+#about .skill-design,#about .skill-human{background:#183f73;color:#fff;--card-accent:#fff}
 #about .skill-design .skill-detail,#about .skill-human .skill-detail{border-color:#ffffff40}
-#about .skill-dimension{background:#191919;color:#fafafa;--card-accent:#77aeff}
+#about .skill-dimension{background:#191919;color:#fafafa;--card-accent:#5685c1}
 #about .skill-dimension .skill-detail{border-color:#ffffff30}
 #about .skill-dimension .skill-tool{background:#303030;color:#fff;border-color:#ffffff20}
-#about .skill-card:hover{box-shadow:0 12px 20px #1414141c,0 28px 44px -12px #14141445}
-#about .skills-filter button:hover{border-color:#2774d8}
-#about .skills-filter button[aria-pressed=true]{background:#2774d8;border-color:#2774d8;color:#fff}
+#about .skill-card:hover{box-shadow:0 12px 20px #0c0d101c,0 28px 44px -12px #0c0d1045}
+#about .skills-filter button:hover{border-color:#183f73}
+#about .skills-filter button[aria-pressed=true]{background:#183f73;border-color:#183f73;color:#fff}
 #about .skills-filter button[aria-pressed=true] span{color:#fff}
 #about .skills-signoff{border-top:1px solid #17171724;padding-top:26px}
-#projects{background:#141414}
+#projects{background:#0c0d10}
 #projects .project-heading{border-bottom:1px solid #ffffff26;padding-bottom:36px}
-#projects .project-heading h2 em{color:#77aeff}
+#projects .project-heading h2 em{color:#5685c1}
 #projects .study-card{border-radius:18px;border:1px solid #ffffff28}
-#projects .study-orange{background:#f8f4ea;color:#171717}
+#projects .study-orange{background:#e7ebf0;color:#171717}
 #projects .type-art>span{color:#171717}
-#projects .type-art .outline-type{color:transparent;-webkit-text-stroke-color:#2168c4}
-#projects .art-star{color:#2168c4}
-#projects .study-blue{background:#2774d8;color:#fff}
+#projects .type-art .outline-type{color:transparent;-webkit-text-stroke-color:#183f73}
+#projects .art-star{color:#183f73}
+#projects .study-blue{background:#183f73;color:#fff}
 #projects .study-blue .mini-window{color:#171717;box-shadow:12px 18px 0 #0002}
 #projects .study-dark{background:#1c1c1c}
-#projects .orbit-core{color:#77aeff}
-#projects .orbit-ring{border-color:#77aeff80}
-#projects .orbit-word em{color:#77aeff}
-#projects .hover-label{background:#2774d8;color:#fff}
-#projects .study-blue .hover-label{background:#f8f4ea;color:#171717}
-#projects .study-card:hover{border-color:#77aeff;box-shadow:0 18px 40px #0003}
-#playground{background:#141414;border-top:0;padding-top:36px}
+#projects .orbit-core{color:#5685c1}
+#projects .orbit-ring{border-color:#5685c180}
+#projects .orbit-word em{color:#5685c1}
+#projects .hover-label{background:#183f73;color:#fff}
+#projects .study-blue .hover-label{background:#e7ebf0;color:#171717}
+#projects .study-card:hover{border-color:#5685c1;box-shadow:0 18px 40px #0003}
+#playground{background:#0c0d10;border-top:0;padding-top:36px}
 #playground .play-heading{border-top:1px solid #ffffff26;padding-top:64px}
-#playground .play-stage{background:#f8f4ea;border:0;color:#171717;--mood:#2168c4;border-radius:18px}
-#playground .play-grid{background-image:linear-gradient(#14141409 1px,transparent 1px),linear-gradient(90deg,#14141409 1px,transparent 1px)}
-#playground .kinetic-object span:nth-child(2){-webkit-text-stroke-color:#2774d8}
+#playground .play-stage{background:#e7ebf0;border:0;color:#171717;--mood:#183f73;border-radius:18px}
+#playground .play-grid{background-image:linear-gradient(#0c0d1009 1px,transparent 1px),linear-gradient(90deg,#0c0d1009 1px,transparent 1px)}
+#playground .kinetic-object span:nth-child(2){-webkit-text-stroke-color:#183f73}
 #playground .kinetic-object span:nth-child(3){-webkit-text-stroke-color:#171717}
 #playground .stage-label{bottom:40px}
-.personal.light-section{background:#f8f4ea;border-top:6px solid #2774d8}
+.personal.light-section{background:#e7ebf0;border-top:6px solid #183f73}
 .personal .personal-layout{gap:10%;padding-block:24px}
-.personal .polaroid{border:1px solid #17171718;box-shadow:12px 14px 0 #2774d8,0 24px 50px #14141415}
-.personal .tape{background:#2774d859}
-.personal .eyebrow{color:#2168c4}
+.personal .polaroid{border:1px solid #17171718;box-shadow:12px 14px 0 #183f73,0 24px 50px #0c0d1015}
+.personal .tape{background:#183f7359}
+.personal .eyebrow{color:#183f73}
 .personal .personal-copy h2{padding-bottom:28px;border-bottom:1px solid #17171724}
-.personal .signature-name{color:#2168c4}
-#contact{background:#141414;border-top:0}
-#contact>p{color:#77aeff}
+.personal .signature-name{color:#183f73}
+#contact{background:#0c0d10;border-top:0}
+#contact>p{color:#5685c1}
 #contact h2{max-width:1150px}
-#contact .footer-rotator{color:#77aeff}
-#contact .contact-spark{color:#77aeff}
+#contact .footer-rotator{color:#5685c1}
+#contact .contact-spark{color:#5685c1}
 #contact .contact-note{padding-bottom:36px;border-bottom:1px solid #ffffff26}
 #contact .footer-bottom{border-top:0;padding-top:0}
 #contact .footer-name{color:#fafafa}
-#contact .footer-name>span{color:#2774d8}
-#study-dialog{background:#f8f4ea;border:1px solid #17171720;border-radius:18px}
-#study-dialog .eyebrow{color:#2168c4}
-#study-dialog .dialog-close{background:#f8f4ea;color:#171717}
-#study-dialog .dialog-done{background:#2774d8;color:#fff}
-#study-dialog .dialog-done:hover{background:#205eae}
-#dialog-art:has(.type-art){background:#f8f4ea!important;border:1px solid #17171720}
-#dialog-art .type-art .art-star{color:#2168c4}
-#dialog-art:has(.ui-art){background:#2774d8!important}
+#contact .footer-name>span{color:#183f73}
+#study-dialog{background:#e7ebf0;border:1px solid #17171720;border-radius:18px}
+#study-dialog .eyebrow{color:#183f73}
+#study-dialog .dialog-close{background:#e7ebf0;color:#171717}
+#study-dialog .dialog-done{background:#183f73;color:#fff}
+#study-dialog .dialog-done:hover{background:#214b80}
+#dialog-art:has(.type-art){background:#e7ebf0!important;border:1px solid #17171720}
+#dialog-art .type-art .art-star{color:#183f73}
+#dialog-art:has(.ui-art){background:#183f73!important}
 #dialog-art .mini-window{color:#171717}
-#dialog-art .orbit-core{color:#77aeff}
-#dialog-art .floating-sticker,#projects .floating-sticker{background:#f8f4ea;color:#171717;border:2px solid #2774d8}
-main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #2774d8;outline-offset:5px}
-#projects :focus-visible,#contact :focus-visible{outline-color:#77aeff}
+#dialog-art .orbit-core{color:#5685c1}
+#dialog-art .floating-sticker,#projects .floating-sticker{background:#e7ebf0;color:#171717;border:2px solid #183f73}
+main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #183f73;outline-offset:5px}
+#projects :focus-visible,#contact :focus-visible{outline-color:#5685c1}
 @media(max-width:700px){
   #about .skills-heading{padding-bottom:24px}
   #about .skills-grid{gap:18px}
@@ -137,7 +137,7 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #277
 #about .skill-glass-layers{position:absolute;top:12px;right:12px;width:110px;height:110px;pointer-events:none;transform-style:preserve-3d}
 #about .skill-glass-layers>span{position:absolute;top:calc(var(--layer)*8px);right:calc(var(--layer)*8px);width:calc(100px - var(--layer)*20px);aspect-ratio:1;border-radius:50%;border:1px solid #ffffff12;background:#ffffff09;box-shadow:-5px 8px 16px #0000000c;transform:translateZ(calc(12px + var(--layer)*8px));transition:transform .45s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--layer)*45ms)}
 #about .skill-card:is(.tilt-active,:focus-within) .skill-glass-layers>span{transform:translateZ(calc(20px + var(--layer)*14px))}
-#about .skill-card:is(.tilt-active,:focus-within){box-shadow:14px 25px 35px -20px #14141470,0 16px 28px -12px #14141440}
+#about .skill-card:is(.tilt-active,:focus-within){box-shadow:14px 25px 35px -20px #0c0d1070,0 16px 28px -12px #0c0d1040}
 #about .skill-card .skill-tool{transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s;transition-delay:calc(var(--tool-order,0)*35ms)}
 #about .skill-card.tilt-active .skill-tool{transform:translateZ(12px);box-shadow:-3px 9px 14px -8px #0005}
 #about .skill-card .skill-tool:is(:hover,:focus-visible){transform:translateZ(22px) translateY(-3px);transition-delay:0s}
@@ -157,8 +157,8 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #277
 #about .skills-grid .skill-card{box-sizing:border-box;height:var(--skill-card-height,auto)}
 @media(max-width:700px){#about .skills-grid{grid-template-columns:minmax(0,1fr)}}
 /* Soft depth for the skills cards, including the resting state. */
-#about .skill-card.tilt-card{box-shadow:0 3px 8px #1414140d,0 12px 24px -10px #14141426}
-#about .skill-card.tilt-card:is(:hover,.tilt-active,:focus-within){box-shadow:0 5px 12px #14141412,0 18px 30px -12px #14141430}
+#about .skill-card.tilt-card{box-shadow:0 3px 8px #0c0d100d,0 12px 24px -10px #0c0d1026}
+#about .skill-card.tilt-card:is(:hover,.tilt-active,:focus-within){box-shadow:0 5px 12px #0c0d1012,0 18px 30px -12px #0c0d1030}
 
 /* The skills now read as clean cards without filter controls or secondary tag rows. */
 #about .skills-filter,
@@ -173,9 +173,9 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #277
 .hobby-orbits,.hobby-orbit,.hobby-arc-stream{position:absolute;inset:0;pointer-events:none}
 .hobby-orbits{overflow:hidden;overflow:clip;contain:paint}
 .hobby-orbit-center{position:absolute;width:96px;display:flex;align-items:center;flex-direction:column;gap:12px}
-.hobby-orbit-center svg{width:43.7px;height:43.7px;color:#77aeff}
+.hobby-orbit-center svg{width:43.7px;height:43.7px;color:#5685c1}
 .hobby-orbit-center .hobby-camera-icon{display:block;width:70px;height:43.7px;object-fit:contain}
-.hobby-orbit-center h3{margin:0;max-width:13ch;text-align:center;font-size:12px;font-weight:500;letter-spacing:.04em;color:#f8f4ea}
+.hobby-orbit-center h3{margin:0;max-width:13ch;text-align:center;font-size:12px;font-weight:500;letter-spacing:.04em;color:#e7ebf0}
 .hobby-photography .hobby-orbit-center{left:11%;top:11%;transform:translate(-50%,-50%)}
 .hobby-travel .hobby-orbit-center{right:11%;top:11%;transform:translate(50%,-50%)}
 .hobby-gaming .hobby-orbit-center{left:11%;bottom:11%;transform:translate(-50%,50%)}
@@ -206,18 +206,18 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #277
 }
 
 /* A flush white fourth page, with no section translation at the shared edge. */
-#playground{position:relative;z-index:3;background:#fff;color:#171717;--ink:#171717;--accent:#2168c4;transform:none;will-change:auto}
+#playground{position:relative;z-index:3;background:#fff;color:#171717;--ink:#171717;--accent:#183f73;transform:none;will-change:auto}
 #playground .play-heading{border-top-color:#17171720}
 #playground .play-heading h2{color:#171717}
-#playground .play-heading h2 em{color:#2168c4}
-#playground .play-stage{background:#f5f7fa;border:1px solid #172d4914;color:#171717;--mood:#2168c4}
+#playground .play-heading h2 em{color:#183f73}
+#playground .play-stage{background:#f5f7fa;border:1px solid #172d4914;color:#171717;--mood:#183f73}
 #playground .stage-label{color:#171717}
-#playground .stage-label em{color:#2168c4}
+#playground .stage-label em{color:#183f73}
 #photography-camera{display:block;position:relative;width:126px;height:106px;padding:0;border:0;background:transparent;pointer-events:auto;cursor:pointer;touch-action:manipulation;border-radius:12px}
 #photography-camera canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 #photography-camera .hobby-camera-icon{margin:auto}
 #photography-camera.camera-ready .hobby-camera-icon{display:none}
-#photography-camera:focus-visible{outline:2px solid #77aeff;outline-offset:3px}
+#photography-camera:focus-visible{outline:2px solid #5685c1;outline-offset:3px}
 .photography-empty-frame{aspect-ratio:4/3;background:#222426;border:1px solid #ffffff20;border-radius:8px}
 @media(max-width:900px){#photography-camera{width:90px;height:76px}}
 
@@ -226,7 +226,7 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #277
 #gaming-controller canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 #gaming-controller .gaming-controller-fallback{margin:auto}
 #gaming-controller.camera-ready .gaming-controller-fallback{display:none}
-#gaming-controller:focus-visible{outline:2px solid #77aeff;outline-offset:3px}
+#gaming-controller:focus-visible{outline:2px solid #5685c1;outline-offset:3px}
 .gaming-empty-frame{aspect-ratio:4/3;background:#222426;border:1px solid #ffffff20;border-radius:8px}
 @media(max-width:900px){#gaming-controller{width:90px;height:76px}}
 #gaming-controller .gaming-controller-fallback svg{margin:auto}
@@ -236,7 +236,7 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #277
 #travel-plane canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 #travel-plane .travel-plane-fallback{margin:auto}
 #travel-plane.camera-ready .travel-plane-fallback{display:none}
-#travel-plane:focus-visible{outline:2px solid #77aeff;outline-offset:3px}
+#travel-plane:focus-visible{outline:2px solid #5685c1;outline-offset:3px}
 .travel-empty-frame{aspect-ratio:4/3;background:#222426;border:1px solid #ffffff20;border-radius:8px}
 @media(max-width:900px){#travel-plane{width:108px;height:91.2px}}
 #travel-plane .travel-plane-fallback svg{margin:auto}
@@ -246,7 +246,7 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #277
 #music-walkman canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 #music-walkman .music-walkman-fallback{margin:auto}
 #music-walkman.camera-ready .music-walkman-fallback{display:none}
-#music-walkman:focus-visible{outline:2px solid #77aeff;outline-offset:3px}
+#music-walkman:focus-visible{outline:2px solid #5685c1;outline-offset:3px}
 .music-empty-frame{aspect-ratio:4/3;background:#222426;border:1px solid #ffffff20;border-radius:8px}
 @media(max-width:900px){#music-walkman{width:90px;height:76px}}
 #music-walkman .music-walkman-fallback svg{margin:auto}
@@ -265,9 +265,9 @@ dialog.hobby-gallery[open]{display:flex;flex-direction:column}
 dialog.hobby-gallery::backdrop{background:rgba(0,0,0,.78)}
 dialog.hobby-gallery header{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:26px 30px 22px;border-bottom:1px solid #ffffff18;flex:0 0 auto;background:#141516}
 dialog.hobby-gallery h2{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:8px 0 0}
-dialog.hobby-gallery .eyebrow{color:#77aeff}
+dialog.hobby-gallery .eyebrow{color:#5685c1}
 dialog.hobby-gallery header button{display:grid;place-items:center;width:44px;height:44px;padding:0;flex:0 0 44px;border:1px solid #ffffff30;border-radius:50%;background:#242526;color:#fff;font-size:28px;line-height:1;cursor:pointer}
-dialog.hobby-gallery :focus-visible{outline:2px solid #77aeff;outline-offset:4px}
+dialog.hobby-gallery :focus-visible{outline:2px solid #5685c1;outline-offset:4px}
 .hobby-gallery-content{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:26px 30px 30px;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-color:#626971 #141516}
 .hobby-gallery-content p{color:#aeb3bb;font-size:14px;margin:0 0 24px}
 .hobby-gallery-content [class$="-gallery-grid"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:start}
@@ -282,7 +282,7 @@ dialog.hobby-gallery :focus-visible{outline:2px solid #77aeff;outline-offset:4px
 .travel-video-controls button{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;padding:0;border:0;border-radius:4px;background:transparent;color:inherit;font-size:15px;cursor:pointer}
 .travel-video-controls button:hover{background:#ffffff20}
 .travel-video-controls button[hidden]{display:none}
-.travel-video-controls input{min-width:0;flex:1;accent-color:#77aeff;cursor:pointer}
+.travel-video-controls input{min-width:0;flex:1;accent-color:#5685c1;cursor:pointer}
 .travel-video-time{font-size:11px;font-variant-numeric:tabular-nums;min-width:3ch}
 @media(hover:hover) and (pointer:fine){.travel-video-player.is-playing:not(:hover):not(:focus-within) .travel-video-controls{opacity:0;pointer-events:none}}
 @media(max-width:700px){dialog.hobby-gallery{width:calc(100vw - 24px);height:90dvh;max-height:90dvh;border-radius:14px}dialog.hobby-gallery header{padding:20px;gap:16px}.hobby-gallery-content{padding:20px}.hobby-gallery-content [class$="-gallery-grid"]{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
@@ -298,7 +298,7 @@ dialog.hobby-gallery :focus-visible{outline:2px solid #77aeff;outline-offset:4px
 /* Vinyl records retain the existing 4:3 orbit bounds and shared arc clock. */
 .hobby-music .hobby-image-surface{display:grid;place-items:center;background:none;border:0;border-radius:0;box-shadow:none;overflow:visible}
 .music-record{position:relative;width:74%;aspect-ratio:1;border-radius:50%;isolation:isolate;background:repeating-radial-gradient(circle at center,transparent 0 2px,#ffffff09 2.5px 3px,transparent 3.5px 5px),conic-gradient(from -35deg,#0b0d10 0deg,#353a40 35deg,#121518 60deg,#080a0c 140deg,#30353b 210deg,#121518 240deg,#080a0c 320deg,#0b0d10 360deg);border:1px solid #545a63;box-shadow:inset 0 0 0 3px #090a0b,inset 0 0 0 5px #ffffff0c,0 8px 16px #0005;transform:rotate(0deg);transition:transform .65s cubic-bezier(.22,1,.36,1)}
-.music-record-label{position:absolute;inset:32%;border-radius:50%;overflow:hidden;background:var(--record-label,#2864ae);border:1px solid #ffffff30;box-shadow:0 0 0 3px #050709,0 0 0 4px #ffffff12}
+.music-record-label{position:absolute;inset:32%;border-radius:50%;overflow:hidden;background:var(--record-label,#183f73);border:1px solid #ffffff30;box-shadow:0 0 0 3px #050709,0 0 0 4px #ffffff12}
 .music-record-label::after{content:'';position:absolute;inset:12%;border:1px solid #ffffff24;border-radius:50%;pointer-events:none}
 .hobby-music .music-record-label img,.music-gallery-grid .music-record-label img{position:static;width:100%;height:100%;object-fit:cover;background:none;border-radius:50%}
 .music-record-hole{position:absolute;left:50%;top:50%;width:5%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#111;border:1px solid #d0d5dc88;box-shadow:0 0 0 2px #0004;z-index:2}
@@ -334,6 +334,105 @@ body.hobbies-intro-active #projects .hobby-orbit-center button{pointer-events:no
 html.lenis{scroll-behavior:auto!important}
 
 /* Sticky hero layers can still intersect while covered by the next page. */
-#home.hero-covered .hero-star-layer,#home.hero-covered .hero-retro-lines,#home.hero-covered .name-track{animation-play-state:paused}
+#home.hero-covered .hero-star-layer,#home.hero-covered .hero-retro-lines,#home.hero-covered .name-track,#home.hero-idle .name-track{animation-play-state:paused}
 
 .ambient-paused,.ambient-paused *{animation-play-state:paused!important}
+
+/* Dark blue Batman palette: colour overrides only; existing geometry and motion remain intact. */
+:root{--bg:#0c0d10;--ink:#e7ebf0;--muted:#a4aab3;--accent:#183f73;--paper:#18191d;--blue:#183f73;--lime:#5685c1;--line:#5685c112}
+main>.section,main>dialog,#study-dialog,.hero-skills-transition>#about{--paper:#18191d;--ink:#e7ebf0;--blue:#183f73;--lime:#5685c1;--accent:#183f73;--surface-black:#0c0d10;--surface-white:#242529}
+.floating-nav{background:#18191ded;border-color:#5685c126}
+.floating-nav a:hover{color:#5685c1}
+.badge,.badge-face{background-color:#183f73;color:#e7ebf0}
+.badge-face{background-image:radial-gradient(circle at 1px 1px,#96b7df50 1px,transparent 1.5px),linear-gradient(138deg,#ffffff12,transparent 42%,#0e244530)}
+.badge-bottom{background:#17181c;color:#5685c1}
+#home .badge>img{filter:url('#badge-soft-shadow')}
+#about,.hero-skills-transition>#about{background:#18191d;color:#e7ebf0}
+#about .skills-heading,#about .skills-signoff{border-color:#e7ebf024}
+#about .skills-heading>p,#about .skills-signoff,.personal .personal-copy p{color:#a4aab3}
+#about .skill-design,#about .skill-human{background:#142840;color:#e7ebf0;--card-accent:#5685c1}
+#about .skill-frontend,#about .skill-dimension{background:#242529;color:#e7ebf0;--card-accent:#5685c1}
+#about .skill-card.tilt-card{border-color:#5685c130}
+#about .skill-design .skill-tool,#about .skill-human .skill-tool,#about .skill-frontend .skill-tool,#about .skill-dimension .skill-tool{background:#18191d;color:#e7ebf0;border-color:#e7ebf020}
+#about .skill-tool>.skill-icon-disc{background:#303136}
+#about .skill-icon-disc>svg,#about .skill-icon-disc>img,#about .skill-icon-disc>span{color:#5685c1}
+#about .skill-icon-disc:before{background:#183f73}
+#about .skill-tool>.skill-icon-tooltip{background:#102b52;color:#fff}
+#about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc>span{color:#e7ebf0}
+#about .skills-filter button{color:#e7ebf0;border-color:#e7ebf030}
+#about .skills-filter button[aria-pressed=true]{color:#e7ebf0}
+#projects,#contact{background:#0c0d10}
+#projects .project-heading p,#contact .contact-note p>span,#contact .footer-bottom{color:#a4aab3}
+#playground{background:#18191d;color:#e7ebf0;--ink:#e7ebf0;--accent:#183f73}
+#playground .play-heading{border-top-color:#e7ebf020}
+#playground .play-heading h2,#playground .stage-label{color:#e7ebf0}
+#playground .play-stage{background:#242529;color:#e7ebf0;border-color:#5685c114;--mood:#183f73}
+#playground .play-grid{background-image:linear-gradient(#e7ebf009 1px,transparent 1px),linear-gradient(90deg,#e7ebf009 1px,transparent 1px)}
+#playground .kinetic-object span:nth-child(3){-webkit-text-stroke-color:#e7ebf0}
+.personal.light-section{background:#18191d;color:#e7ebf0}
+.personal .personal-copy h2{border-color:#e7ebf024}
+.personal .polaroid{background:#242529;border-color:#e7ebf018;color:#e7ebf0}
+.personal .polaroid>div{background:#303136}
+.personal .eyebrow{color:#183f73}
+#study-dialog{background:#18191d;color:#e7ebf0;border-color:#e7ebf020}
+#study-dialog .dialog-close{background:#242529;color:#e7ebf0;border-color:#e7ebf040}
+#study-dialog>p{color:#a4aab3}
+#study-dialog .dialog-done{color:#e7ebf0}
+#dialog-art:has(.type-art){background:#242529!important;border-color:#e7ebf020}
+#projects .study-orange,#projects .study-blue{background:#242529;color:#e7ebf0}
+#projects .type-art>span,#dialog-art .type-art>span{color:#e7ebf0}
+#projects .type-art .outline-type,#dialog-art .type-art .outline-type{color:transparent;-webkit-text-stroke-color:#183f73}
+:is(#projects,#study-dialog) .mini-window{background:#303136;color:#e7ebf0}
+#projects .study-blue .mini-window,#dialog-art .mini-window{color:#e7ebf0}
+#projects .hover-label{color:#e7ebf0}
+#projects .study-blue .hover-label{background:#183f73;color:#e7ebf0}
+#dialog-art .floating-sticker,#projects .floating-sticker{background:#242529;color:#e7ebf0}
+#photography-camera .hobby-camera-icon{filter:grayscale(1) sepia(1) saturate(3) hue-rotate(175deg)}
+.hobby-image-surface,dialog.hobby-gallery{border-color:#5685c124}
+.hobby-gallery-content{scrollbar-color:#102b52 #0c0d10}
+.hobby-gallery-content figure{border-color:#5685c118}
+
+/* The existing skill icons travel from above into one complete circular orbit. */
+#about,.hero-skills-transition>#about{position:relative;height:calc(100dvh + 48px);min-height:740px;padding:0;overflow:hidden;overflow:clip;--skills-disc-size:clamp(64px,7vw,96px)}
+#about .skills-heading{position:absolute;left:50%;top:50%;width:min(340px,calc(var(--skills-ring-radius,240px)*1.4));display:block;transform:translate(-50%,-50%);text-align:center;gap:0;padding:0;margin:0;border:0;z-index:2;pointer-events:none}
+#about .skills-heading h1{font-size:clamp(23px,3.8vw,52px);line-height:1.08}
+#about .skills-heading>p{font-size:clamp(11px,1vw,14px);line-height:1.65;max-width:none;margin:18px auto 0}
+#about .skills-orbit-stage{position:absolute;inset:0;isolation:isolate}
+#about .skills-orbit-list{position:absolute;inset:0;padding:0;margin:0;list-style:none}
+#about .skills-orbit-slot{position:absolute;left:0;top:0;width:var(--skills-disc-size);height:var(--skills-disc-size);visibility:hidden}
+#about.skills-orbit-running .skills-orbit-slot{will-change:transform}
+#about .skills-orbit-slot:has(.skills-orbit-disc:is(:hover,:focus-visible)){z-index:3}
+#about .skills-orbit-disc{position:relative;display:grid;place-items:center;width:100%;height:100%;padding:0;border:1px solid #5685c166;border-radius:50%;background:radial-gradient(circle at 30% 20%,#2a3a50,#17263b 65%,#142034);color:#dbe7f5;box-shadow:inset 0 1px 1px #ffffff20,0 8px 14px #0006,0 20px 30px #0004;outline-offset:5px;transition:transform .3s cubic-bezier(.22,1,.36,1),border-color .3s,box-shadow .3s;cursor:default}
+#about .skills-orbit-disc>svg{display:block;width:48%;height:48%}
+#about .skills-orbit-disc>span[aria-hidden]{font-size:calc(var(--skills-disc-size)*.45);line-height:1}
+#about .skills-orbit-disc [fill="#183f73"]{fill:#6d98ce}
+#about .skills-orbit-disc [fill="#102b52"]{fill:#3e6597}
+#about .skills-orbit-disc stop[stop-color="#183f73"]{stop-color:#6d98ce}
+#about .skills-orbit-disc stop[stop-color="#102b52"]{stop-color:#3e6597}
+#about .skills-orbit-name{position:absolute;top:calc(100% + 10px);left:50%;width:max-content;max-width:120px;padding:6px 8px;border:1px solid #5685c14d;border-radius:7px;background:#152742;color:#e7ebf0;font:500 11px/1.4 Inter,Helvetica,sans-serif;text-align:center;opacity:0;transform:translate(-50%,-4px);transition:opacity .2s,transform .2s;pointer-events:none}
+#about .skills-orbit-disc:is(:hover,:focus-visible){transform:scale(1.1);border-color:#88acd9;box-shadow:inset 0 1px 1px #ffffff30,0 10px 18px #0007,0 24px 36px #0005}
+#about .skills-orbit-disc:is(:hover,:focus-visible) .skills-orbit-name{opacity:1;transform:translate(-50%,0)}
+#about .skills-orbit-disc:focus-visible{outline:2px solid #88acd9}
+@media(max-width:700px){#about,.hero-skills-transition>#about{min-height:680px}#about .skills-heading>p{margin-top:14px}}
+@media(max-width:380px){#about .skills-heading h1{font-size:20px}#about .skills-heading>p{font-size:10px;line-height:1.5;margin-top:12px}}
+@media(prefers-reduced-motion:reduce){#about .skills-orbit-disc,#about .skills-orbit-name{transition:none}#about .skills-orbit-disc:is(:hover,:focus-visible){transform:none}}
+
+/* Skills and hobbies share one viewport: no covering panel or section boundary. */
+.skills-hobbies-scene{position:relative;background:#0c0d10}
+.skills-hobbies-viewport{position:relative;transform-origin:50% 0}
+.hero-skills-transition.transition-running .skills-hobbies-viewport{will-change:transform}
+.scene-pinned{height:calc(max(860px,100dvh + 48px)*var(--scene-scroll-length,3.27))}
+.scene-pinned .skills-hobbies-viewport{position:sticky;top:var(--scene-sticky-top,-48px);height:max(860px,calc(100dvh + 48px));overflow:clip;isolation:isolate;transform:scale(var(--enter-scale,1)) rotate(var(--enter-rotation,0deg))}
+.scene-pinned #about,.scene-pinned #projects{position:absolute;inset:0;height:100%;min-height:0;max-height:none;padding:0;border:0;border-radius:0;box-shadow:none;background:transparent;transform:none;pointer-events:none}
+.scene-pinned #about{z-index:2}
+.scene-pinned #projects{z-index:1}
+.scene-pinned #about .skills-orbit-disc{pointer-events:auto}
+.scene-pinned #about .skills-heading{opacity:var(--scene-skills-copy,1)}
+.scene-pinned #projects .project-heading{opacity:var(--scene-hobbies-copy,0)}
+.scene-pinned :is(.skills-heading,.project-heading){transition:none}
+.scene-pinned #projects .hobby-orbit-center{opacity:var(--scene-model-opacity,0);visibility:hidden;pointer-events:none}
+.scene-pinned #projects .hobby-orbit-center.scene-model-visible{visibility:visible}
+.scene-pinned #projects .hobby-orbits{overflow:clip}
+.scene-pinned #projects .hobby-arc-stream{opacity:var(--scene-hobby-media,0)}
+@media(max-width:900px){.scene-pinned{height:calc(max(780px,100dvh + 48px)*var(--scene-scroll-length,3.27))}.scene-pinned .skills-hobbies-viewport{height:max(780px,calc(100dvh + 48px))}}
+@media(prefers-reduced-motion:reduce){.skills-hobbies-viewport{transform:none}.skills-hobbies-scene #about,.skills-hobbies-scene #projects{transform:none;border-radius:0;box-shadow:none;background:#0c0d10}}

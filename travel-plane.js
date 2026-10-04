@@ -25,13 +25,13 @@ function buildPlane() {
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
   // Preserve the reference's three-quarter resting view.
   view.position.set(6.5, 4.4, 8.0); view.lookAt(0, .14, 0);
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x353d50, 1.8));
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x303846, 1.8));
   const light = new THREE.DirectionalLight(0xfff5ed, 2.6); light.position.set(-3, 5, 5); scene.add(light);
-  const rim = new THREE.DirectionalLight(0xc5d8ff, 2); rim.position.set(4, 1, -2); scene.add(rim);
+  const rim = new THREE.DirectionalLight(0xd5dfec, 2); rim.position.set(4, 1, -2); scene.add(rim);
   const model = new THREE.Group(); scene.add(model);
   const material = (color, roughness = .5, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
-  const white=material(0xe9edf0,.32,.12), silver=material(0xb0b7be,.27,.55);
-  const navy=material(0x132653,.4), red=material(0xac2434,.4), glass=material(0x16232d,.19,.3), dark=material(0x171c23,.6);
+  const white=material(0x454649,.32,.12), silver=material(0xb0b7be,.27,.55);
+  const navy=material(0x17181c,.4), red=material(0x183f73,.4), glass=material(0x16232d,.19,.3), dark=material(0x171c23,.6);
   const bodyProfile=[[-3.02,0],[-2.83,.075],[-2.48,.19],[-2.0,.29],[-1.45,.33],[1.62,.33],[2.05,.31],[2.42,.24],[2.69,.14],[2.83,.045],[2.86,0]];
   const curve=new THREE.SplineCurve(bodyProfile.map(([x,r])=>new THREE.Vector2(r,x)));
   const fuselageGeometry=new THREE.LatheGeometry(curve.getPoints(110).map(p=>new THREE.Vector2(Math.max(0,p.x),p.y)),48);
@@ -97,11 +97,11 @@ function buildPlane() {
   fin.position.z=-.0215;model.add(fin);
   // The reference's red, white and navy tail motif, generated as a static decal.
   const art=document.createElement('canvas');art.width=256;art.height=384;
-  const c=art.getContext('2d');c.fillStyle='#172d60';c.fillRect(0,0,256,384);
-  c.strokeStyle='#f1f2f5';c.lineWidth=60;c.beginPath();c.moveTo(0,0);c.lineTo(256,384);c.moveTo(256,0);c.lineTo(0,384);c.stroke();
-  c.strokeStyle='#b92938';c.lineWidth=24;c.stroke();
-  c.fillStyle='#f1f2f5';c.fillRect(95,0,66,384);c.fillRect(0,154,256,76);
-  c.fillStyle='#b92938';c.fillRect(110,0,36,384);c.fillRect(0,174,256,36);
+  const c=art.getContext('2d');c.fillStyle='#17181c';c.fillRect(0,0,256,384);
+  c.strokeStyle='#dedbd3';c.lineWidth=60;c.beginPath();c.moveTo(0,0);c.lineTo(256,384);c.moveTo(256,0);c.lineTo(0,384);c.stroke();
+  c.strokeStyle='#183f73';c.lineWidth=24;c.stroke();
+  c.fillStyle='#dedbd3';c.fillRect(95,0,66,384);c.fillRect(0,154,256,76);
+  c.fillStyle='#183f73';c.fillRect(110,0,36,384);c.fillRect(0,174,256,36);
   const tailMap=new THREE.CanvasTexture(art);tailMap.colorSpace=THREE.SRGBColorSpace;
   const finSurface=panel([[-2.59,.17],[-2.76,1.43],[-2.53,1.43],[-1.94,.17]],.003,new THREE.MeshStandardMaterial({map:tailMap,roughness:.5}));
   // ExtrudeGeometry's XY UVs are remapped to the actual fin bounds.

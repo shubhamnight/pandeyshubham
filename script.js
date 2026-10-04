@@ -18,6 +18,7 @@ const targetPose = {...pose};
 const velocity = {...pose};
 const poseKeys = Object.keys(pose);
 const ribbon = {bend:0,velocity:0};
+const ribbonWeights=Array.from({length:9},(_,index)=>Math.sin(index*Math.PI/8));
 const ribbonSegments=Array.from({length:8},(_,index)=>{
   const segment=document.createElement('span');
   segment.className='strap-segment';
@@ -29,7 +30,7 @@ let frame = 0, lastTime = 0, dragging = false, pointerId = null;
 let startX = 0, startY = 0, originX = 0, originY = 0;
 let bounds;
 let badgeBoundsDirty=true;
-const motionAllowed = () => !reducedMotion.matches && !document.body.classList.contains('motion-paused') && !document.body.classList.contains('badge-entering');
+const motionAllowed = () => !document.hidden && !reducedMotion.matches && !hero.classList.contains('hero-idle') && !hero.classList.contains('hero-covered') && !document.body.classList.contains('motion-paused') && !document.body.classList.contains('badge-entering') && !document.body.classList.contains('intro-active');
 function measureBadge() {
   badgeBoundsDirty=false;
   const rect = hero.getBoundingClientRect();
@@ -54,14 +55,15 @@ function paintBadge() {
   // A bowed ribbon keeps both attachment points fixed while its middle flexes.
   const bend=ribbon.bend;
   ribbonSegments.forEach((segment,index)=>{
-    const start=Math.sin(index*Math.PI/8)*bend;
-    const end=Math.sin((index+1)*Math.PI/8)*bend;
+    const start=ribbonWeights[index]*bend;
+    const end=ribbonWeights[index+1]*bend;
     const skew=Math.atan2(end-start,bounds.strapLength/8)*180/Math.PI;
     segment.style.transform=`translateX(${start.toFixed(3)}px) skewX(${skew.toFixed(3)}deg)`;
   });
 
 }
 function animateBadge(time) {
+  if (!motionAllowed()) { stopBadge(); return; }
   const elapsed = Math.min((time - (lastTime || time - 16.67)) / 1000, .05);
   const steps = Math.max(1,Math.ceil(elapsed/(1/120)));
   const dt = elapsed/steps;
@@ -84,8 +86,7 @@ function animateBadge(time) {
     ribbon.bend+=ribbon.velocity*dt;
   }
   if(Math.abs(ribbon.bend)>.015||Math.abs(ribbon.velocity)>.015)unsettled=true;
-  paintBadge();
-  if (unsettled) frame = requestAnimationFrame(animateBadge);
+  if (unsettled) { paintBadge(); frame = requestAnimationFrame(animateBadge); }
   else { Object.assign(pose, targetPose); paintBadge(); frame = 0; lastTime = 0; rig.classList.remove('is-moving'); }
 }
 function setPose(next) {
@@ -159,6 +160,7 @@ window.addEventListener('blur', stopBadge);
 document.addEventListener('visibilitychange', () => { if (document.hidden) stopBadge(); });
 reducedMotion.addEventListener('change', () => { if (!motionAllowed()) stopBadge(); });
 new MutationObserver(() => { if (!motionAllowed()) stopBadge(); }).observe(document.body, {attributes:true, attributeFilter:['class']});
+new MutationObserver(() => { if (!motionAllowed() && (frame || dragging)) stopBadge(); }).observe(hero, {attributes:true, attributeFilter:['class']});
 document.querySelector('#year').textContent = new Date().getFullYear();
 
 
