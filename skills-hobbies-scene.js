@@ -9,14 +9,17 @@ const clamp = value => Math.max(0, Math.min(1, value));
 const ease = value => value * value * (3 - 2 * value);
 // Only the idle holds shrink. Each moving stage keeps its original scroll span.
 const idleScrollScale = .4;
+const afterSkillsIdleScale = .85;
+const skillsHoldScale = 1.15;
+const hobbiesHoldScale = 1.10 * 1.25 * 1.10 * 1.10;
 const timeline = {
-  skillsHold: .90 * idleScrollScale,
+  skillsHold: .90 * idleScrollScale * skillsHoldScale,
   skillsExit: .90,
   entryOverlap: .20,
   modelEntry: .55,
-  modelOrbitHold: .30 * idleScrollScale,
+  modelOrbitHold: .30 * idleScrollScale * afterSkillsIdleScale,
   modelSpread: .40,
-  hobbiesHold: .35 * idleScrollScale
+  hobbiesHold: .35 * idleScrollScale * afterSkillsIdleScale * hobbiesHoldScale
 };
 const exitStart = timeline.skillsHold;
 const modelStart = exitStart + timeline.skillsExit - timeline.entryOverlap;
