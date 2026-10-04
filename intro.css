@@ -105,7 +105,7 @@ body.badge-entering #home .badge-rig{will-change:transform,opacity;transform-ori
 .portfolio-intro.play-morphing .intro-loading{background:transparent;pointer-events:none}
 .play-morphing .batman-loader-stage>canvas{filter:none}
 .portfolio-intro.play-morphing .intro-play{position:absolute;top:50%;left:0;right:0;translate:0 -50%;z-index:6;pointer-events:none}
-.portfolio-intro.play-morphing .flow-play{background:transparent!important;border-color:transparent!important;color:#fff;transform:translateZ(var(--play-face-depth,0px))!important;translate:0 0;backface-visibility:hidden;animation:none;transition:none;box-shadow:none}
+.portfolio-intro.play-morphing .flow-play{background:transparent!important;border-color:transparent!important;color:#fff;transform:none!important;translate:0 0;animation:none;transition:none;box-shadow:none}
 .portfolio-intro.play-morphing:not(.play-webgl) .flow-play{background:#242424!important;border-color:#626262!important;border-radius:100px}
 .play-morphing .flow-label,.play-morphing .flow-arrow{opacity:var(--play-detail-opacity,0)}
 .portfolio-intro.play-morphing .intro-play .flow-play .flow-label{transform:translateX(-12px);transition:none}
