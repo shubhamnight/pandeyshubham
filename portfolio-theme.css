@@ -276,6 +276,15 @@ dialog.hobby-gallery :focus-visible{outline:2px solid #77aeff;outline-offset:4px
 .hobby-gallery-content figure>img,.hobby-gallery-content figure>video,.hobby-gallery-content figure>a{position:absolute;inset:0}
 .hobby-gallery-content figure img,.hobby-gallery-content figure video{display:block;width:100%;height:100%;max-width:100%;max-height:100%;aspect-ratio:auto;object-fit:contain;border-radius:0;background:#222426}
 .hobby-gallery-content figcaption{position:absolute;inset:auto 0 0;padding:10px 12px;background:#141516e8;font-size:13px;line-height:1.4}
+.travel-video-player{position:absolute;inset:0;background:#000}
+.travel-video-player:fullscreen{width:100%;height:100%}
+.travel-video-controls{position:absolute;inset:auto 0 0;display:flex;align-items:center;gap:8px;padding:20px 10px 8px;background:linear-gradient(transparent,#000c);color:#fff;transition:opacity .15s}
+.travel-video-controls button{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;padding:0;border:0;border-radius:4px;background:transparent;color:inherit;font-size:15px;cursor:pointer}
+.travel-video-controls button:hover{background:#ffffff20}
+.travel-video-controls button[hidden]{display:none}
+.travel-video-controls input{min-width:0;flex:1;accent-color:#77aeff;cursor:pointer}
+.travel-video-time{font-size:11px;font-variant-numeric:tabular-nums;min-width:3ch}
+@media(hover:hover) and (pointer:fine){.travel-video-player.is-playing:not(:hover):not(:focus-within) .travel-video-controls{opacity:0;pointer-events:none}}
 @media(max-width:700px){dialog.hobby-gallery{width:calc(100vw - 24px);height:90dvh;max-height:90dvh;border-radius:14px}dialog.hobby-gallery header{padding:20px;gap:16px}.hobby-gallery-content{padding:20px}.hobby-gallery-content [class$="-gallery-grid"]{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
 @media(max-width:380px){.hobby-gallery-content [class$="-gallery-grid"]{grid-template-columns:minmax(0,1fr)}}
 
@@ -314,6 +323,7 @@ dialog.hobby-gallery :focus-visible{outline:2px solid #77aeff;outline-offset:4px
 /* Scroll entrance uses compositor transforms on the existing model containers. */
 #projects:not(.hobbies-intro-ready) .hobby-orbit-center{visibility:hidden}
 #projects .hobby-arc-stream{opacity:1}
+#projects:not(.hobby-images-entering) .hobby-image-placeholder{visibility:hidden!important;pointer-events:none}
 body.hobbies-intro-active #projects .hobby-orbit-center button{pointer-events:none}
 @media(prefers-reduced-motion:reduce){#projects .hobby-arc-stream{opacity:1}}
 

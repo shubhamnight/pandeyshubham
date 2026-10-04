@@ -134,7 +134,8 @@ export const travelImages = [
     "poster": "assets/travel/15-poster.webp",
     "width": 368,
     "height": 496,
-    "alt": "Travel video"
+    "alt": "Travel video",
+    "gallerySrc": "assets/travel/15-gallery-silent.mp4"
   },
   {
     "type": "video",
@@ -144,7 +145,8 @@ export const travelImages = [
     "poster": "assets/travel/16-poster.webp",
     "width": 478,
     "height": 850,
-    "alt": "Travel video"
+    "alt": "Travel video",
+    "gallerySrc": "assets/travel/16-gallery-silent.mp4"
   },
   {
     "type": "video",
@@ -154,13 +156,14 @@ export const travelImages = [
     "poster": "assets/travel/17-poster.webp",
     "width": 1280,
     "height": 720,
-    "alt": "Travel video"
+    "alt": "Travel video",
+    "gallerySrc": "assets/travel/17-gallery-silent.mp4"
   },
   {
     "type": "video",
     "src": "TRAVEL/WhatsApp%20Video%202026-10-01%20at%205.05.04%20AM.mp4",
     "original": "TRAVEL/WhatsApp%20Video%202026-10-01%20at%205.05.04%20AM.mp4",
-    "gallerySrc": "assets/travel/airplane-gallery.mp4",
+    "gallerySrc": "assets/travel/18-gallery-silent.mp4",
     "preview": "assets/travel/18-preview.mp4",
     "poster": "assets/travel/18-poster.webp",
     "width": 478,

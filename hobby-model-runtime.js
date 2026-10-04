@@ -1,16 +1,17 @@
 // One event-driven frame scheduler for all four hobby models.
 import { hobbyIntro, observeHobbyIntro } from './hobby-intro.js';
+import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
 const active = new Set();
 let frame = 0;
 function tick(time) {
   frame = 0;
   for (const update of active) update(time);
-  if (active.size) frame = requestAnimationFrame(tick);
+  if (active.size) frame = requestHobbyFrame(tick,50);else cancelHobbyFrame(tick);
 }
-function activate(update) { active.add(update); if (!frame) frame=requestAnimationFrame(tick); }
+function activate(update) { active.add(update); if (!frame) frame=requestHobbyFrame(tick,50); }
 function deactivate(update) {
   active.delete(update);
-  if (!active.size && frame) { cancelAnimationFrame(frame); frame=0; }
+  if (!active.size) { cancelHobbyFrame(tick); frame=0; }
 }
 
 const buildQueue = [];
@@ -33,8 +34,8 @@ export function deferHobbyModel(button,build) {
   const observer=new IntersectionObserver(entries=>{
     if (!entries.some(e=>e.isIntersecting)) return;
     observer.disconnect(); buildQueue.push(build); scheduleBuild();
-  },{rootMargin:'250px'});
-  observer.observe(button);
+  },{rootMargin:'650px'});
+  observer.observe(document.querySelector('#projects')||button);
 }
 
 export function connectHobbyMotion({button,renderer,scene,view,model}) {
@@ -43,8 +44,9 @@ export function connectHobbyMotion({button,renderer,scene,view,model}) {
   model.traverse(node=>{if(node!==model){node.updateMatrix();node.matrixAutoUpdate=false;}});
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   let visible=false, targetX=0, targetY=0, last=0, dirty=true;
-  let pointer=null, rect=null, width=0, height=0, contextLost=false;
-  const allowed=()=>visible && !document.hidden && !contextLost &&
+  let pointer=null, rect=null, width=0, height=0, contextLost=false,compiling=true,disposed=false;
+  button.dataset.hobbyCompiling='true';
+  const allowed=()=>visible && !document.hidden && !contextLost && !compiling && !disposed &&
     !document.body.classList.contains('photography-gallery-open') &&
     !document.body.classList.contains('motion-paused');
   const stop=()=>{deactivate(render);last=0;};
@@ -96,9 +98,14 @@ export function connectHobbyMotion({button,renderer,scene,view,model}) {
   reduced.addEventListener('change',()=>{pointer=null;targetX=targetY=0;wake();});
   renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();contextLost=true;stop();});
   renderer.domElement.addEventListener('webglcontextrestored',()=>{contextLost=false;dirty=true;wake();});
+  // Warm the unchanged materials before their first visible frame. Three.js
+  // uses parallel shader compilation when the browser supports it.
+  renderer.compileAsync(scene,view).catch(error=>console.warn('Model shader warm-up failed',error)).finally(()=>{
+    compiling=false;button.dataset.hobbyCompiling='false';dirty=true;wake();
+  });
   window.addEventListener('pagehide',e=>{
     if(e.persisted)return;
-    stop();unobserveIntro();resize.disconnect();intersection.disconnect();state.disconnect();
+    disposed=true;stop();unobserveIntro();resize.disconnect();intersection.disconnect();state.disconnect();
     window.removeEventListener('scroll',invalidateRect);
     document.removeEventListener('visibilitychange',wake);
     const resources=new Set();

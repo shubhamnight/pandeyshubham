@@ -1,4 +1,5 @@
 // Scroll positioning is shared by the four existing model canvases.
+import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition } from './hobby-motion-clock.js';
 const section=document.querySelector('#projects');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const listeners=new Set();
@@ -8,6 +9,7 @@ let centers=[],frame=0,last=0,progress=0,visible=false,measure=true;
 let orbitAngle=0,centerX=0,centerY=0,radius=0;
 let previousIntroState=null,previousReveal=-1,bounds=null,boundsDirty=true,modelsReady=false;
 let sectionTop=0,sectionHeight=0;
+let imagesStarted=false;
 const travelSpan=.10/(.65*.90);
 const clamp=value=>Math.max(0,Math.min(1,value));
 const smooth=value=>value*value*value*(value*(value*6-15)+10);
@@ -24,7 +26,11 @@ function draw(){
     if(stateChanged)element.style.willChange=active?'translate':'';
   });
   if(document.body.classList.contains('hobbies-intro-active')!==active)document.body.classList.toggle('hobbies-intro-active',active);
-  const reveal=reduced.matches?1:clamp((progress-.70)/.30);
+  // Start the second animation only after the models arrive. Once started,
+  // keep its existing reverse interval when scrolling back through the intro.
+  if(progress>=1)imagesStarted=true;
+  else if(progress<=.70)imagesStarted=false;
+  const reveal=reduced.matches?1:imagesStarted?clamp((progress-.70)/.30):0;
   if(reveal!==previousReveal){
     previousReveal=reveal;section.hobbyEntranceProgress=reveal;
     section.dispatchEvent(new Event('hobby-intro-progress'));
@@ -37,7 +43,7 @@ function draw(){
 }
 function tick(time){
   frame=0;
-  if(document.hidden){last=0;return;}
+  if(document.hidden){cancelHobbyFrame(tick);last=0;return;}
   if(boundsDirty||!bounds){
     bounds=section.getBoundingClientRect();
     sectionTop=bounds.top+window.scrollY;sectionHeight=bounds.height;
@@ -45,7 +51,7 @@ function tick(time){
   }
   // The section's document position is stable during scrolling. Reuse it
   // instead of forcing a layout read after each set of animation writes.
-  const top=sectionTop-window.scrollY;
+  const top=sectionTop-getSmoothPosition();
   visible=top<innerHeight&&top+sectionHeight>0;
   // Widen the travel interval for the initial 35% speed reduction and
   // another 10%, while retaining the arrival point at 95% coverage.
@@ -68,19 +74,20 @@ function tick(time){
   const dt=last?Math.min((time-last)/1000,.05):1/60;last=time;
   const paused=document.body.classList.contains('photography-gallery-open')||document.body.classList.contains('motion-paused');
   if(reduced.matches)progress=1;
-  else if(visible&&!paused&&(progress<1||target<1)){
-    if(!modelsReady)modelsReady=centers.every(({button})=>button?.classList.contains('camera-ready'));
+  else if(!paused&&(progress<1||target<1)){
+    if(!modelsReady)modelsReady=centers.every(({button})=>(button?.classList.contains('camera-ready')&&button.dataset.hobbyCompiling!=='true')||button?.dataset.hobbyModelFailed==='true');
     if(modelsReady){
       // Follow the site's existing smooth scroll directly, so the models
       // are already home at 95% and reverse naturally when scrolling back.
       progress=target;
-      orbitAngle+=dt*.65*(1-smooth(progress));
+      if(visible)orbitAngle+=dt*.65*(1-smooth(progress));
     }
   }
   draw();
-  if(visible&&(progress<1||progress!==target)&&!reduced.matches&&!paused)frame=requestAnimationFrame(tick);else last=0;
+  if(visible&&(progress<1||progress!==target)&&!reduced.matches&&!paused)frame=requestHobbyFrame(tick,20);
+  else{cancelHobbyFrame(tick);last=0;}
 }
-function wake(){if(!frame)frame=requestAnimationFrame(tick);}
+function wake(){if(!frame)frame=requestHobbyFrame(tick,20);}
 function onScroll(){wake();}
 function onResize(){measure=true;boundsDirty=true;previousIntroState=null;wake();}
 if(section){
@@ -96,5 +103,5 @@ if(section){
   document.addEventListener('visibilitychange',wake);
   const state=new MutationObserver(wake);state.observe(document.body,{attributes:true,attributeFilter:['class']});
   wake();
-  window.addEventListener('pagehide',event=>{if(event.persisted)return;cancelAnimationFrame(frame);resize.disconnect();state.disconnect();window.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onResize);document.removeEventListener('visibilitychange',wake);listeners.clear();});
+  window.addEventListener('pagehide',event=>{if(event.persisted)return;cancelHobbyFrame(tick);resize.disconnect();state.disconnect();window.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onResize);document.removeEventListener('visibilitychange',wake);listeners.clear();});
 }

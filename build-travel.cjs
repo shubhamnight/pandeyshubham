@@ -20,10 +20,12 @@ const { execFileSync } = require('node:child_process');
       const fps=Math.min(30,fpsN/fpsD||30);
       const preview=id+'-preview.mp4';
       execFileSync('ffmpeg',['-y','-loglevel','error','-i',source,'-map','0:v:0','-vf',"scale=w='min(640,iw)':h=-2,fps="+fps,'-c:v','libx264','-preset','medium','-crf','18','-pix_fmt','yuv420p','-an','-movflags','+faststart',path.join(output,preview)]);
-      let gallerySrc;
+      const gallerySrc='assets/travel/'+id+'-gallery-silent.mp4';
       if(name==='WhatsApp Video 2026-10-01 at 5.05.04 AM.mp4'){
-        gallerySrc='assets/travel/airplane-gallery.mp4';
-        execFileSync('ffmpeg',['-y','-loglevel','error','-i',source,'-map','0:v:0','-map','0:a:0?','-vf','fps=24','-c:v','libx264','-preset','medium','-crf','18','-pix_fmt','yuv420p','-c:a','aac','-b:a','192k','-movflags','+faststart',path.join(__dirname,gallerySrc)]);
+        execFileSync('ffmpeg',['-y','-loglevel','error','-i',source,'-map','0:v:0','-vf','fps=24','-c:v','libx264','-preset','medium','-crf','18','-pix_fmt','yuv420p','-an','-movflags','+faststart',path.join(__dirname,gallerySrc)]);
+      }else{
+        // Preserve the full-resolution picture bit for bit; discard audio.
+        execFileSync('ffmpeg',['-y','-loglevel','error','-i',source,'-map','0:v:0','-c:v','copy','-an','-movflags','+faststart',path.join(__dirname,gallerySrc)]);
       }
       media.push({type:'video',src:original,original,...(gallerySrc?{gallerySrc}:{}),preview:'assets/travel/'+preview,poster:'assets/travel/'+id+'-poster.webp',width:info.width,height:info.height,alt:'Travel video'});
       await fs.unlink(poster);

@@ -1,3 +1,4 @@
+import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
 (() => {
   const section=document.querySelector('#projects');
   if(!section)return;
@@ -10,7 +11,10 @@
   let frame=0, resizeFrame=0, lastTime=null, previousSize='', streams=[];
   const positions=new Float64Array(count);
   const indices=new Uint16Array(count),mixes=new Float64Array(count);
+  let pageWidth=0,pageHeight=0,tileWidth=0,tileHeight=0;
   function draw() {
+    const showing=entrance>0&&entranceTarget>0;
+    if(section.classList.contains('hobby-images-entering')!==showing)section.classList.toggle('hobby-images-entering',showing);
     // Compute each slot's progress once and reuse it for every hobby.
     for(let i=0;i<count;i++){
       const raw=entrance===1?((phase-i/count+1)%1)*resolution:
@@ -23,19 +27,27 @@
       for(let i=0;i<count;i++) {
         const raw=positions[i],index=indices[i],mix=mixes[i],at=index+mix;
         const slot=slots[i];
-        const visibility=raw<0?'hidden':'visible';
+        const visibility=!showing||raw<0?'hidden':'visible';
         if(slot.arcVisibility!==visibility){slot.arcVisibility=visibility;slot.style.visibility=visibility;}
         if(entrance===1 && slot.arcPosition!==undefined && at<slot.arcPosition)slot.dispatchEvent(new Event('hobby-cycle'));
         slot.arcPosition=at;
         const offset=index*2;
         const x=points[offset]+(points[offset+2]-points[offset])*mix,y=points[offset+1]+(points[offset+3]-points[offset+1])*mix;
-        slots[i].style.transform=`translate3d(${x.toFixed(3)}px,${y.toFixed(3)}px,0)`;
+        // Include the full hover enlargement and shadows when culling. Write
+        // once on exit so intersection observers can pause the hidden video.
+        const pad=64;
+        const outside=raw<0||x+tileWidth*1.133+pad<0||x-tileWidth*.133-pad>pageWidth||y+tileHeight*1.133+pad<0||y-tileHeight*.133-pad>pageHeight;
+        if(!outside||!slot.arcOutside){
+          const transform=`translate3d(${x.toFixed(3)}px,${y.toFixed(3)}px,0)`;
+          if(slot.arcTransform!==transform){slot.arcTransform=transform;slot.style.transform=transform;}
+        }
+        slot.arcOutside=outside;
       }
     }
   }
   function tick(time) {
     frame=0;
-    if(!running)return;
+    if(!running){cancelHobbyFrame(tick);return;}
     const elapsed=lastTime===null?0:Math.min(time-lastTime,50);
     if(entrance!==entranceTarget){
       // Limit the reveal to a 4.8 second entrance even after a fast scroll.
@@ -49,7 +61,7 @@
     // Visibility and pause changes already wake update through observers.
     // Only a completed partial entrance needs a running-state change here.
     if(entrance===entranceTarget&&entrance!==1)update();
-    if(running)frame=requestAnimationFrame(tick);
+    if(running)frame=requestHobbyFrame(tick,30);
   }
   function update() {
     const shouldRun=visible&&!document.hidden&&!reduced.matches&&
@@ -59,14 +71,15 @@
     if(section.classList.contains('orbits-running')!==shouldRun)section.classList.toggle('orbits-running',shouldRun);
     if(shouldRun===running)return;
     running=shouldRun;lastTime=null;
-    if(running)frame=requestAnimationFrame(tick);
-    else {cancelAnimationFrame(frame);frame=0;}
+    if(running)frame=requestHobbyFrame(tick,30);
+    else {cancelHobbyFrame(tick);frame=0;}
   }
   function layout() {
     resizeFrame=0;
     const w=section.clientWidth,h=section.clientHeight;
     const tile=groups[0].querySelector('.hobby-image-placeholder');
     const tw=tile.offsetWidth,th=tile.offsetHeight;
+    pageWidth=w;pageHeight=h;tileWidth=tw;tileHeight=th;
     const size=`${w}:${h}:${tw}:${th}`;
     if(size===previousSize||!w||!h)return;
     previousSize=size;
@@ -148,18 +161,22 @@
     const next=section.hobbyEntranceProgress??0;
     if(entrance===1&&next<1)withdrawal=Array.from({length:count},(_,i)=>(phase-i/count+1)%1);
     entranceTarget=next;
-    if(reduced.matches)entrance=next;
+    if(next===0){
+      // A fresh approach must enter from the path start, never resume stale
+      // cards halfway down an arc after a quick scroll out and back.
+      entrance=0;withdrawal=null;phase=.74;
+    }else if(reduced.matches)entrance=next;
     // Scroll reversal scrubs the same points without cycling artwork.
     for(const {slots} of streams)slots.forEach(slot=>{slot.arcPosition=undefined;});
     // The shared animation clock draws the next interpolated position.
     // Updating the target alone must not write twelve duplicate transforms.
-    if(reduced.matches)draw();
+    if(reduced.matches||next===0)draw();
     update();
   }
   section.addEventListener('hobby-intro-progress',entranceChanged);
   window.addEventListener('pagehide',event=>{
     if(event.persisted)return;
-    cancelAnimationFrame(frame);cancelAnimationFrame(resizeFrame);
+    cancelHobbyFrame(tick);cancelAnimationFrame(resizeFrame);
     resizeObserver.disconnect();visibilityObserver.disconnect();motionObserver.disconnect();
     document.removeEventListener('visibilitychange',update);
     reduced.removeEventListener('change',update);

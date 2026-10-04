@@ -14,7 +14,7 @@ deferHobbyModel(button, buildWalkman);
 function buildWalkman() {
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' }); }
-  catch { return; } // The existing icon remains a clickable gallery fallback.
+  catch { button.dataset.hobbyModelFailed='true'; return; } // The existing icon remains a clickable gallery fallback.
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.12;

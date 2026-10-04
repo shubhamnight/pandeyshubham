@@ -1,4 +1,5 @@
 import { createVideoCard } from './hobby-video-card.js';
+import { createTravelVideoPlayer } from './travel-video-player.js';
 import { travelImages } from './travel-data.js';
 import { locationLabel, locationsReady } from './travel-location-label.js';
 
@@ -16,11 +17,7 @@ function nextMedia(){
 function mediaElement(item,gallery=false){
   if(item.type==='video'){
     if(!gallery)return createVideoCard(item);
-    const video=document.createElement('video');
-    video.src=item.gallerySrc||item.src;video.poster=item.poster;video.preload='metadata';video.playsInline=true;
-    video.controls=gallery;video.muted=!gallery;video.loop=!gallery;
-    video.width=item.width;video.height=item.height;video.setAttribute('aria-label',item.alt);
-    return video;
+    return createTravelVideoPlayer(item);
   }
   const image=document.createElement('img');image.alt=item.alt;image.decoding='async';
   image.width=item.width;image.height=item.height;

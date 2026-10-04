@@ -1,19 +1,21 @@
 // Composite decoded frames into the card itself. Native video overlays can
 // round their position separately from a card moving at fractional pixels.
+import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
 const liveCards=new Set();
 const pendingPaints=new Set();
 let paintFrame=0;
+function flushPaints(){
+  paintFrame=0;
+  for(const draw of pendingPaints)draw();
+  pendingPaints.clear();cancelHobbyFrame(flushPaints);
+}
 function queuePaint(paint){
   pendingPaints.add(paint);
-  if(!paintFrame)paintFrame=requestAnimationFrame(()=>{
-    paintFrame=0;
-    for(const draw of pendingPaints)draw();
-    pendingPaints.clear();
-  });
+  if(!paintFrame)paintFrame=requestHobbyFrame(flushPaints,40);
 }
 function removePaint(paint){
   pendingPaints.delete(paint);
-  if(!pendingPaints.size&&paintFrame){cancelAnimationFrame(paintFrame);paintFrame=0;}
+  if(!pendingPaints.size&&paintFrame){cancelHobbyFrame(flushPaints);paintFrame=0;}
 }
 function cardResolution(){
   const width=innerWidth<=900?Math.max(79.2,Math.min(132,innerWidth*.228)):Math.max(132,Math.min(211.2,innerWidth*.156));
@@ -47,7 +49,7 @@ export function createVideoCard(item) {
   }
   function update() {
     callback=null;
-    if(!playing||disposed)return;
+    if(!playing||disposed){if(!nativeFrames)cancelHobbyFrame(update);return;}
     if(video.readyState>=2 && video.currentTime!==lastFrame){
       // Composite all newly decoded video frames in one browser paint pass.
       queuePaint(drawFrame);
@@ -56,12 +58,12 @@ export function createVideoCard(item) {
   }
   function schedule(){
     if(callback!==null||!playing||disposed)return;
-    callback=nativeFrames?video.requestVideoFrameCallback(update):requestAnimationFrame(update);
+    callback=nativeFrames?video.requestVideoFrameCallback(update):requestHobbyFrame(update,35);
   }
   function cancel(){
     removePaint(drawFrame);
     if(callback===null)return;
-    if(nativeFrames)video.cancelVideoFrameCallback(callback);else cancelAnimationFrame(callback);
+    if(nativeFrames)video.cancelVideoFrameCallback(callback);else cancelHobbyFrame(update);
     callback=null;
   }
   canvas.videoPlayback={

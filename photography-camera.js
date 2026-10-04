@@ -14,7 +14,7 @@ deferHobbyModel(button, buildCamera);
 function buildCamera() {
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' }); }
-  catch { return; } // The existing icon remains a clickable gallery fallback.
+  catch { button.dataset.hobbyModelFailed='true'; return; } // The existing icon remains a clickable gallery fallback.
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.setClearColor(0, 0);
   button.append(renderer.domElement);
