@@ -34,7 +34,9 @@ body.intro-active{overflow:hidden}
 .intro-play button:focus-visible{outline:3px solid #f8f4ea;outline-offset:7px}
 .intro-play svg{width:26px;height:26px;fill:currentColor}
 .play-flicker-label{display:inline-flex;white-space:nowrap}
-.play-flicker-label>span{display:inline-block}
+.play-flicker-label>span{position:relative;display:inline-block}
+.play-letter-glow{position:absolute;inset:0;pointer-events:none;color:transparent;opacity:0;white-space:nowrap;text-shadow:0 0 .08em #ffffff8c,0 0 .22em #ffffff59,0 0 .5em #ffffff38}
+.play-flicker-label.is-flickering>span,.play-flicker-label.is-flickering .play-letter-glow{will-change:opacity}
 .intro-play button{position:relative;overflow:hidden;isolation:isolate}
 .intro-play button>svg,.intro-play button>.play-flicker-label{position:relative;z-index:1}
 /* Adapted from the staggered, masked hero entrance in Haseeb Javed's GSAP portfolio.

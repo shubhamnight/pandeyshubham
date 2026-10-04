@@ -16,7 +16,11 @@
   button.setAttribute('aria-label','Play');
   const label = button.querySelector('.play-flicker-label');
   const letters=[...label.children];
-  letters.forEach(letter=>{letter.style.textShadow='0 1px 1px rgba(0,0,0,.65)';});
+  const glows=letters.map(letter=>{
+    const glow=document.createElement('span');
+    glow.className='play-letter-glow';glow.textContent=letter.textContent;
+    glow.setAttribute('aria-hidden','true');letter.append(glow);return glow;
+  });
   const flickerReduced=matchMedia('(prefers-reduced-motion: reduce)');
   let activeLoader=null;
   const loaderReady=import('./batman-loader.js').then(module=>{
@@ -25,35 +29,51 @@
     console.warn('3D loader unavailable; opening PLAY without WebGL.',error);
     return {finish:async()=>{intro.querySelector('.intro-loading').hidden=true;}};
   });
-  let flickerFrame=0,flickerLast=0,flickerTime=0,flickerEnabled=false;
+  let flickerEnabled=false,flickerElapsed=0,flickerAnimations=[];
   function randomAt(lane,step){
     let hash=(Math.imul(lane,374761393)^Math.imul(step,668265263))>>>0;
     hash=Math.imul(hash^(hash>>>13),1274126177)>>>0;
     return hash/4294967295*2-1;
   }
   function noiseAt(lane,time){
-    const step=Math.floor(time),t=time-step,ease=t*t*(3-2*t);
-    return randomAt(lane,step)+(randomAt(lane,step+1)-randomAt(lane,step))*ease;
+    const step=Math.floor(time),t=time-step,ease=t*t*t*(t*(t*6-15)+10);
+    // Wrapping the noise joins the cycle with matching brightness and velocity.
+    const from=randomAt(lane,step%32),to=randomAt(lane,(step+1)%32);
+    return from+(to-from)*ease;
   }
-  function animateFlicker(now){
-    flickerFrame=0;
-    if(!flickerEnabled||document.hidden||flickerReduced.matches)return;
-    if(!flickerLast || now-flickerLast>=32){
-      flickerTime+=flickerLast?Math.min(now-flickerLast,60)/1000:0;
-      flickerLast=now;
-      const time=flickerTime*2,shared=noiseAt(0,time);
-      letters.forEach((letter,index)=>{
-        const noise=(noiseAt(index+1,time)*.5+shared*.5)/Math.SQRT1_2;
-        const opacity=Math.max(.94,Math.min(1,.97+noise*.03));
-        letter.style.opacity=opacity.toFixed(3);
-      });
+  // Build a seamless 16-second cycle once during loading. Only opacity changes
+  // during playback; the three blur radii are rasterized as fixed glow layers.
+  const flickerTracks=letters.map((letter,index)=>{
+    const brightness=[],glow=[];
+    for(let sample=0;sample<=384;sample++){
+      const offset=sample/384,time=offset*32;
+      const noise=(noiseAt(index+1,time)*.5+noiseAt(0,time)*.5)/Math.SQRT1_2;
+      const opacity=Math.max(.3,Math.min(1,1-noise));
+      brightness.push({offset,opacity});
+      glow.push({offset,opacity:Math.max(0,Math.min(1,(opacity-.6)/.4))});
     }
-    flickerFrame=requestAnimationFrame(animateFlicker);
-  }
+    return {letter,light:glows[index],brightness,glow};
+  });
   function syncFlicker(){
-    cancelAnimationFrame(flickerFrame);flickerFrame=0;flickerLast=0;
-    if(flickerReduced.matches) letters.forEach(letter=>{letter.style.opacity='1';letter.style.textShadow='none';});
-    if(flickerEnabled&&!document.hidden&&!flickerReduced.matches)flickerFrame=requestAnimationFrame(animateFlicker);
+    const running=flickerEnabled&&!document.hidden&&!flickerReduced.matches;
+    label.classList.toggle('is-flickering',running);
+    if(!flickerEnabled||flickerReduced.matches){
+      flickerAnimations.forEach(animation=>animation.cancel());
+      flickerAnimations=[];flickerElapsed=0;return;
+    }
+    if(!running){
+      flickerElapsed=Number(flickerAnimations[0]?.currentTime)||0;
+      flickerAnimations.forEach(animation=>animation.pause());return;
+    }
+    if(!flickerAnimations.length){
+      const timing={duration:16000,iterations:Infinity,easing:'linear'};
+      for(const track of flickerTracks){
+        flickerAnimations.push(track.letter.animate(track.brightness,timing),track.light.animate(track.glow,timing));
+      }
+    }
+    // One timeline for every letter and glow, including after a tab resumes.
+    const start=Number(document.timeline.currentTime)-flickerElapsed;
+    flickerAnimations.forEach(animation=>{animation.play();animation.startTime=start;});
   }
   document.addEventListener('visibilitychange',syncFlicker);
   flickerReduced.addEventListener('change',syncFlicker);
