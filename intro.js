@@ -80,8 +80,12 @@
   }
   if(document.readyState==='complete') showPlay();
   else window.addEventListener('load',showPlay,{once:true});
+  // Browser input modality may carry over from the link that opened this
+  // page. Show PLAY's focus ring only after keyboard navigation here.
+  intro.addEventListener('pointerdown',()=>intro.classList.remove('keyboard-navigation'),{passive:true});
   intro.addEventListener('keydown',event=>{
     if(event.key!=='Tab') return;
+    intro.classList.add('keyboard-navigation');
     const items=[...intro.querySelectorAll('button,a')].filter(el=>el.getClientRects().length);
     if(!items.length){event.preventDefault();return;}
     if(event.shiftKey && document.activeElement===items[0]){event.preventDefault();items.at(-1).focus();}

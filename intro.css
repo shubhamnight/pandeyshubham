@@ -83,6 +83,7 @@ body.intro-active{overflow:hidden}
 .portfolio-intro .intro-play .flow-play:active,
 .portfolio-intro .intro-play .flow-play:focus:not(:focus-visible),
 .portfolio-intro.is-zooming .intro-play .flow-play:focus-visible{outline:none;box-shadow:none}
+.portfolio-intro:not(.keyboard-navigation) .intro-play .flow-play:focus{outline:none}
 #home .badge-rig.awaiting-entrance{visibility:hidden}
 body.badge-entering #home .badge-rig{will-change:transform,opacity;transform-origin:50% 0}
 
