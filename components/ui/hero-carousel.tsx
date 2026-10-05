@@ -70,6 +70,7 @@ export interface HeroCarouselProps {
 /* Ratios lifted from the reference layout, all relative to the stage box. */
 const CARD_H = 0.264 // active card height ÷ stage height
 const CARD_AR = 0.75 // active card is 3:4
+const CARD_SCALE = 1.3 // enlarge both dimensions of every filmstrip image by 30%
 const GAP = 0.038 // gap ÷ card width
 const STRIP_TOP = 0.5 // strip's shared top edge, down the stage
 const TITLE = 0.067 // headline cap size ÷ stage height
@@ -161,7 +162,7 @@ export function HeroCarousel({
     return () => ro.disconnect()
   }, [])
 
-  const fullH = clamp(box.h * CARD_H, 96, 360)
+  const fullH = clamp(box.h * CARD_H, 96, 360) * CARD_SCALE
   const halfH = fullH / 2
   const cardW = fullH * CARD_AR
   const gap = Math.max(4, Math.round(cardW * GAP))
