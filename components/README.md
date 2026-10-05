@@ -40,6 +40,6 @@ Content hashes cache the generated copies, so unchanged photos are not reprocess
 Closing the dialog unmounts the React component and pauses media. If loading fails,
 the original photography grid remains available as a fallback.
 
-Controls: click a photo, drag the strip, scroll either axis, use the previous/next
-buttons, or press Left/Right/Home/End. Escape and the close button dismiss
+Controls: click a photo, drag the strip, scroll either axis, or press
+Left/Right/Home/End. Escape and the close button dismiss
 the dialog and restore focus to the camera. Autoplay is disabled.

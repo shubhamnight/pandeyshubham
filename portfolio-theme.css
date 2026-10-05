@@ -249,6 +249,18 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #183
 @media(max-width:900px){#music-walkman{width:90px;height:76px}}
 #music-walkman .music-walkman-fallback svg{margin:auto}
 
+/* Alpha-based shadows follow the rendered silhouette through orbit and hover.
+   Keep the filter on each small canvas so no extra WebGL shadow pass is needed. */
+#projects :is(#photography-camera,#gaming-controller,#travel-plane,#music-walkman){overflow:visible}
+#projects :is(#photography-camera,#gaming-controller,#travel-plane,#music-walkman)>canvas,
+#projects #photography-camera>.hobby-camera-icon,
+#projects :is(.gaming-controller-fallback,.travel-plane-fallback,.music-walkman-fallback){filter:drop-shadow(0 10px 8px #000c)}
+@media(max-width:900px){
+ #projects :is(#photography-camera,#gaming-controller,#travel-plane,#music-walkman)>canvas,
+ #projects #photography-camera>.hobby-camera-icon,
+ #projects :is(.gaming-controller-fallback,.travel-plane-fallback,.music-walkman-fallback){filter:drop-shadow(0 7px 6px #000c)}
+}
+
 /* Photography media retains the existing card dimensions and crop. */
 .hobby-photography .hobby-image-surface video{display:block;width:100%;height:100%;object-fit:cover}
 

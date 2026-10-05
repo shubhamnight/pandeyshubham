@@ -341,8 +341,8 @@ export function HeroCarousel({
         <div className="flex w-full flex-wrap items-end gap-x-[6vw] gap-y-2">
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.h2
-              key={index}
-              className="font-semibold leading-[0.88] tracking-[-0.03em]"
+              key={active.title}
+              className="photo-title font-semibold leading-[1.06] tracking-[-0.025em]"
               style={{ fontSize: Math.max(24, Math.round(box.h * TITLE)) }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -351,7 +351,7 @@ export function HeroCarousel({
             >
               {lines.map((line, i) => (
                 // Each line wipes up from behind its own edge.
-                <span key={i} className="block overflow-hidden">
+                <span key={i} className="photo-title-line block">
                   <motion.span
                     className="block"
                     initial={{ y: "110%" }}
@@ -476,10 +476,6 @@ export function HeroCarousel({
         {active.alt ?? `Photograph ${index + 1}`}
       </p>
 
-      <div className="photo-controls absolute" style={{ right: pad, bottom: Math.max(16, box.h * .085) }}>
-        <button type="button" aria-label="Previous photograph" disabled={index === 0} onClick={() => go(index - 1)}>←</button>
-        <button type="button" aria-label="Next photograph" disabled={index === last} onClick={() => go(index + 1)}>→</button>
-      </div>
     </div>
   )
 }
