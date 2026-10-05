@@ -13,6 +13,7 @@ interface PhotographyMedia {
   width: number;
   height: number;
   alt: string;
+  label?: string;
 }
 
 /** A React island: styles and events stay inside the existing native dialog. */
@@ -55,6 +56,7 @@ export async function mountPhotographyCarousel(host: HTMLElement, media: Photogr
       : undefined,
     videoSrc: item.type === 'video' ? item.src : undefined,
     alt: item.alt,
+    caption: item.label,
     credit: 'BY SHUBHAM.'
   }));
   const root = createRoot(container);

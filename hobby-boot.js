@@ -1,6 +1,7 @@
 // Keep Three.js and the model builders out of the initial loading screen.
 const section=document.querySelector('#projects');
-if(section){
+function prepareModels(){
+  if(!section)return;
   const observer=new IntersectionObserver(entries=>{
     if(!entries.some(entry=>entry.isIntersecting))return;
     observer.disconnect();
@@ -12,3 +13,8 @@ if(section){
   observer.observe(section);
   window.addEventListener('pagehide',event=>{if(!event.persisted)observer.disconnect();});
 }
+// The pinned scene sits near the viewport while the intro covers it. Wait for
+// PLAY to finish before allocating four additional WebGL contexts.
+if(document.querySelector('.portfolio-intro')){
+  window.addEventListener('portfolio-ready',prepareModels,{once:true});
+}else prepareModels();

@@ -9,57 +9,18 @@ window.startIntroCrowd = function(host) {
   const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   const img=new Image();
   let frame=0,last=0,w=0,h=0,people=[],sprites=[],dead=false,loaded=false;
-  // Repair enclosed alpha holes and discard stray pixels once, before animation.
+  // The existing alpha repair is baked once by build-intro-crowd.cjs.
+  const spriteManifest=fetch('assets/intro-crowd-sprites.json').then(response=>{
+    if(!response.ok)throw new Error('Crowd sprite metadata unavailable');
+    return response.json();
+  }).catch(()=>null);
   async function prepareSprites() {
-    const sw=img.naturalWidth/15,sh=img.naturalHeight/7;
-    for(let index=0;index<105;index++) {
-      // Yield between figures so decoding/cleanup cannot monopolize the loader's frames.
-      if(index%2===0)await new Promise(resolve=>setTimeout(resolve,0));
-      if(dead)return;
-      const tile=document.createElement('canvas');tile.width=sw;tile.height=sh;
-      const paint=tile.getContext('2d',{willReadFrequently:true});
-      paint.drawImage(img,index%15*sw,Math.floor(index/15)*sh,sw,sh,0,0,sw,sh);
-      const pixels=paint.getImageData(0,0,sw,sh),data=pixels.data;
-      const seen=new Uint8Array(sw*sh),queue=new Int32Array(sw*sh);
-      let largest=[];
-      // Keep the connected figure; tiny detached artifacts should not walk with it.
-      const components=[];
-      for(let start=0;start<seen.length;start++) {
-        if(seen[start]||data[start*4+3]<32)continue;
-        let head=0,tail=1;queue[0]=start;seen[start]=1;
-        while(head<tail){const p=queue[head++],x=p%sw;
-          for(const n of [x>0?p-1:-1,x<sw-1?p+1:-1,p-sw,p+sw]){
-            if(n<0||n>=seen.length||seen[n]||data[n*4+3]<32)continue;
-            seen[n]=1;queue[tail++]=n;
-          }
-        }
-        const component=queue.slice(0,tail);components.push(component);
-        if(component.length>largest.length)largest=component;
-      }
-      for(const component of components)if(component.length<Math.max(48,largest.length*.003)){
-        for(const p of component)data[p*4+3]=0;
-      }
-      // Flood only the exterior, preserving open spaces around arms and hair.
-      seen.fill(0);let head=0,tail=0;
-      const add=p=>{if(!seen[p]&&data[p*4+3]<32){seen[p]=1;queue[tail++]=p;}};
-      for(let x=0;x<sw;x++){add(x);add((sh-1)*sw+x);}
-      for(let y=0;y<sh;y++){add(y*sw);add(y*sw+sw-1);}
-      while(head<tail){const p=queue[head++],x=p%sw;
-        if(x>0)add(p-1);if(x<sw-1)add(p+1);if(p>=sw)add(p-sw);if(p<sw*(sh-1))add(p+sw);
-      }
-      let left=sw,top=sh,right=0,bottom=0;
-      for(let p=0;p<seen.length;p++){
-        const offset=p*4;
-        if(!seen[p]&&data[offset+3]<255){
-          if(data[offset+3]<32)data[offset]=data[offset+1]=data[offset+2]=255;
-          data[offset+3]=255;
-        }
-        if(data[offset+3]>=32){left=Math.min(left,p%sw);right=Math.max(right,p%sw);top=Math.min(top,Math.floor(p/sw));bottom=Math.max(bottom,Math.floor(p/sw));}
-      }
-      if(right<=left||bottom<=top)continue;
-      paint.putImageData(pixels,0,0);
-      const sprite=document.createElement('canvas');sprite.width=right-left+1;sprite.height=bottom-top+1;
-      sprite.getContext('2d').drawImage(tile,left,top,sprite.width,sprite.height,0,0,sprite.width,sprite.height);
+    const manifest=await spriteManifest;
+    if(!manifest||dead)return;
+    for(const bounds of manifest.sprites){
+      const sprite=document.createElement('canvas');
+      sprite.width=bounds.width;sprite.height=bounds.height;
+      sprite.getContext('2d').drawImage(img,bounds.x,bounds.y,bounds.width,bounds.height,0,0,bounds.width,bounds.height);
       sprites.push(sprite);
     }
   }
@@ -99,7 +60,7 @@ window.startIntroCrowd = function(host) {
   const hostObserver=new MutationObserver(()=>{if(host.classList.contains('crowd-ready')){wake();hostObserver.disconnect();}});
   hostObserver.observe(host,{attributes:true,attributeFilter:['class']});
   document.addEventListener('visibilitychange',visibility);reduce.addEventListener('change',visibility);
-  img.onload=async()=>{if(dead)return;await prepareSprites();if(dead)return;loaded=true;size();};
-  img.src='assets/intro-crowd.png';
+  img.onload=async()=>{if(dead)return;await prepareSprites();if(dead||!sprites.length)return;loaded=true;size();};
+  img.src='assets/intro-crowd.webp';
   return ()=>{dead=true;cancelAnimationFrame(frame);observer.disconnect();hostObserver.disconnect();document.removeEventListener('visibilitychange',visibility);reduce.removeEventListener('change',visibility);img.onload=null;};
 };

@@ -37,6 +37,8 @@ export interface HeroCarouselItem {
   /** Responsive sources retain the original photograph's full resolution. */
   srcSet?: string
   alt?: string
+  /** Short visible caption, separate from the descriptive image alternative. */
+  caption?: string
   videoSrc?: string
   /** Byline printed beside the headline, e.g. "BY AURELIA STUDIO." @default undefined */
   credit?: string
@@ -474,7 +476,7 @@ export function HeroCarousel({
       </div>
 
       <p className="photo-active-caption" style={{ top: box.h * STRIP_TOP + fullH + 14 }} aria-live="polite" aria-atomic="true">
-        {active.alt ?? `Photograph ${index + 1}`}
+        {active.caption ?? active.alt ?? `Photograph ${index + 1}`}
       </p>
 
     </div>

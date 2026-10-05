@@ -7,7 +7,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.32.39%20AM.jpeg",
     "width": 960,
     "height": 1280,
-    "alt": "Photograph 1"
+    "alt": "Sunlit clouds above an open field",
+    "label": "Photograph 1"
   },
   {
     "type": "image",
@@ -16,7 +17,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.32.45%20AM.jpeg",
     "width": 960,
     "height": 1280,
-    "alt": "Photograph 2"
+    "alt": "Side profile of a person wearing glasses against a blue background",
+    "label": "Photograph 2"
   },
   {
     "type": "image",
@@ -25,7 +27,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.32.46%20AM%20(1).jpeg",
     "width": 960,
     "height": 1280,
-    "alt": "Photograph 3"
+    "alt": "A dark hallway leading to a bright window",
+    "label": "Photograph 3"
   },
   {
     "type": "image",
@@ -34,7 +37,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.32.46%20AM.jpeg",
     "width": 960,
     "height": 1280,
-    "alt": "Photograph 4"
+    "alt": "A silhouetted person beneath an overhead light",
+    "label": "Photograph 4"
   },
   {
     "type": "image",
@@ -43,7 +47,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.18%20AM.jpeg",
     "width": 960,
     "height": 1280,
-    "alt": "Photograph 5"
+    "alt": "A white church framed by palm trees and foliage",
+    "label": "Photograph 5"
   },
   {
     "type": "image",
@@ -52,7 +57,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.26%20AM.jpeg",
     "width": 960,
     "height": 1280,
-    "alt": "Photograph 6"
+    "alt": "An orange horizon beneath a deep blue evening sky",
+    "label": "Photograph 6"
   },
   {
     "type": "image",
@@ -61,7 +67,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.32%20AM.jpeg",
     "width": 910,
     "height": 1280,
-    "alt": "Photograph 7"
+    "alt": "Purple and pink clouds above silhouetted trees at dusk",
+    "label": "Photograph 7"
   },
   {
     "type": "image",
@@ -70,7 +77,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.34%20AM.jpeg",
     "width": 960,
     "height": 1280,
-    "alt": "Photograph 8"
+    "alt": "Red flowers against a softly blurred background",
+    "label": "Photograph 8"
   },
   {
     "type": "image",
@@ -79,7 +87,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.36%20AM.jpeg",
     "width": 1200,
     "height": 1600,
-    "alt": "Photograph 9"
+    "alt": "An orange sunset beside city buildings",
+    "label": "Photograph 9"
   },
   {
     "type": "image",
@@ -88,7 +97,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.38%20AM.jpeg",
     "width": 960,
     "height": 1280,
-    "alt": "Photograph 10"
+    "alt": "An aircraft suspended beneath metal roof beams, photographed in black and white",
+    "label": "Photograph 10"
   },
   {
     "type": "image",
@@ -97,7 +107,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.41%20AM.jpeg",
     "width": 1280,
     "height": 1600,
-    "alt": "Photograph 11"
+    "alt": "A covered wooden boat on a calm river at sunset",
+    "label": "Photograph 11"
   },
   {
     "type": "image",
@@ -106,7 +117,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.42%20AM.jpeg",
     "width": 854,
     "height": 1140,
-    "alt": "Photograph 12"
+    "alt": "An orange flower standing in a field",
+    "label": "Photograph 12"
   },
   {
     "type": "image",
@@ -115,7 +127,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.43%20AM.jpeg",
     "width": 854,
     "height": 1140,
-    "alt": "Photograph 13"
+    "alt": "Pink evening clouds above city rooftops",
+    "label": "Photograph 13"
   },
   {
     "type": "image",
@@ -124,7 +137,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.45%20AM.jpeg",
     "width": 1090,
     "height": 1280,
-    "alt": "Photograph 14"
+    "alt": "An airplane wing against the evening sky",
+    "label": "Photograph 14"
   },
   {
     "type": "image",
@@ -133,7 +147,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.46%20AM%20(2).jpeg",
     "width": 854,
     "height": 1140,
-    "alt": "Photograph 15"
+    "alt": "Clouds over a river and bridge",
+    "label": "Photograph 15"
   },
   {
     "type": "image",
@@ -142,7 +157,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.46%20AM.jpeg",
     "width": 1256,
     "height": 1571,
-    "alt": "Photograph 16"
+    "alt": "An illuminated shrine viewed through dark arches",
+    "label": "Photograph 16"
   },
   {
     "type": "image",
@@ -151,7 +167,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.47%20AM%20(2).jpeg",
     "width": 854,
     "height": 1140,
-    "alt": "Photograph 17"
+    "alt": "A palm tree against a pink evening sky",
+    "label": "Photograph 17"
   },
   {
     "type": "image",
@@ -160,7 +177,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.33.47%20AM.jpeg",
     "width": 854,
     "height": 1140,
-    "alt": "Photograph 18"
+    "alt": "White flowers beside a courtyard",
+    "label": "Photograph 18"
   },
   {
     "type": "image",
@@ -169,7 +187,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.07%20AM%20(2).jpeg",
     "width": 960,
     "height": 1280,
-    "alt": "Photograph 19"
+    "alt": "A crescent moon above violet evening clouds",
+    "label": "Photograph 19"
   },
   {
     "type": "image",
@@ -178,7 +197,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.07%20AM%20(3).jpeg",
     "width": 720,
     "height": 1280,
-    "alt": "Photograph 20"
+    "alt": "A kite above a building beneath a blue sky",
+    "label": "Photograph 20"
   },
   {
     "type": "image",
@@ -187,7 +207,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.08%20AM%20(1).jpeg",
     "width": 1140,
     "height": 641,
-    "alt": "Photograph 21"
+    "alt": "An orange sunset above city rooftops",
+    "label": "Photograph 21"
   },
   {
     "type": "image",
@@ -196,7 +217,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.08%20AM.jpeg",
     "width": 960,
     "height": 1280,
-    "alt": "Photograph 22"
+    "alt": "A close view of pink flowers",
+    "label": "Photograph 22"
   },
   {
     "type": "image",
@@ -205,7 +227,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.09%20AM.jpeg",
     "width": 1140,
     "height": 854,
-    "alt": "Photograph 23"
+    "alt": "Pink clouds above silhouetted trees",
+    "label": "Photograph 23"
   },
   {
     "type": "image",
@@ -214,7 +237,8 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%205.05.04%20AM.jpeg",
     "width": 1200,
     "height": 1599,
-    "alt": "Photograph 24"
+    "alt": "A red sandstone gateway with domed towers",
+    "label": "Photograph 24"
   },
   {
     "type": "image",
@@ -223,6 +247,7 @@ export const photographyPhotos = [
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%205.05.07%20AM.jpeg",
     "width": 1152,
     "height": 814,
-    "alt": "Photograph 25"
+    "alt": "People on a beach beneath the evening sky",
+    "label": "Photograph 25"
   }
 ];

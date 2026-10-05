@@ -1,7 +1,7 @@
 /* The palette is scoped below the hero so the landing page stays unchanged. */
 main>.section,main>dialog{--paper:#e7ebf0;--blue:#183f73;--lime:#5685c1;--accent:#183f73;--ink:#e7ebf0}
 #about{background:#e7ebf0;color:#171717}
-#about .skills-heading h1 em{color:#183f73}
+#about .skills-heading h2 em{color:#183f73}
 #about .skills-kicker,#about .skills-heading>p,#about .skills-signoff{color:#595959}
 #about .skill-design{background:#fff;color:#171717;--card-accent:#183f73;border-top:3px solid #183f73}
 #about .skill-frontend{background:#191919;color:#e7ebf0;--card-accent:#5685c1;border-top:3px solid #183f73}

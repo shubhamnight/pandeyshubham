@@ -8,6 +8,7 @@ const { execFileSync } = require('node:child_process');
   await fs.mkdir(output,{recursive:true});
   const files=(await fs.readdir(root)).filter(name=>/\.(jpe?g|png|webp|mp4|mov)$/i.test(name)).sort();
   const media=[];
+  const descriptions=JSON.parse(await fs.readFile(path.join(__dirname,'photography-descriptions.json'),'utf8').catch(()=>'{}'));
   for(let i=0;i<files.length;i++){
     const name=files[i],source=path.join(root,name),id=String(i+1).padStart(2,'0');
     const original='PHOTOGRAPHY/'+encodeURIComponent(name);
@@ -32,7 +33,7 @@ const { execFileSync } = require('node:child_process');
         await sharp(source).rotate().resize({width:size,withoutEnlargement:true}).webp({quality:94,effort:5}).toFile(path.join(output,preview));
         variants.push({src:'assets/photography/'+preview,width:size});
       }
-      media.push({type:'image',src:variants[0].src,srcset:variants.map(v=>v.src+' '+v.width+'w').join(', '),original,width,height,alt:'Photograph '+(i+1)});
+      media.push({type:'image',src:variants[0].src,srcset:variants.map(v=>v.src+' '+v.width+'w').join(', '),original,width,height,alt:descriptions[name]||'Photograph '+(i+1),label:'Photograph '+(i+1)});
       console.log(name+': '+width+' × '+height);
     }
   }

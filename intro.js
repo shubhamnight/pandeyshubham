@@ -13,7 +13,7 @@
   const button = intro.querySelector('button');
   const badgeRig = document.querySelector('#home .badge-rig');
   if(badgeRig)badgeRig.classList.add('awaiting-entrance');
-  button.setAttribute('aria-label','Play');
+  button.setAttribute('aria-label','Enter Shubham Pandey’s portfolio');
   const label = button.querySelector('.play-flicker-label');
   const letters=[...label.children];
   const glows=letters.map(letter=>{
@@ -168,6 +168,7 @@
     content.forEach(element=>element.inert=false);
     document.body.classList.remove('intro-active');
     intro.remove();
+    window.dispatchEvent(new Event('portfolio-ready'));
     const hero = document.querySelector('#home');
     hero.tabIndex=-1;
     hero.focus({preventScroll:true});

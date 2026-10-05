@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /travel-locations.html
+
+Sitemap: https://www.pandeyshubham.in/sitemap.xml

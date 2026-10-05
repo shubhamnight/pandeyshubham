@@ -13,6 +13,34 @@ npm start
 
 Open http://localhost:3000. Keep the server running while browsing.
 
+## SEO and validation
+
+The preferred production address is https://www.pandeyshubham.in/. Identity,
+canonical origin, social metadata and verified profile links are configured in
+`site.config.cjs`. `SITE_URL` can override the origin and
+`GOOGLE_SITE_VERIFICATION` accepts a real Search Console verification token.
+
+```sh
+npm run build
+npm run typecheck
+npm run check
+```
+
+The build generates responsive portraits, prepared crowd sprites, social icons,
+metadata, JSON-LD, robots.txt, sitemap.xml, a manifest and a custom 404 page.
+It then compiles the lazy photography island and minifies the static deployment.
+Original media is retained. Vercel preview HTML receives `noindex`; its canonical
+continues to point to production. Production HTML is indexable.
+
+Submit https://www.pandeyshubham.in/sitemap.xml after deployment. Read
+`SEO-AUDIT.md` for measurements, remaining accessibility issues, Search Console
+steps and future analytics setup. No analytics tracking is installed.
+
+`photography-descriptions.json` stores descriptions keyed by original filename.
+Review descriptions when adding photographs; regenerate the photography data
+before running the deployment build. Visible photograph numbers remain separate
+from the descriptive alternatives used by assistive technology.
+
 ## Project layout
 
 - `index.html`: website sections and galleries.

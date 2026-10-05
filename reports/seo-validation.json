@@ -1,0 +1,373 @@
+{
+  "scope": "Local mobile lab measurements; before original source, after optimized static Vercel build. No production deployment or Google indexing validation.",
+  "conditions": {
+    "formFactor": "mobile",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "method": "simulate",
+    "screen": {
+      "mobile": true,
+      "width": 412,
+      "height": 823,
+      "deviceScaleFactor": 1.75,
+      "disabled": false
+    }
+  },
+  "before": {
+    "measuredAt": "2026-10-05T16:00:20.175Z",
+    "lighthouseVersion": "13.5.0",
+    "scores": {
+      "performance": 36,
+      "accessibility": 100,
+      "best-practices": 96,
+      "seo": 100
+    },
+    "metrics": {
+      "first-contentful-paint": {
+        "value": 3337.5165,
+        "display": "3.3 s"
+      },
+      "largest-contentful-paint": {
+        "value": 16207.602999999996,
+        "display": "16.2 s"
+      },
+      "total-blocking-time": {
+        "value": 2176.5,
+        "display": "2,180 ms"
+      },
+      "cumulative-layout-shift": {
+        "value": 0.004141266651804367,
+        "display": "0.004"
+      },
+      "total-byte-weight": {
+        "value": 3864552,
+        "display": "Total size was 3,774 KiB"
+      },
+      "bootup-time": {
+        "value": 5810.767999999897,
+        "display": "5.8 s"
+      }
+    },
+    "url": "http://localhost:3000/"
+  },
+  "after": {
+    "measuredAt": "2026-10-05T16:36:23.366Z",
+    "lighthouseVersion": "13.5.0",
+    "scores": {
+      "performance": 62,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "metrics": {
+      "first-contentful-paint": {
+        "value": 2566.1876250000005,
+        "display": "2.6 s"
+      },
+      "largest-contentful-paint": {
+        "value": 5503.777999999998,
+        "display": "5.5 s"
+      },
+      "total-blocking-time": {
+        "value": 452.5,
+        "display": "450 ms"
+      },
+      "cumulative-layout-shift": {
+        "value": 0,
+        "display": "0"
+      },
+      "total-byte-weight": {
+        "value": 963804,
+        "display": "Total size was 941 KiB"
+      },
+      "bootup-time": {
+        "value": 1678.0800000000033,
+        "display": "1.7 s"
+      }
+    },
+    "url": "http://localhost:3001/"
+  },
+  "browserChecks": {
+    "widths": [
+      {
+        "width": 320,
+        "scrollWidth": 320,
+        "h1": 1,
+        "skills": 14,
+        "portrait": 242
+      },
+      {
+        "width": 375,
+        "scrollWidth": 375,
+        "h1": 1,
+        "skills": 14,
+        "portrait": 242
+      },
+      {
+        "width": 390,
+        "scrollWidth": 390,
+        "h1": 1,
+        "skills": 14,
+        "portrait": 242
+      },
+      {
+        "width": 430,
+        "scrollWidth": 430,
+        "h1": 1,
+        "skills": 14,
+        "portrait": 242
+      },
+      {
+        "width": 768,
+        "scrollWidth": 768,
+        "h1": 1,
+        "skills": 14,
+        "portrait": 308
+      },
+      {
+        "width": 1024,
+        "scrollWidth": 1024,
+        "h1": 1,
+        "skills": 14,
+        "portrait": 308
+      },
+      {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "h1": 1,
+        "skills": 14,
+        "portrait": 308
+      },
+      {
+        "width": 1920,
+        "scrollWidth": 1920,
+        "h1": 1,
+        "skills": 14,
+        "portrait": 352
+      }
+    ],
+    "errors": [],
+    "styles": [
+      {
+        "selector": ".badge",
+        "width": 280,
+        "height": 400,
+        "font": "16px Inter, Helvetica, sans-serif",
+        "fontFamily": "Inter, Helvetica, sans-serif",
+        "color": "rgb(231, 235, 240)"
+      },
+      {
+        "selector": ".badge img",
+        "width": 294.796875,
+        "height": 388,
+        "font": "16px Inter, Helvetica, sans-serif",
+        "fontFamily": "Inter, Helvetica, sans-serif",
+        "color": "rgb(231, 235, 240)"
+      },
+      {
+        "selector": ".badge-title",
+        "width": 226,
+        "height": 74,
+        "font": "700 36px / 33.84px Inter, Helvetica, sans-serif",
+        "fontFamily": "Inter, Helvetica, sans-serif",
+        "color": "rgb(231, 235, 240)"
+      },
+      {
+        "selector": ".skills-heading h2",
+        "width": 340,
+        "height": 120.171875,
+        "font": "500 52px / 56.16px Inter, Helvetica, sans-serif",
+        "fontFamily": "Inter, Helvetica, sans-serif",
+        "color": "rgb(231, 235, 240)"
+      },
+      {
+        "selector": ".skills-heading p",
+        "width": 340,
+        "height": 69.28125,
+        "font": "14px / 23.1px Inter, Helvetica, sans-serif",
+        "fontFamily": "Inter, Helvetica, sans-serif",
+        "color": "rgb(164, 170, 179)"
+      },
+      {
+        "selector": ".personal-copy h2",
+        "width": 582.9375,
+        "height": 172.109375,
+        "font": "500 61.92px / 66.8736px Inter, Helvetica, sans-serif",
+        "fontFamily": "Inter, Helvetica, sans-serif",
+        "color": "rgb(231, 235, 240)"
+      }
+    ],
+    "gallery": {
+      "keyboardNavigation": true,
+      "escapeClose": true,
+      "focusRestored": true,
+      "caption": "unmounted"
+    },
+    "noJavaScript": {
+      "accessibleContent": true,
+      "photoLinks": 25,
+      "skills": 14
+    },
+    "animation": {
+      "crowdFigures": 105,
+      "#about1": {
+        "enabled": true,
+        "advance": 0,
+        "skillExit": 0,
+        "modelArrival": 0,
+        "modelSpread": 0,
+        "models": 5,
+        "slots": 0
+      },
+      "#projects2": {
+        "enabled": true,
+        "advance": 2.1677215189873418,
+        "skillExit": 1,
+        "modelArrival": 1,
+        "modelSpread": 1,
+        "models": 5,
+        "slots": 20
+      },
+      "#about3": {
+        "enabled": true,
+        "advance": 0,
+        "skillExit": 0,
+        "modelArrival": 0,
+        "modelSpread": 0,
+        "models": 5,
+        "slots": 0
+      }
+    }
+  },
+  "accessibility": {
+    "automatedTool": "axe-core / Playwright, WCAG 2 A/AA + 2.1 AA",
+    "postEntryViolations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "nodes": [
+          {
+            "target": [
+              "#skills-heading > em"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.84 (foreground color: #183f73, background color: #0c0d10, font size: 44.5pt (59.28px), font weight: normal). Expected contrast ratio of 3:1"
+          },
+          {
+            "target": [
+              ".play-heading > h2 > em"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.67 (foreground color: #183f73, background color: #18191d, font size: 61.6pt (82.08px), font weight: normal). Expected contrast ratio of 3:1"
+          },
+          {
+            "target": [
+              ".personal-copy > .eyebrow"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.67 (foreground color: #183f73, background color: #18191d, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "#profile-heading > em"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.67 (foreground color: #183f73, background color: #18191d, font size: 52.9pt (70.5888px), font weight: normal). Expected contrast ratio of 3:1"
+          },
+          {
+            "target": [
+              ".handwritten"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.67 (foreground color: #183f73, background color: #18191d, font size: 41.3pt (55px), font weight: normal). Expected contrast ratio of 3:1"
+          }
+        ]
+      }
+    ],
+    "photographyDialogViolations": []
+  },
+  "crowdComparison": {
+    "figures": 105,
+    "sameDimensions": true,
+    "pixels": 4381869,
+    "differentAlpha": 0,
+    "differentColor": 487,
+    "maxColorDelta": 2
+  },
+  "commands": [
+    "npm run build",
+    "npm run typecheck",
+    "npm run check",
+    "git diff --check"
+  ],
+  "sourceAssertions": 476,
+  "otherGalleries": {
+    "checks": [
+      {
+        "dialog": "travel-gallery",
+        "videos": [
+          {
+            "muted": true,
+            "controls": false,
+            "preload": "metadata"
+          },
+          {
+            "muted": true,
+            "controls": false,
+            "preload": "metadata"
+          },
+          {
+            "muted": true,
+            "controls": false,
+            "preload": "metadata"
+          },
+          {
+            "muted": true,
+            "controls": false,
+            "preload": "metadata"
+          }
+        ],
+        "violations": []
+      },
+      {
+        "dialog": "gaming-gallery",
+        "videos": [],
+        "violations": []
+      },
+      {
+        "dialog": "music-gallery",
+        "videos": [],
+        "violations": []
+      }
+    ],
+    "errors": []
+  },
+  "previewBuild": {
+    "actualPreviewGenerated": true,
+    "noindex": true,
+    "canonicalProduction": true,
+    "sourceProductionUnchanged": true,
+    "productionOutputRestored": true
+  },
+  "httpChecks": {
+    "homepage": 200,
+    "robots": 200,
+    "sitemap": 200,
+    "manifest": 200,
+    "woff2": 200,
+    "favicon": 200,
+    "unknownRoute": 404,
+    "localEditorInDeployment": 404,
+    "localApiInDeployment": 404,
+    "indexHtml": 308
+  },
+  "liveBeforeDeployment": {
+    "origin": "https://www.pandeyshubham.in/",
+    "homepage": 200,
+    "robots": 404,
+    "sitemap": 404,
+    "xRobotsTag": null
+  }
+}

@@ -47,7 +47,9 @@ export function setModelProgress(arrival, spread) {
 export function sceneAnchorPosition(hash) {
   if (!sceneMotion.enabled || (hash !== '#about' && hash !== '#projects')) return null;
   const top = sceneMotion.element.getBoundingClientRect().top + window.scrollY;
-  return top + (hash === '#projects' ? sceneMotion.stageHeight * modelsAtHome : 0);
+  // Native scrolling rounds fractional CSS pixels. Landing just before this
+  // endpoint keeps modelSpread below 1 and prevents the card entrance.
+  return hash === '#projects' ? Math.ceil(top + sceneMotion.stageHeight * modelsAtHome) + 1 : top;
 }
 let frame = 0, measure = true, previous = '', previousSkillsInert = null, previousHobbiesInert = null;
 let previousSkillsCopy = null, previousHobbiesCopy = null;

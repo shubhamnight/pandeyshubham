@@ -1,0 +1,25 @@
+{
+  "name": "Shubham Pandey Portfolio",
+  "short_name": "Shubham",
+  "description": "Shubham Pandey is a BCA (Honours) student exploring software, web development and cybersecurity. Discover his skills, creative work and technology interests.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "browser",
+  "lang": "en",
+  "background_color": "#0c0d10",
+  "theme_color": "#0c0d10",
+  "icons": [
+    {
+      "src": "/assets/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

@@ -30,12 +30,16 @@ and videos, and uses responsive sources including the untouched originals.
 The selected background fills the overlay with `object-fit: cover`, using only
 the scaling required to fill the stage. Filmstrip thumbnails retain their full
 frame with `object-fit: contain`. There is no added grain, tint, or darkening wash.
-`build-photography-hero.cjs` prepares larger viewing copies using Sharp's resize
-and restrained luminance sharpening, preserving the originals and their colors.
-Copies are capped at four times source width, 3840px wide, and a 4096px long edge.
+`build-photography-hero.cjs` uses the existing AI-enhanced viewing copies when
+their source hashes match. Its fallback prepares larger viewing copies using
+Sharp's resize and restrained luminance sharpening. Originals remain untouched.
+Fallback copies are capped at four times source width, 3840px wide, and a 4096px
+long edge. See `PHOTOGRAPHY-QUALITY.md` for the enhancement workflow.
 The viewer selects sources using the cover dimensions and at most 2× pixel density,
-then decodes the selected source before fading in. No AI-redrawn detail is used;
-upscaling improves presentation but cannot recover information absent in the source.
+then decodes the selected source before fading in. Upscaling improves presentation;
+generated detail should not be treated as evidence of what was in the photograph.
+Descriptive alternatives come from `photography-descriptions.json`; short visible
+photograph numbers are supplied separately through the item's `caption` field.
 Content hashes cache the generated copies, so unchanged photos are not reprocessed.
 Closing the dialog unmounts the React component and pauses media. If loading fails,
 the original photography grid remains available as a fallback.

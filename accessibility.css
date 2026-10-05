@@ -1,0 +1,6 @@
+/* Semantic improvements preserve the existing visual composition. */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.contact-note p>span>a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+a:focus-visible{outline:2px solid #96b7df;outline-offset:5px}
+main:focus{outline:none}
+.hobby-gallery-content:focus-visible{outline:2px solid #96b7df;outline-offset:-3px}

@@ -15,12 +15,14 @@ async function compressedFile(file,info,encoding){
   while(compressedFiles.size>24)compressedFiles.delete(compressedFiles.keys().next().value);
   try{return await buffer;}catch(error){compressedFiles.delete(key);throw error;}
 }
-const root = __dirname;
-const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.png':'image/png','.svg':'image/svg+xml','.jpeg':'image/jpeg','.jpg':'image/jpeg','.webp':'image/webp','.mp4':'video/mp4','.mov':'video/quicktime'};
+const root = process.env.SERVE_DIST === '1' ? path.join(__dirname, 'dist') : __dirname;
+const port = Number(process.env.PORT || 3000);
+const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.png':'image/png','.svg':'image/svg+xml','.jpeg':'image/jpeg','.jpg':'image/jpeg','.webp':'image/webp','.mp4':'video/mp4','.mov':'video/quicktime','.ico':'image/x-icon','.woff2':'font/woff2','.txt':'text/plain; charset=utf-8','.xml':'application/xml; charset=utf-8','.webmanifest':'application/manifest+json'};
 http.createServer((req,res) => {
   let pathname;
   try { pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname); } catch { res.writeHead(400); return res.end('Bad request'); }
-  if(pathname === '/api/travel-locations') {
+  if(pathname === '/index.html'){res.writeHead(308,{Location:'/'});return res.end();}
+  if(pathname === '/api/travel-locations' && process.env.SERVE_DIST !== '1') {
     const locationFile=path.join(root,'travel-locations.json');
     const reply=(status,value)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
     if(req.method==='GET') {fs.readFile(locationFile,'utf8',(error,data)=>reply(200,error?{}:JSON.parse(data)));return;}
@@ -44,10 +46,14 @@ http.createServer((req,res) => {
   const file = path.resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
   if (!file.startsWith(root + path.sep)) { res.writeHead(403); return res.end('Forbidden'); }
   fs.stat(file, async (error, info) => {
-    if(error || !info.isFile()){res.writeHead(404);return res.end('Not found');}
-    const headers={'Content-Type':types[path.extname(file).toLowerCase()] || 'application/octet-stream','Accept-Ranges':'bytes','Cache-Control':'no-cache','Last-Modified':info.mtime.toUTCString()};
+    if(error || !info.isFile()){
+      res.writeHead(404,{'Content-Type':'text/html; charset=utf-8','X-Robots-Tag':'noindex, follow','X-Content-Type-Options':'nosniff'});
+      if(req.method==='HEAD')return res.end();
+      return fs.readFile(path.join(root,'404.html'),(notFoundError,html)=>res.end(notFoundError?'Not found':html));
+    }
+    const headers={'Content-Type':types[path.extname(file).toLowerCase()] || 'application/octet-stream','Accept-Ranges':'bytes','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff','Last-Modified':info.mtime.toUTCString()};
     const range=req.headers.range;
-    const textFile=/\.(?:html|css|m?js|json|svg)$/i.test(file);
+    const textFile=/\.(?:html|css|m?js|json|svg|txt|xml|webmanifest)$/i.test(file);
     const accepted=req.headers['accept-encoding']||'';
     const encoding=!range&&textFile&&info.size>1024?(accepted.includes('br')?'br':accepted.includes('gzip')?'gzip':null):null;
     headers.ETag=`"${info.size.toString(16)}-${Math.trunc(info.mtimeMs).toString(16)}-${encoding||'raw'}"`;
@@ -76,4 +82,4 @@ http.createServer((req,res) => {
     const stream=fs.createReadStream(file,{start,end});
     stream.on('error',()=>res.destroy());res.on('close',()=>stream.destroy());stream.pipe(res);
   });
-}).listen(3000, '127.0.0.1', () => console.log('Shub portfolio: http://localhost:3000'));
+}).listen(port, '127.0.0.1', () => console.log('Shub portfolio: http://localhost:'+port));

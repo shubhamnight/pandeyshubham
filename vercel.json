@@ -3,5 +3,10 @@
   "framework": null,
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "redirects": [{ "source": "/index.html", "destination": "/", "permanent": true }],
+  "headers": [
+    { "source": "/(.*)", "headers": [{ "key": "X-Content-Type-Options", "value": "nosniff" }] },
+    { "source": "/404.html", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] }
+  ]
 }

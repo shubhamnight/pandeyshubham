@@ -421,7 +421,7 @@ main>.section,main>dialog,#study-dialog,.hero-skills-transition>#about{--paper:#
 /* The existing skill icons travel from above into one complete circular orbit. */
 #about,.hero-skills-transition>#about{position:relative;height:calc(100dvh + 48px);min-height:740px;padding:0;overflow:hidden;overflow:clip;--skills-disc-size:clamp(64px,7vw,96px)}
 #about .skills-heading{position:absolute;left:50%;top:50%;width:min(340px,calc(var(--skills-ring-radius,240px)*1.4));display:block;transform:translate(-50%,-50%);text-align:center;gap:0;padding:0;margin:0;border:0;z-index:2;pointer-events:none}
-#about .skills-heading h1{font-size:clamp(23px,3.8vw,52px);line-height:1.08}
+#about .skills-heading h2{font-size:clamp(23px,3.8vw,52px);line-height:1.08}
 #about .skills-heading>p{font-size:clamp(11px,1vw,14px);line-height:1.65;max-width:none;margin:18px auto 0}
 #about .skills-orbit-stage{position:absolute;inset:0;isolation:isolate}
 #about .skills-orbit-list{position:absolute;inset:0;padding:0;margin:0;list-style:none}
@@ -436,7 +436,7 @@ main>.section,main>dialog,#study-dialog,.hero-skills-transition>#about{--paper:#
 #about .skills-orbit-disc:is(:hover,:focus-visible) .skills-orbit-name{opacity:1;transform:translate(-50%,0)}
 #about .skills-orbit-disc:focus-visible{outline:2px solid #88acd9}
 @media(max-width:700px){#about,.hero-skills-transition>#about{min-height:680px}#about .skills-heading>p{margin-top:14px}}
-@media(max-width:380px){#about,.hero-skills-transition>#about{--skills-disc-size:clamp(40px,14vw,54px)}#about .skills-heading h1{font-size:20px}#about .skills-heading>p{font-size:10px;line-height:1.5;margin-top:12px}}
+@media(max-width:380px){#about,.hero-skills-transition>#about{--skills-disc-size:clamp(40px,14vw,54px)}#about .skills-heading h2{font-size:20px}#about .skills-heading>p{font-size:10px;line-height:1.5;margin-top:12px}}
 @media(prefers-reduced-motion:reduce){#about .skills-orbit-disc,#about .skills-orbit-name{transition:none}#about .skills-orbit-disc:is(:hover,:focus-visible){transform:none}}
 
 /* Skills and hobbies share one viewport: no covering panel or section boundary. */
