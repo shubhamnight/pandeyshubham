@@ -92,3 +92,14 @@ the entrance, and the native content remains usable without the React background
 
 Run `npm run build:connect` after editing the social component. The regular
 Vercel build includes it and copies the social configuration into production.
+
+## Skill icon interaction
+
+The same supplied SocialTooltip design is adapted to the existing native skill
+orbit holders in `index.html` and `portfolio-theme.css`. Each holder keeps its
+original dimensions, accessible skill label, keyboard focus, and local logo.
+An inner circle clips the rising fill without cutting off the tooltip underneath.
+Hover and keyboard focus reveal matching colored tooltips and a stronger shadow;
+the logos retain their original colors. Reduced motion removes the transitions.
+The orbit remains controlled by `skills.js` and its existing shared animation clock,
+preserving the entrance, full circular path, reverse scroll, and hobby handoff.

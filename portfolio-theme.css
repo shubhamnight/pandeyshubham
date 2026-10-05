@@ -458,3 +458,31 @@ main>.section,main>dialog,#study-dialog,.hero-skills-transition>#about{--paper:#
 .scene-pinned #projects .hobby-arc-stream{opacity:var(--scene-hobby-media,0)}
 @media(max-width:900px){.scene-pinned{height:calc(max(780px,100dvh + 48px)*var(--scene-scroll-length,3.56398625))}.scene-pinned .skills-hobbies-viewport{height:max(780px,calc(100dvh + 48px))}}
 @media(prefers-reduced-motion:reduce){.skills-hobbies-viewport{transform:none}.skills-hobbies-scene #about,.skills-hobbies-scene #projects{transform:none;border-radius:0;box-shadow:none;background:#0c0d10}}
+
+/* Apply the supplied SocialTooltip interaction to the native orbit holders.
+   The inner circle clips the fill; the tooltip stays outside that clipping area.
+   Slot transforms and dimensions remain owned by the existing motion clock. */
+#about .skills-orbit-disc{--skill-fill:#183f73;--skill-tooltip-ink:#fff;display:block;isolation:isolate;border:0;background:none;box-shadow:none;transition:none}
+#about .skills-orbit-disc>.skills-orbit-symbol{position:relative;display:grid;place-items:center;width:100%;height:100%;border-radius:50%;overflow:hidden;background:#18191d;box-shadow:0 8px 16px #0006;transition:box-shadow .3s ease-in-out}
+#about .skills-orbit-symbol:before{content:"";position:absolute;inset:0;background:var(--skill-fill);opacity:0;transform:translateY(calc(100% + 2px));pointer-events:none;transition:transform .3s ease-in-out,opacity .3s ease-in-out}
+#about .skills-orbit-symbol>img{position:relative;z-index:1;display:block;width:58.333%;height:58.333%;object-fit:contain;filter:none}
+#about .skills-orbit-disc>.skills-orbit-name{top:calc(100% + 16px);padding:6px 10px;max-width:none;border:0;border-radius:6px;background:var(--skill-fill);color:var(--skill-tooltip-ink);font:500 14px/1.4 Inter,Helvetica,sans-serif;white-space:nowrap;opacity:0;visibility:hidden;transform:translate(-50%,-10px);transition:opacity .3s ease-in-out,transform .3s ease-in-out,visibility .3s ease-in-out;pointer-events:none}
+#about .skills-orbit-disc:is(:hover,:focus-visible){transform:none;border:0;box-shadow:none}
+#about .skills-orbit-disc:is(:hover,:focus-visible)>.skills-orbit-symbol{box-shadow:0 10px 22px #0008}
+#about .skills-orbit-disc:is(:hover,:focus-visible)>.skills-orbit-symbol:before{opacity:1;transform:translateY(0)}
+#about .skills-orbit-disc:is(:hover,:focus-visible)>.skills-orbit-name{opacity:1;visibility:visible;transform:translate(-50%,0)}
+#about .skills-orbit-disc[aria-label="Figma"]{--skill-fill:#663da6}
+#about .skills-orbit-disc[aria-label="Sketch"]{--skill-fill:#8f6109}
+#about .skills-orbit-disc[aria-label="HTML"]{--skill-fill:#be3c1d}
+#about .skills-orbit-disc[aria-label="CSS"]{--skill-fill:#1765a0}
+#about .skills-orbit-disc[aria-label="JavaScript"]{--skill-fill:#f7df1e;--skill-tooltip-ink:#171717}
+#about .skills-orbit-disc[aria-label="Python"]{--skill-fill:#3776ab}
+#about .skills-orbit-disc[aria-label="DBMS"]{--skill-fill:#155e75}
+#about .skills-orbit-disc[aria-label="React"]{--skill-fill:#08677c}
+#about .skills-orbit-disc[aria-label="Autodesk Maya"]{--skill-fill:#14777d}
+#about .skills-orbit-disc[aria-label="Claude"]{--skill-fill:#a85235}
+#about .skills-orbit-disc[aria-label="ChatGPT"]{--skill-fill:#106e52}
+#about .skills-orbit-disc[aria-label="Communication"]{--skill-fill:#4f46a5}
+#about .skills-orbit-disc[aria-label="Problem solving"]{--skill-fill:#7642ad}
+@media(max-width:700px){#about .skills-orbit-disc>.skills-orbit-name{font-size:12px}}
+@media(prefers-reduced-motion:reduce){#about .skills-orbit-disc>.skills-orbit-symbol,#about .skills-orbit-symbol:before,#about .skills-orbit-disc>.skills-orbit-name{transition:none}}
