@@ -1,0 +1,27 @@
+/* Loaded inside the photography overlay's shadow root only. */
+@import "tailwindcss" source(none);
+@source "../components";
+
+:host { display:block; width:100%; height:100%; color:#fff; font-family:Inter,Helvetica,sans-serif; }
+.photography-react-root { width:100%; height:100%; }
+@media(hover:hover) and (pointer:fine) { :host([data-batman-cursor]) * { cursor:inherit!important; } }
+.photo-carousel { height:100%; min-height:0; isolation:isolate; touch-action:pan-y; }
+.photo-carousel .photo-full-image { object-fit:cover; object-position:center; image-rendering:auto; pointer-events:none; }
+.photo-carousel .photo-headline,.photo-carousel .photo-active-caption { text-shadow:0 1px 3px #000,0 3px 12px #0009; }
+.photo-carousel button { cursor:pointer; }
+.photo-carousel button:disabled { cursor:default; opacity:.35; }
+.photo-carousel button:focus-visible,.photo-carousel a:focus-visible { outline:2px solid white; outline-offset:5px; }
+.photo-carousel .photo-controls { display:flex; gap:12px; }
+.photo-carousel .photo-controls button { display:grid; place-items:center; width:42px; height:42px; border:1px solid #ffffff70; background:#0003; border-radius:50%; transition:background .2s; }
+.photo-carousel .photo-controls button:hover:not(:disabled) { background:#ffffff20; }
+.photo-carousel .photo-card { position:relative; flex-shrink:0; overflow:hidden; background:#0c0d10; }
+.photo-carousel .photo-card button { width:100%; height:100%; padding:0; border:0; background:transparent; }
+.photo-carousel .photo-card img { width:100%; height:100%; object-fit:contain; object-position:center; image-rendering:auto; }
+.photo-carousel .photo-card video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:#000; }
+.photo-carousel .photo-card:has(:focus-visible) { outline:2px solid white; outline-offset:4px; }
+.photo-carousel .photo-active-caption { position:absolute; top:calc(76.4% + 14px); left:0; right:0; text-align:center; color:#ffffffb3; font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
+@media(max-width:600px) {
+  .photo-carousel .photo-active-caption { top:calc(76.4% + 12px); font-size:9px; }
+  .photo-carousel .photo-controls { gap:8px; }
+  .photo-carousel .photo-controls button { width:36px; height:36px; }
+}

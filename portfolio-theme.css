@@ -266,6 +266,21 @@ dialog.hobby-gallery h2{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:8p
 dialog.hobby-gallery .eyebrow{color:#5685c1}
 dialog.hobby-gallery header button{display:grid;place-items:center;width:44px;height:44px;padding:0;flex:0 0 44px;border:1px solid #ffffff30;border-radius:50%;background:#242526;color:#fff;font-size:28px;line-height:1;cursor:pointer}
 dialog.hobby-gallery :focus-visible{outline:2px solid #5685c1;outline-offset:4px}
+/* The camera opens an isolated editorial filmstrip inside its existing dialog. */
+dialog#photography-gallery{width:calc(100vw - 32px);height:calc(100dvh - 32px);max-height:none;border-radius:0;background:#0c0d10}
+dialog#photography-gallery>header{position:absolute;top:16px;right:16px;z-index:10;padding:0;border:0;background:transparent}
+dialog#photography-gallery>header>div{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+dialog#photography-gallery>header>button{width:46px;height:46px;flex-basis:46px;font-size:27.6px;background:#0004;border-color:#ffffff70}
+dialog#photography-gallery .hobby-gallery-content{position:relative;padding:0;overflow:hidden;scrollbar-gutter:auto;isolation:isolate}
+dialog#photography-gallery .photography-carousel-mount{width:100%;height:100%}
+dialog#photography-gallery .photography-gallery-status{position:absolute;inset:0;z-index:1;display:grid;place-items:center;margin:0;pointer-events:none;color:#e7ebf0;font-size:13px;letter-spacing:.1em}
+dialog#photography-gallery .photography-gallery-status[hidden]{display:none}
+dialog#photography-gallery .photography-gallery-grid{display:none}
+dialog#photography-gallery.photo-carousel-fallback .hobby-gallery-content{padding:64px 24px 24px;overflow-y:auto}
+dialog#photography-gallery.photo-carousel-fallback .photography-carousel-mount{display:none}
+dialog#photography-gallery.photo-carousel-fallback .photography-gallery-status{position:static;display:block;margin:0 0 20px}
+dialog#photography-gallery.photo-carousel-fallback .photography-gallery-grid{display:grid}
+@media(max-width:700px){dialog#photography-gallery{width:100vw;height:100dvh;border:0}dialog#photography-gallery>header{top:max(12px,env(safe-area-inset-top));right:12px}}
 .hobby-gallery-content{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:26px 30px 30px;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-color:#626971 #141516}
 .hobby-gallery-content p{color:#aeb3bb;font-size:14px;margin:0 0 24px}
 .hobby-gallery-content [class$="-gallery-grid"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:start}

@@ -70,9 +70,45 @@ document.addEventListener('visibilitychange',playback);
 reduced.addEventListener('change',playback);
 new MutationObserver(playback).observe(document.body,{attributes:true,attributeFilter:['class']});
 
-let galleryFilled=false;
-export function fillPhotographyGallery(gallery){
-  if(galleryFilled)return;galleryFilled=true;
+let carouselModule=null,disposeCarousel=null,galleryVersion=0,galleryConnected=false,carouselAbort=null;
+export async function fillPhotographyGallery(gallery){
+  const version=++galleryVersion;
+  carouselAbort?.abort();
+  const controller=new AbortController();carouselAbort=controller;
+  disposeCarousel?.();disposeCarousel=null;
+  const content=gallery.querySelector('.hobby-gallery-content');
+  const status=content.querySelector('.photography-gallery-status');
+  const mount=content.querySelector('.photography-carousel-mount');
+  const grid=content.querySelector('.photography-gallery-grid');
+  status.hidden=false;status.textContent='Opening photography…';
+  gallery.classList.remove('photo-carousel-fallback');
+  grid.replaceChildren();
+  if(!galleryConnected){
+    galleryConnected=true;
+    gallery.addEventListener('close',()=>{
+      galleryVersion++;
+      carouselAbort?.abort();carouselAbort=null;
+      disposeCarousel?.();disposeCarousel=null;
+      gallery.querySelectorAll('video').forEach(video=>video.pause());
+    });
+  }
+  try{
+    // Load React and Motion only when the camera gallery is actually opened.
+    carouselModule??=import('./assets/ui/photography-carousel.js').catch(error=>{carouselModule=null;throw error;});
+    const {mountPhotographyCarousel}=await carouselModule;
+    if(version!==galleryVersion||!gallery.open)return;
+    const dispose=await mountPhotographyCarousel(mount,order,controller.signal);
+    if(version!==galleryVersion||!gallery.open){dispose();return;}
+    disposeCarousel=dispose;status.hidden=true;
+  }catch(error){
+    if(version!==galleryVersion||!gallery.open)return;
+    console.error('Photography carousel could not open',error);
+    gallery.classList.add('photo-carousel-fallback');
+    status.textContent='Photography';
+    fillPhotographyFallback(gallery);
+  }
+}
+function fillPhotographyFallback(gallery){
   const fragment=document.createDocumentFragment();
   for(const item of order){
     const frame=document.createElement('figure'),element=mediaElement(item,true);
@@ -82,6 +118,4 @@ export function fillPhotographyGallery(gallery){
     fragment.append(frame);
   }
   gallery.querySelector('.photography-gallery-grid').replaceChildren(fragment);
-  gallery.querySelector('p').hidden=true;
-  gallery.addEventListener('close',()=>gallery.querySelectorAll('video').forEach(video=>video.pause()));
 }
