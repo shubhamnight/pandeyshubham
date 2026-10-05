@@ -1,0 +1,37 @@
+/* Contact layout mirrors the supplied reference without affecting other pages. */
+#contact.connect-page { position:relative; isolation:isolate; min-height:100svh; padding:0; display:flex; flex-direction:column; background:#0c0d10; color:#a4aab3; }
+.connect-aether-mount { position:absolute; inset:0; z-index:0; pointer-events:none; }
+.connect-aether-mount[hidden] { display:none; }
+.connect-invitation,.connect-details { position:relative; z-index:1; }
+.connect-invitation { padding:clamp(112px,calc(18.5svh - 8px),172px) 24px 72px; text-align:center; }
+#contact #connect-heading { display:grid; grid-template-columns:max-content max-content; grid-template-rows:auto auto; align-items:baseline; column-gap:clamp(16px,2.5vw,40px); width:fit-content; max-width:100%; margin:0 auto; font-family:Inter,Helvetica,sans-serif; font-size:clamp(44px,7.5vw,110px); font-weight:600; letter-spacing:-.06em; line-height:1.07; color:#e7ebf0; text-align:center; }
+.connect-heading-static { grid-column:1; white-space:nowrap; text-align:center; }
+.connect-heading-static:first-child { grid-row:1; }
+.connect-heading-static:nth-child(2) { grid-row:2; }
+#contact #connect-heading .footer-rotator { grid-column:2; grid-row:2; display:block; width:4.1em; min-width:0; font-family:Caveat,Georgia,serif; font-size:1.35em; font-weight:500; font-style:normal; letter-spacing:-.025em; line-height:1.07; white-space:nowrap; color:#5685c1; text-align:center; }
+.footer-socials { margin:47px auto 0; max-width:800px; min-height:44px; }
+.social-icons-mount[hidden],.footer-socials-fallback[hidden] { display:none; }
+.footer-socials-fallback nav { display:flex; flex-wrap:wrap; justify-content:center; gap:20px 32px; font-size:18px; }
+.footer-socials-fallback a:hover { color:#96b7df; }
+.connect-details { display:flex; justify-content:space-between; align-items:flex-start; gap:32px; margin-top:auto; padding:64px 4.5% clamp(60px,12svh,104px); }
+.connect-person { display:flex; align-items:center; gap:20px; }
+.connect-person img { width:64px; height:80px; object-fit:cover; object-position:center; border-radius:8px; filter:url('#connect-portrait-grey-outline'); }
+.connect-person strong { display:block; font-family:Anton,Impact,'Arial Narrow',sans-serif; font-size:30px; font-weight:400; letter-spacing:0; color:#5685c1; }
+.connect-person p { margin:0; font-size:17px; letter-spacing:.025em; color:#a4aab3; }
+.connect-secondary { display:flex; flex-direction:column; align-items:flex-end; gap:40px; padding-top:0; font-family:Anton,Impact,'Arial Narrow',sans-serif; }
+#contact .connect-secondary a,.connect-secondary span { font-size:18px; color:#a4aab3; }
+#contact .connect-secondary a:hover { color:#96b7df; }
+.connect-secondary [aria-disabled="true"] { cursor:default; }
+#contact :focus-visible { outline:2px solid #96b7df; outline-offset:6px; }
+@media(max-width:600px) {
+  .connect-invitation { padding:120px 20px 56px; }
+  #contact #connect-heading { font-size:clamp(22px,6.8vw,40px); column-gap:12px; }
+  .footer-socials { margin-top:48px; }
+  .connect-details { padding:48px 24px 48px; gap:24px; }
+  .connect-person { gap:12px; }
+  .connect-person img { width:48px; height:60px; }
+  .connect-person strong { font-size:22px; }
+  .connect-person p { font-size:12px; }
+  .connect-secondary { gap:32px; }
+  #contact .connect-secondary a,.connect-secondary span { font-size:15px; }
+}

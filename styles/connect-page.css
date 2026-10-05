@@ -1,0 +1,27 @@
+/* Contact effects stay isolated from the portfolio's global CSS. */
+@import "tailwindcss" source(none);
+@source "../components/ui/social-icons.tsx";
+@source "../components/ui/social-media.tsx";
+@source "../components/ui/aether-flow-hero.tsx";
+:host { display:block; width:100%; color:#a4aab3; font-family:Inter,Helvetica,sans-serif; }
+.connect-aether-root,.connect-aether-background { width:100%; height:100%; }
+.connect-aether-background { position:relative; overflow:hidden; background:#0c0d10; }
+.connect-aether-background canvas { display:block; position:absolute; inset:0; width:100%; height:100%; }
+.social-icons-section { width:100%; }
+.social-links { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:48px 32px; width:fit-content; max-width:100%; margin:0 auto; padding:6px 18px; list-style:none; }
+.social-item { position:relative; }
+.social-link { position:relative; isolation:isolate; display:flex; align-items:center; justify-content:center; width:48px; height:48px; padding:0; border:0; border-radius:50%; overflow:hidden; background:#18191d; color:var(--social-icon-color,#a4aab3); text-decoration:none; cursor:pointer; transition:box-shadow .3s ease-in-out,color .3s ease-in-out; }
+.social-fill { position:absolute; inset:0; background:var(--social-fill); opacity:0; transform:translateY(calc(100% + 2px)); pointer-events:none; transition:transform .3s ease-in-out,opacity .3s ease-in-out; }
+.social-symbol { position:relative; z-index:1; color:inherit; transition:color .3s ease-in-out; }
+.social-symbol svg,.social-symbol img { display:block; width:28px; height:28px; }
+.social-tooltip { position:absolute; top:calc(100% + 12px); left:50%; z-index:2; padding:6px 10px; border-radius:6px; background:var(--social-fill); color:#fff; font-size:14px; line-height:1.4; white-space:nowrap; opacity:0; visibility:hidden; transform:translate(-50%,-10px); pointer-events:none; transition:opacity .3s ease-in-out,transform .3s ease-in-out,visibility .3s ease-in-out; }
+.social-item:is(:hover,:focus-within) .social-link { color:#fff; box-shadow:0 8px 16px #00000040; }
+.social-item:is(:hover,:focus-within) .instagram-outline { stroke:#fff; }
+.social-item:is(:hover,:focus-within) .instagram-dot { fill:#fff; }
+.social-item:is(:hover,:focus-within) .social-fill { opacity:1; transform:translateY(0); }
+.social-item:is(:hover,:focus-within) .social-tooltip { opacity:1; visibility:visible; transform:translate(-50%,0); }
+.social-link:focus-visible { outline:2px solid #96b7df; outline-offset:6px; }
+.social-link[aria-disabled="true"] { cursor:default; }
+@media(hover:hover) and (pointer:fine) { :host([data-batman-cursor]) * { cursor:inherit!important; } }
+@media(max-width:600px) { .social-links { gap:48px 24px; } }
+@media(prefers-reduced-motion:reduce) { .social-link,.social-item * { transition:none; } }

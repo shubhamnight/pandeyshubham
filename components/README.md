@@ -47,3 +47,48 @@ the original photography grid remains available as a fallback.
 Controls: click a photo, drag the strip, scroll either axis, or press
 Left/Right/Home/End. Escape and the close button dismiss
 the dialog and restore focus to the camera. Autoplay is disabled.
+
+## Connect page
+
+The contact section in `index.html` and `connect.css` mirrors the supplied
+contact design: a full viewport, near-black background, white Inter heading
+reading “LET’S MAKE / SOMETHING” on the left, with a blue Caveat word to its right rotating through
+“meaningful.”, “unexpected.”, and “memorable.” every 3.5 seconds. Words fade
+and slide smoothly, pause offscreen or with reduced motion, and reserve their
+fixed-width grid column so the complete heading stays centered above the icons
+as each word changes. Both text columns center their content. The handwritten word
+shares the second-line baseline with “SOMETHING” and uses a larger font size to
+match its visible letter height. Both columns scale down together on
+mobile rather than letting the animated word wrap underneath. Social links are centered above the lower
+identity and About / Resume navigation. The fonts are self-hosted with their SIL licenses in
+`assets/fonts`. The identity block shows Shubham's portrait, first name, and role.
+
+`components/ui/social-icons.tsx` maps GitHub, Instagram, LinkedIn, Twitter,
+and Email to the supplied `components/ui/social-media.tsx` component. It displays
+48 px circular buttons with 28 px local SVG logos, a brand color fill rising on hover,
+and platform names in tooltips underneath. Keyboard focus gets the same feedback.
+The 32 px desktop / 24 px mobile column gaps and 18 px end padding are retained.
+Wrapped rows reserve space for their tooltips, and reduced motion skips transitions.
+Instagram uses a multicolor gradient, LinkedIn uses blue, GitHub and X use their
+monochrome marks, and the email envelope uses a Gmail red accent. Hover fills
+and tooltips match each icon, with white foregrounds over the filled circles.
+Destinations are configured in
+`social-links.json`; email converts to a mailto link. LinkedIn remains a
+non-navigating placeholder until supplied. Resume also remains inactive until
+a resume file is available. About links to the existing profile section.
+
+The social component loads lazily through `connect-boot.js` into a shadow root.
+`styles/connect-page.css` scopes its reset and interaction styles. Native text
+links work when JavaScript is unavailable. The same Aether Flow component now
+mounts behind the native contact layout in background-only mode, retaining the
+approved blue dots, connection lines, drift, and cursor repulsion. Footer pointer
+events drive the background without intercepting links. Animation pauses offscreen,
+in hidden tabs, and with reduced motion; particle count and pixel density are bounded.
+The supplied hero's staggered fade-up entrance applies to the existing heading,
+social row, and identity block when the contact section enters view: 20 px rise,
+800 ms ease-in-out, and the original 500 ms plus 200 ms stagger. The social row
+retains its 32 px desktop / 24 px mobile column spacing. Reduced motion skips
+the entrance, and the native content remains usable without the React background.
+
+Run `npm run build:connect` after editing the social component. The regular
+Vercel build includes it and copies the social configuration into production.

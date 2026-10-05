@@ -119,4 +119,42 @@ reducedMotion.addEventListener('change', requestParallaxFrame);
 document.addEventListener('visibilitychange', requestParallaxFrame);
 const footerWords = ['meaningful.', 'unexpected.', 'memorable.'];
 let wordIndex = 0;
-setInterval(() => { if (!paused && !document.hidden) document.querySelector('.footer-rotator').textContent = footerWords[++wordIndex % footerWords.length]; }, 3500);
+let footerWordVisible = false;
+let footerWordAnimating = false;
+const footerWordStage = document.querySelector('#contact');
+if (footerWordStage) {
+  new IntersectionObserver(entries => {
+    footerWordVisible = entries.some(entry => entry.isIntersecting);
+  }).observe(footerWordStage);
+}
+setInterval(async () => {
+  const word = document.querySelector('.footer-rotator');
+  if (paused || document.hidden || !footerWordVisible || footerWordAnimating || !word || word.closest('[hidden]')) return;
+  if (!word.animate) {
+    word.textContent = footerWords[++wordIndex % footerWords.length];
+    return;
+  }
+  footerWordAnimating = true;
+  let incoming;
+  const outgoing = word.animate([
+    { opacity: 1, transform: 'translateY(0)' },
+    { opacity: 0, transform: 'translateY(-8px)' },
+  ], { duration: 200, easing: 'ease-in-out', fill: 'forwards' });
+  try {
+    await outgoing.finished;
+    if (paused || document.hidden || !footerWordVisible) return;
+    word.textContent = footerWords[++wordIndex % footerWords.length];
+    incoming = word.animate([
+      { opacity: 0, transform: 'translateY(8px)' },
+      { opacity: 1, transform: 'translateY(0)' },
+    ], { duration: 450, easing: 'cubic-bezier(.22,1,.36,1)' });
+    outgoing.cancel();
+    await incoming.finished;
+  } catch (error) {
+    if (error.name !== 'AbortError') console.error('Contact word animation failed.', error);
+  } finally {
+    outgoing.cancel();
+    incoming?.cancel();
+    footerWordAnimating = false;
+  }
+}, 3500);

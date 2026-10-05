@@ -1,5 +1,19 @@
 /* Same typefaces, self-hosted Latin variable subsets, SIL Open Font License. */
 @font-face {
+  font-family: 'Lilita One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(lilita-one-latin.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Anton';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(anton-latin.woff2) format('woff2');
+}
+@font-face {
   font-family: 'Caveat';
   font-style: normal;
   font-weight: 500 600;
