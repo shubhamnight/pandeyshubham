@@ -343,7 +343,8 @@ main>.section,main>dialog,#study-dialog,.hero-skills-transition>#about{--paper:#
 .floating-nav a:hover{color:#5685c1}
 .badge,.badge-face{background-color:#183f73;color:#e7ebf0}
 .badge-face{background-image:radial-gradient(circle at 1px 1px,#96b7df50 1px,transparent 1.5px),linear-gradient(138deg,#ffffff12,transparent 42%,#0e244530)}
-.badge-bottom{background:#17181c;color:#5685c1}
+.badge-bottom{background:#17181c;color:#5685c1;justify-content:center}
+.badge-bottom>span{font-size:1.2em;font-weight:700}
 #home .badge>img{filter:url('#badge-soft-shadow')}
 #about,.hero-skills-transition>#about{background:#18191d;color:#e7ebf0}
 #about .skills-heading,#about .skills-signoff{border-color:#e7ebf024}
