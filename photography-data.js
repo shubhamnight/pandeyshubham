@@ -193,61 +193,51 @@ export const photographyPhotos = [
   {
     "type": "image",
     "src": "assets/photography/20-480.webp",
-    "srcset": "assets/photography/20-480.webp 480w, assets/photography/20-720.webp 720w",
-    "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.07%20AM%20(3).jpeg",
-    "width": 720,
-    "height": 1280,
-    "alt": "A kite above a building beneath a blue sky",
+    "srcset": "assets/photography/20-480.webp 480w, assets/photography/20-960.webp 960w, assets/photography/20-1140.webp 1140w",
+    "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.08%20AM%20(1).jpeg",
+    "width": 1140,
+    "height": 641,
+    "alt": "An orange sunset above city rooftops",
     "label": "Photograph 20"
   },
   {
     "type": "image",
     "src": "assets/photography/21-480.webp",
-    "srcset": "assets/photography/21-480.webp 480w, assets/photography/21-960.webp 960w, assets/photography/21-1140.webp 1140w",
-    "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.08%20AM%20(1).jpeg",
-    "width": 1140,
-    "height": 641,
-    "alt": "An orange sunset above city rooftops",
+    "srcset": "assets/photography/21-480.webp 480w, assets/photography/21-960.webp 960w",
+    "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.08%20AM.jpeg",
+    "width": 960,
+    "height": 1280,
+    "alt": "A close view of pink flowers",
     "label": "Photograph 21"
   },
   {
     "type": "image",
     "src": "assets/photography/22-480.webp",
-    "srcset": "assets/photography/22-480.webp 480w, assets/photography/22-960.webp 960w",
-    "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.08%20AM.jpeg",
-    "width": 960,
-    "height": 1280,
-    "alt": "A close view of pink flowers",
+    "srcset": "assets/photography/22-480.webp 480w, assets/photography/22-960.webp 960w, assets/photography/22-1140.webp 1140w",
+    "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.09%20AM.jpeg",
+    "width": 1140,
+    "height": 854,
+    "alt": "Pink clouds above silhouetted trees",
     "label": "Photograph 22"
   },
   {
     "type": "image",
     "src": "assets/photography/23-480.webp",
-    "srcset": "assets/photography/23-480.webp 480w, assets/photography/23-960.webp 960w, assets/photography/23-1140.webp 1140w",
-    "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.09%20AM.jpeg",
-    "width": 1140,
-    "height": 854,
-    "alt": "Pink clouds above silhouetted trees",
+    "srcset": "assets/photography/23-480.webp 480w, assets/photography/23-960.webp 960w, assets/photography/23-1200.webp 1200w",
+    "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%205.05.04%20AM.jpeg",
+    "width": 1200,
+    "height": 1599,
+    "alt": "A red sandstone gateway with domed towers",
     "label": "Photograph 23"
   },
   {
     "type": "image",
     "src": "assets/photography/24-480.webp",
-    "srcset": "assets/photography/24-480.webp 480w, assets/photography/24-960.webp 960w, assets/photography/24-1200.webp 1200w",
-    "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%205.05.04%20AM.jpeg",
-    "width": 1200,
-    "height": 1599,
-    "alt": "A red sandstone gateway with domed towers",
-    "label": "Photograph 24"
-  },
-  {
-    "type": "image",
-    "src": "assets/photography/25-480.webp",
-    "srcset": "assets/photography/25-480.webp 480w, assets/photography/25-960.webp 960w, assets/photography/25-1152.webp 1152w",
+    "srcset": "assets/photography/24-480.webp 480w, assets/photography/24-960.webp 960w, assets/photography/24-1152.webp 1152w",
     "original": "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%205.05.07%20AM.jpeg",
     "width": 1152,
     "height": 814,
     "alt": "People on a beach beneath the evening sky",
-    "label": "Photograph 25"
+    "label": "Photograph 24"
   }
 ];

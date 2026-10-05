@@ -342,24 +342,6 @@ export const photographyHeroSources = {
       "width": 3840
     }
   ],
-  "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.07%20AM%20(3).jpeg": [
-    {
-      "src": "assets/photography/hero/ai-80d9db3c7905bd8c-1280.webp",
-      "width": 1280
-    },
-    {
-      "src": "assets/photography/hero/ai-80d9db3c7905bd8c-1920.webp",
-      "width": 1920
-    },
-    {
-      "src": "assets/photography/hero/ai-80d9db3c7905bd8c-2560.webp",
-      "width": 2560
-    },
-    {
-      "src": "assets/photography/hero/ai-80d9db3c7905bd8c-2880.webp",
-      "width": 2880
-    }
-  ],
   "PHOTOGRAPHY/WhatsApp%20Image%202026-10-01%20at%204.52.08%20AM%20(1).jpeg": [
     {
       "src": "assets/photography/hero/ai-297a4aeddd429bc5-1280.webp",
