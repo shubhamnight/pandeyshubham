@@ -1,0 +1,30 @@
+/* Utilities only: no global reset on the existing portfolio. */
+@layer theme, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@source "../components/ui/shiny-button.tsx";
+@source "../components/skills-icons.tsx";
+
+#about .skills-orbit-disc>.skills-orbit-symbol:has(.skill-shiny-button) { overflow:visible; background:none; box-shadow:none; }
+#about .skills-orbit-symbol:has(.skill-shiny-button)::before { display:none; }
+#about .skills-orbit-symbol .skill-shiny-button {
+  display:grid; place-items:center; width:100%; height:100%; padding:0;
+  background-color:#101720;
+  background-image:linear-gradient(135deg,#1c2a3c,#101720 75%);
+  border:1px solid transparent; color:#e7ebf0; outline-color:#e7ebf0;
+  box-shadow:0 5px 12px #0006;
+  -webkit-tap-highlight-color:transparent;
+}
+#about .skills-orbit-symbol .skill-shiny-button:is(:hover,:focus-visible) {
+  background-image:linear-gradient(135deg,rgba(var(--skill-glow),.2),rgba(var(--skill-glow-secondary),.08) 75%);
+  border-color:transparent;
+  box-shadow:0 8px 20px #0007,-4px 0 16px rgba(var(--skill-glow),.25),4px 0 16px rgba(var(--skill-glow-secondary),.25);
+}
+#about .skill-shiny-button .fancy-button-shine {
+  background-image:linear-gradient(115deg,transparent 20%,rgba(var(--skill-glow),.3) 45%,rgba(var(--skill-glow),.45) 50%,rgba(var(--skill-glow-secondary),.3) 55%,transparent 80%);
+}
+#about .skill-shiny-button .fancy-button-icon { display:grid; place-items:center; width:100%; height:100%; pointer-events:none; }
+#about .skill-shiny-button .skill-logo { display:block; width:58.333%; height:58.333%; object-fit:contain; filter:none; }
+#about .skills-orbit-disc:focus-within>.skills-orbit-name { opacity:1; visibility:visible; transform:translate(-50%,0); }
+#about .skills-orbit-slot:has(.skill-shiny-button:focus-visible) { z-index:3; }
+@media(prefers-reduced-motion:reduce) { #about .skill-shiny-button { scale:1; rotate:none; } }

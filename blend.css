@@ -39,7 +39,7 @@
 /* Reference refinement: a solid laminated badge, pivoting from its attachment. */
 .badge-rig{perspective:1200px}
 .badge{overflow:hidden;background:var(--accent);transform-origin:50% 18px;border-color:#414141;box-shadow:0 10px 20px #0004,inset 0 0 0 2px #ffffff20}
-#home .badge{border-top-color:#565656;border-left-color:#454545;border-right-color:#282828;border-bottom-color:#242424;box-shadow:var(--edge-x,0px) var(--edge-y,3px) 0 1px #242424,0 18px 30px #0006,inset 1px 1px 0 #ffffff38,inset -1px -1px 0 #0006}
+#home .badge{border-top-color:#565656;border-left-color:#454545;border-right-color:#282828;border-bottom-color:#242424;box-shadow:var(--edge-x,0px) var(--edge-y,3px) 0 1px #242424,var(--tilt-shadow-x,0px) var(--tilt-shadow-y,0px) var(--tilt-shadow-blur,40px) #0008,inset 1px 1px 0 #ffffff38,inset -1px -1px 0 #0006}
 .badge-face,.badge img,.badge-title,.badge-top,.badge-bottom,.badge .slot,.badge-glare{transform:none}
 .badge img{width:110%;height:100%;left:-5%;bottom:-8px}
 .badge-title{text-shadow:0 1px 4px #0003}
@@ -57,6 +57,7 @@
 .badge-face{z-index:0;isolation:isolate;overflow:hidden;background-color:#183f73;background-image:radial-gradient(circle at 1px 1px,#87acd950 1px,transparent 1.5px),linear-gradient(138deg,#ffffff12,transparent 42%,#0e244530);background-size:9px 9px,100% 100%;background-position:var(--ticket-pattern-x,0px) var(--ticket-pattern-y,0px),center;transition:background-position .18s ease-out}
 .badge img{z-index:1}
 .badge-title,.badge-top,.badge-bottom{z-index:2}
+#home .badge-rig.is-moving .badge-face{transition:none}
 @media(prefers-reduced-motion:reduce){.badge-face{transition:none}}
 
 .name-track{animation-duration:var(--name-duration,91.2s)}

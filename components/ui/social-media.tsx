@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import { AnimatedDock, DockItem } from '@/components/ui/animated-dock';
 
 export interface SocialItem {
   href?: string;
@@ -21,16 +23,17 @@ export interface SocialTooltipProps extends React.HTMLAttributes<HTMLUListElemen
 /** Supplied circular fill interaction, with local SVGs and keyboard support. */
 const SocialTooltip = React.forwardRef<HTMLUListElement, SocialTooltipProps>(
   ({ className, items, ...props }, ref) => (
-    <ul ref={ref} className={cn('social-links', className)} {...props}>
-      {items.map(item => {
-        const contents = <>
+    <AnimatedDock ref={ref} className={cn('social-links', className)} {...props}>
+      {items.map(item => <DockItem key={item.ariaLabel} className="social-item" baseSize={48}
+        style={{ '--social-fill': item.color, '--social-icon-color': item.iconColor ?? '#a4aab3' } as React.CSSProperties}>
+        {iconScale => {
+          const contents = <>
           <span className="social-fill" aria-hidden="true" />
-          <span className="social-symbol">
+          <motion.span className="social-symbol" style={{ scale: iconScale }}>
             {item.icon ?? <img src={item.svgUrl} alt="" width="28" height="28" />}
-          </span>
+          </motion.span>
         </>;
-        return <li key={item.ariaLabel} className="social-item"
-          style={{ '--social-fill': item.color, '--social-icon-color': item.iconColor ?? '#a4aab3' } as React.CSSProperties}>
+        return <>
           {item.href
             ? <a className="social-link" href={item.href} aria-label={item.ariaLabel}
                 target={item.external ? '_blank' : undefined}
@@ -38,9 +41,10 @@ const SocialTooltip = React.forwardRef<HTMLUListElement, SocialTooltipProps>(
             : <button className="social-link" type="button" aria-label={item.ariaLabel}
                 aria-disabled="true">{contents}</button>}
           <span className="social-tooltip" aria-hidden="true">{item.tooltip}</span>
-        </li>;
-      })}
-    </ul>
+        </>;
+        }}
+      </DockItem>)}
+    </AnimatedDock>
   ),
 );
 

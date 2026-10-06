@@ -4,8 +4,6 @@ import { ScrollTiltedGrid, type TiltedGridImage } from '@/components/ui/scroll-t
 
 interface GameArtwork {
   src: string;
-  original?: string;
-  sourceOriginal?: string;
   srcset?: string;
   title: string;
   alt: string;
@@ -50,7 +48,7 @@ export async function mountGamingOverlay(host: HTMLElement, media: GameArtwork[]
   const gallery = host.closest('dialog');
   if (signal?.aborted || !gallery?.open) return () => {};
   const images: TiltedGridImage[] = media.map(item => ({
-    src: item.src, srcSet: item.srcset, href: item.sourceOriginal ?? item.original ?? item.src,
+    src: item.src, srcSet: item.srcset,
     title: item.title, alt: item.alt, width: item.width, height: item.height,
   }));
   // Establish the viewport's dimensions before Motion measures any tile offsets.

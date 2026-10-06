@@ -294,6 +294,16 @@ function pointerLeave() { pointerInside = false; wake(); }
 function focusIn() { focusInside = true; wake(); }
 function focusOut(event) { focusInside = stage.contains(event.relatedTarget); wake(); }
 if (slots.length) {
+  // The existing logos remain usable until the small React island and its scoped styles are ready.
+  let disposeIcons=null;
+  const iconObserver=new IntersectionObserver(entries=>{
+    if(!entries.some(entry=>entry.isIntersecting))return;
+    iconObserver.disconnect();
+    import('./assets/ui/skills-icons.js').then(({mountSkillsIcons})=>mountSkillsIcons(section))
+      .then(dispose=>{disposeIcons=dispose;})
+      .catch(error=>console.error('Shiny skill icons could not load; keeping the native icons.',error));
+  },{rootMargin:'350px 0px'});
+  iconObserver.observe(section);
   const unobserveScene = observeScene(wake);
   stage.addEventListener('pointerover', event => {
     if (event.target.closest('.skills-orbit-disc')) pointerEnter();
@@ -320,6 +330,7 @@ if (slots.length) {
   window.addEventListener('pagehide', event => {
     stop();
     if (event.persisted) return;
+    iconObserver.disconnect();disposeIcons?.();
     observer.disconnect(); bodyObserver.disconnect(); unobserveScene();
     window.removeEventListener('scroll', wake);
     window.removeEventListener('resize', resize);

@@ -76,9 +76,7 @@ function fillGamingFallback(gallery){
   const fragment=document.createDocumentFragment();
   for(const item of order){
     const frame=document.createElement('figure'),element=mediaElement(item,true);
-    if(item.type==='image'){
-      const link=document.createElement('a');link.href=item.sourceOriginal || item.original;link.target='_blank';link.rel='noopener';link.setAttribute('aria-label','Open '+item.alt+' at original resolution');link.append(element);frame.append(link);
-    }else frame.append(element);
+    frame.append(element);
     fragment.append(frame);
   }
   gallery.querySelector('.gaming-gallery-grid').replaceChildren(fragment);
