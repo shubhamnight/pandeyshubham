@@ -47,11 +47,15 @@ export function setModelProgress(arrival, spread) {
 export function sceneAnchorPosition(hash) {
   if (!sceneMotion.enabled || (hash !== '#about' && hash !== '#projects')) return null;
   const top = sceneMotion.element.getBoundingClientRect().top + window.scrollY;
+  const stageHeight = Math.max(1, sceneMotion.viewport.offsetHeight);
   // Native scrolling rounds fractional CSS pixels. Landing just before this
   // endpoint keeps modelSpread below 1 and prevents the card entrance.
-  return hash === '#projects' ? Math.ceil(top + sceneMotion.stageHeight * modelsAtHome) + 1 : top;
+  return hash === '#projects' ? Math.ceil(top + stageHeight * modelsAtHome) + 1 : top;
 }
-let frame = 0, measure = true, previous = '', previousSkillsInert = null, previousHobbiesInert = null;
+const observedFields = ['enabled', 'visible', 'exit', 'modelEntry', 'spread', 'skillExit',
+  'modelArrival', 'modelSpread', 'stageHeight', 'outletX'];
+const previous = new Float64Array(observedFields.length).fill(NaN);
+let frame = 0, measure = true, previousSkillsInert = null, previousHobbiesInert = null;
 let previousSkillsCopy = null, previousHobbiesCopy = null;
 
 function update() {
@@ -74,11 +78,13 @@ function update() {
   sceneMotion.exit = clamp((sceneMotion.advance - exitStart) / timeline.skillsExit);
   sceneMotion.modelEntry = clamp((sceneMotion.advance - modelStart) / timeline.modelEntry);
   sceneMotion.spread = clamp((sceneMotion.advance - spreadStart) / timeline.modelSpread);
-  const key = [sceneMotion.enabled, sceneMotion.visible, sceneMotion.exit, sceneMotion.modelEntry, sceneMotion.spread,
-    sceneMotion.skillExit, sceneMotion.modelArrival, sceneMotion.modelSpread,
-    sceneMotion.stageHeight, sceneMotion.outletX].join(':');
-  if (key === previous) return;
-  previous = key;
+  // Compare in place rather than allocating an array and a string every frame.
+  let changed = false;
+  for (let index = 0; index < observedFields.length; index++) {
+    const value = Number(sceneMotion[observedFields[index]]);
+    if (previous[index] !== value) { previous[index] = value; changed = true; }
+  }
+  if (!changed) return;
   if (sceneMotion.enabled) {
     // Copy and interaction follow the rendered sequence, not a scroll target
     // that may have skipped several stages in a single wheel event.
@@ -97,7 +103,7 @@ function update() {
   listeners.forEach(callback => callback());
 }
 function wake() { if (!frame && !document.hidden) frame = requestHobbyFrame(update, 14); }
-function resize() { measure = true; previous = ''; wake(); }
+function resize() { measure = true; previous.fill(NaN); wake(); }
 function preferenceChanged() {
   sceneMotion.enabled = !reduced.matches;
   sceneMotion.element.classList.toggle('scene-pinned', sceneMotion.enabled);

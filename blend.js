@@ -110,28 +110,53 @@ function updateParallax() {
   measurements.forEach(([element, offset]) => writeParallax(element,'--scroll-parallax-y',`${offset.toFixed(1)}px`));
   sectionMeasurements.forEach(([section, offset]) => writeParallax(section,'--scroll-section-y',`${offset.toFixed(1)}px`));
 }
-function requestParallaxFrame() { if (!parallaxFrame && (visibleParallax.size||visibleSections.size)) parallaxFrame = requestAnimationFrame(updateParallax); }
+function requestParallaxFrame() {
+  if(document.hidden){cancelAnimationFrame(parallaxFrame);parallaxFrame=0;return;}
+  if(!parallaxFrame&&(visibleParallax.size||visibleSections.size))parallaxFrame=requestAnimationFrame(updateParallax);
+}
 parallaxLayers.forEach(element => { element.classList.add('scroll-parallax'); parallaxObserver.observe(element); });
 parallaxSections.forEach(section => sectionObserver.observe(section));
 window.addEventListener('scroll', requestParallaxFrame, {passive:true});
 window.addEventListener('resize', requestParallaxFrame, {passive:true});
 reducedMotion.addEventListener('change', requestParallaxFrame);
 document.addEventListener('visibilitychange', requestParallaxFrame);
+window.addEventListener('pagehide',event=>{
+  cancelAnimationFrame(parallaxFrame);parallaxFrame=0;
+  if(event.persisted)return;
+  parallaxObserver.disconnect();sectionObserver.disconnect();
+  window.removeEventListener('scroll',requestParallaxFrame);window.removeEventListener('resize',requestParallaxFrame);
+  reducedMotion.removeEventListener('change',requestParallaxFrame);
+  document.removeEventListener('visibilitychange',requestParallaxFrame);
+});
 const footerWords = ['meaningful.', 'unexpected.', 'memorable.'];
 let wordIndex = 0;
 let footerWordVisible = false;
 let footerWordAnimating = false;
+let footerWordTimer = 0, footerWordSuspended = false;
+let footerWordAnimations = [];
 const footerWordStage = document.querySelector('#contact');
-if (footerWordStage) {
-  new IntersectionObserver(entries => {
-    footerWordVisible = entries.some(entry => entry.isIntersecting);
-  }).observe(footerWordStage);
+const footerWord = footerWordStage?.querySelector('.footer-rotator');
+function canRotateFooterWord() {
+  return Boolean(footerWord) && !footerWordSuspended && !paused && !document.hidden &&
+    footerWordVisible && !document.body.classList.contains('intro-active');
 }
-setInterval(async () => {
-  const word = document.querySelector('.footer-rotator');
-  if (paused || document.hidden || !footerWordVisible || footerWordAnimating || !word || word.closest('[hidden]')) return;
+function scheduleFooterWord(delay = 3500) {
+  if (!footerWordTimer && !footerWordAnimating && canRotateFooterWord()) {
+    footerWordTimer = setTimeout(rotateFooterWord, delay);
+  }
+}
+function syncFooterWord() {
+  if (canRotateFooterWord()) { scheduleFooterWord(); return; }
+  clearTimeout(footerWordTimer); footerWordTimer = 0;
+  footerWordAnimations.forEach(animation => animation.cancel());
+}
+async function rotateFooterWord() {
+  footerWordTimer = 0;
+  if (!canRotateFooterWord()) return;
+  const word = footerWord;
   if (!word.animate) {
     word.textContent = footerWords[++wordIndex % footerWords.length];
+    scheduleFooterWord();
     return;
   }
   footerWordAnimating = true;
@@ -140,14 +165,16 @@ setInterval(async () => {
     { opacity: 1, transform: 'translateY(0)' },
     { opacity: 0, transform: 'translateY(-8px)' },
   ], { duration: 200, easing: 'ease-in-out', fill: 'forwards' });
+  footerWordAnimations = [outgoing];
   try {
     await outgoing.finished;
-    if (paused || document.hidden || !footerWordVisible) return;
+    if (!canRotateFooterWord()) return;
     word.textContent = footerWords[++wordIndex % footerWords.length];
     incoming = word.animate([
       { opacity: 0, transform: 'translateY(8px)' },
       { opacity: 1, transform: 'translateY(0)' },
     ], { duration: 450, easing: 'cubic-bezier(.22,1,.36,1)' });
+    footerWordAnimations.push(incoming);
     outgoing.cancel();
     await incoming.finished;
   } catch (error) {
@@ -155,6 +182,27 @@ setInterval(async () => {
   } finally {
     outgoing.cancel();
     incoming?.cancel();
+    footerWordAnimations = [];
     footerWordAnimating = false;
+    scheduleFooterWord(2850);
   }
-}, 3500);
+}
+if (footerWordStage && footerWord) {
+  const wordObserver = new IntersectionObserver(entries => {
+    footerWordVisible = entries.some(entry => entry.isIntersecting);
+    syncFooterWord();
+  });
+  wordObserver.observe(footerWordStage);
+  const wordStateObserver = new MutationObserver(syncFooterWord);
+  wordStateObserver.observe(document.body, { attributes:true, attributeFilter:['class'] });
+  document.addEventListener('visibilitychange', syncFooterWord);
+  const resumeFooterWord = () => { footerWordSuspended = false; syncFooterWord(); };
+  window.addEventListener('pageshow', resumeFooterWord);
+  window.addEventListener('pagehide', event => {
+    footerWordSuspended = true; syncFooterWord();
+    if (event.persisted) return;
+    wordObserver.disconnect(); wordStateObserver.disconnect();
+    document.removeEventListener('visibilitychange', syncFooterWord);
+    window.removeEventListener('pageshow', resumeFooterWord);
+  });
+}

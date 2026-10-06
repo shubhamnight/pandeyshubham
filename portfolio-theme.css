@@ -366,10 +366,11 @@ html.lenis{scroll-behavior:auto!important}
 /* Dark blue Batman palette: colour overrides only; existing geometry and motion remain intact. */
 :root{--bg:#0c0d10;--ink:#e7ebf0;--muted:#a4aab3;--accent:#183f73;--paper:#18191d;--blue:#183f73;--lime:#5685c1;--line:#5685c112}
 main>.section,main>dialog,#study-dialog,.hero-skills-transition>#about{--paper:#18191d;--ink:#e7ebf0;--blue:#183f73;--lime:#5685c1;--accent:#183f73;--surface-black:#0c0d10;--surface-white:#242529}
-.floating-nav{display:flex;align-items:center;gap:clamp(12px,2.4vw,23px);max-width:calc(100% - 24px);white-space:nowrap;background:#18191ded;border-color:#5685c126;box-shadow:0 8px 20px #0006,0 20px 48px #0005,0 0 24px #183f731a}
+.floating-nav{display:flex;align-items:center;justify-content:center;width:max-content;gap:clamp(16px,2.8vw,26px);padding:9px 16px;max-width:calc(100% - 24px);white-space:nowrap;background:#18191ded;border-color:#5685c126;box-shadow:0 8px 20px #0006,0 20px 48px #0005,0 0 24px #183f731a}
 .floating-nav a{flex-shrink:0}
 .floating-nav .mini-brand{padding-right:0}
 .floating-nav a:hover{color:#5685c1}
+.floating-nav a[aria-current="location"]{color:#e7ebf0;text-shadow:0 0 12px #5685c180}
 .badge,.badge-face{background-color:#183f73;color:#e7ebf0}
 .badge-face{background-image:radial-gradient(circle at 1px 1px,#96b7df50 1px,transparent 1.5px),linear-gradient(138deg,#ffffff12,transparent 42%,#0e244530)}
 .badge-bottom{background:#17181c;color:#5685c1;justify-content:center}

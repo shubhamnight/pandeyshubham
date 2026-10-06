@@ -44,7 +44,7 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
   model.traverse(node=>{if(node!==model){node.updateMatrix();node.matrixAutoUpdate=false;}});
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   let visible=false, targetX=0, targetY=0, last=0, dirty=true;
-  let pointer=null, rect=null, width=0, height=0, contextLost=false,compiling=true,disposed=false;
+  let pointerPending=false, pointerX=0, pointerY=0, rect=null, width=0, height=0, contextLost=false,compiling=true,disposed=false;
   const bodyIsPaused=()=>document.body.classList.contains('photography-gallery-open') ||
     document.body.classList.contains('motion-paused') || document.body.classList.contains('intro-active');
   let bodyPaused=bodyIsPaused();
@@ -70,11 +70,11 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
   const stop=()=>{deactivate(render);last=0;};
   function render(time) {
     if (!allowed()) {stop();return;}
-    if(pointer){
+    if(pointerPending){
       rect ||= button.getBoundingClientRect();
-      targetY=Math.max(-1,Math.min(1,(pointer.x-rect.left)/rect.width*2-1))*.32;
-      targetX=Math.max(-1,Math.min(1,(pointer.y-rect.top)/rect.height*2-1))*.22;
-      pointer=null;
+      targetY=Math.max(-1,Math.min(1,(pointerX-rect.left)/rect.width*2-1))*.32;
+      targetX=Math.max(-1,Math.min(1,(pointerY-rect.top)/rect.height*2-1))*.22;
+      pointerPending=false;
     }
     const dt=last?Math.min((time-last)/1000,.05):1/60;last=time;
     const strength=reduced.matches?0:hobbyIntro.strength;
@@ -83,7 +83,7 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
     let rotationX=targetX,rotationY=targetY,rotationZ=0;
     if(orbiting){
       targetX=targetY=0;
-      pointer=null;rect=null;
+      pointerPending=false;rect=null;
       rotationX=motion?.pitch||0;rotationY=motion?.yaw||0;rotationZ=motion?.roll||0;
     }
     const blend=1-Math.exp(-(orbiting?9:12)*dt);
@@ -101,16 +101,19 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
     if(settled&&!orbiting)stop();
   }
   const wake=()=>{
-    if(allowed() && (dirty || pointer || (!reduced.matches&&hobbyIntro.strength>.001) || Math.abs(targetX-model.rotation.x)+Math.abs(targetY-model.rotation.y)+Math.abs(model.rotation.z)>=.0004))activate(render);
-    else if(!allowed())stop();
+    if(!allowed()){stop();return;}
+    if(dirty || pointerPending || (!reduced.matches&&hobbyIntro.strength>.001) || Math.abs(targetX-model.rotation.x)+Math.abs(targetY-model.rotation.y)+Math.abs(model.rotation.z)>=.0004)activate(render);
   };
   const follow=e=>{
     if(reduced.matches || hobbyIntro.strength>.001 || e.pointerType==='touch')return;
-    pointer={x:e.clientX,y:e.clientY};wake();
+    // Keep only the latest position; high-rate pointer events allocate nothing.
+    pointerX=e.clientX;pointerY=e.clientY;pointerPending=true;wake();
   };
-  button.addEventListener('pointerenter',e=>{rect=button.getBoundingClientRect();follow(e);});
+  const pointerEnter=e=>{rect=button.getBoundingClientRect();follow(e);};
+  const pointerLeave=()=>{pointerPending=false;rect=null;targetX=targetY=0;wake();};
+  button.addEventListener('pointerenter',pointerEnter);
   button.addEventListener('pointermove',follow,{passive:true});
-  button.addEventListener('pointerleave',()=>{pointer=null;rect=null;targetX=targetY=0;wake();});
+  button.addEventListener('pointerleave',pointerLeave);
   const unobserveIntro=observeHobbyIntro(()=>{rect=null;if(hobbyIntro.strength<=.001)targetX=targetY=0;wake();});
   const resize=new ResizeObserver(()=>{
     rect=null;
@@ -126,18 +129,28 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
   document.addEventListener('visibilitychange',wake);
   const invalidateRect=()=>{rect=null;};
   window.addEventListener('scroll',invalidateRect,{passive:true});
-  reduced.addEventListener('change',()=>{pointer=null;targetX=targetY=0;wake();});
-  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();contextLost=true;stop();});
-  renderer.domElement.addEventListener('webglcontextrestored',()=>{contextLost=false;dirty=true;wake();});
+  const preferenceChanged=()=>{pointerPending=false;targetX=targetY=0;wake();};
+  const contextLostHandler=e=>{e.preventDefault();contextLost=true;stop();};
+  const contextRestored=()=>{contextLost=false;dirty=true;wake();};
+  reduced.addEventListener('change',preferenceChanged);
+  renderer.domElement.addEventListener('webglcontextlost',contextLostHandler);
+  renderer.domElement.addEventListener('webglcontextrestored',contextRestored);
   // Warm the unchanged materials before their first visible frame. Three.js
   // uses parallel shader compilation when the browser supports it.
   renderer.compileAsync(scene,view).catch(error=>console.warn('Model shader warm-up failed',error)).finally(()=>{
+    if(disposed)return;
     compiling=false;button.dataset.hobbyCompiling='false';dirty=true;wake();
   });
   window.addEventListener('pageshow',wake);
   window.addEventListener('pagehide',e=>{
     stop();if(e.persisted)return;
     disposed=true;unobserveIntro();resize.disconnect();intersection.disconnect();state.disconnect();
+    button.removeEventListener('pointerenter',pointerEnter);
+    button.removeEventListener('pointermove',follow);
+    button.removeEventListener('pointerleave',pointerLeave);
+    reduced.removeEventListener('change',preferenceChanged);
+    renderer.domElement.removeEventListener('webglcontextlost',contextLostHandler);
+    renderer.domElement.removeEventListener('webglcontextrestored',contextRestored);
     window.removeEventListener('scroll',invalidateRect);
     document.removeEventListener('visibilitychange',wake);
     window.removeEventListener('pageshow',wake);

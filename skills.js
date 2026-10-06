@@ -60,11 +60,13 @@ function draw() {
   if (lastDrawMode === mode && lastDrawTravel === travel && lastDrawRetreat === retreatOffset && lastDrawExit === exitOffset) return;
   lastDrawMode = mode; lastDrawTravel = travel; lastDrawRetreat = retreatOffset; lastDrawExit = exitOffset;
   // A rigid circular orbit needs only one sine/cosine pair per frame.
-  const baseAngle = joinAngle - wrap(travel - entryLength) / radius;
-  const baseCosine = mode === 'orbit' ? Math.cos(baseAngle) : 0;
-  const baseSine = mode === 'orbit' ? Math.sin(baseAngle) : 0;
+  const orbiting = mode === 'orbit';
+  const baseAngle = orbiting ? joinAngle - wrap(travel - entryLength) / radius : 0;
+  const baseCosine = orbiting ? Math.cos(baseAngle) : 0;
+  const baseSine = orbiting ? Math.sin(baseAngle) : 0;
   for (let index = 0; index < slots.length; index++) {
-    const slot = slots[index], distance = distanceFor(index, retreatOffset);
+    // Settled holders share one phase; no per-holder modulo or path lookup.
+    const slot = slots[index], distance = orbiting ? entryLength : distanceFor(index, retreatOffset);
     const exiting = mode === 'handoff' && distance >= handoff.ends[index];
     const showing = mode !== 'waiting' && distance >= 0 &&
       !(exiting && distance >= handoff.ends[index] + exitLength);
@@ -82,7 +84,7 @@ function draw() {
       const offset = point * 2;
       x = points[offset] + (points[offset + 2] - points[offset]) * mix;
       y = points[offset + 1] + (points[offset + 3] - points[offset + 1]) * mix;
-    } else if (mode === 'orbit') {
+    } else if (orbiting) {
       const offset = orbitOffsets[index];
       x = centerX + radius * (baseCosine * offset.cosine - baseSine * offset.sine);
       y = centerY + radius * (baseSine * offset.cosine + baseCosine * offset.sine);
@@ -295,22 +297,24 @@ function focusIn() { focusInside = true; wake(); }
 function focusOut(event) { focusInside = stage.contains(event.relatedTarget); wake(); }
 if (slots.length) {
   // The existing logos remain usable until the small React island and its scoped styles are ready.
-  let disposeIcons=null;
+  let disposeIcons=null,disposed=false;
   const iconObserver=new IntersectionObserver(entries=>{
     if(!entries.some(entry=>entry.isIntersecting))return;
     iconObserver.disconnect();
-    import('./assets/ui/skills-icons.js').then(({mountSkillsIcons})=>mountSkillsIcons(section))
-      .then(dispose=>{disposeIcons=dispose;})
+    import('./assets/ui/skills-icons.js').then(({mountSkillsIcons})=>disposed?null:mountSkillsIcons(section))
+      .then(dispose=>{if(disposed)dispose?.();else disposeIcons=dispose;})
       .catch(error=>console.error('Shiny skill icons could not load; keeping the native icons.',error));
   },{rootMargin:'350px 0px'});
   iconObserver.observe(section);
   const unobserveScene = observeScene(wake);
-  stage.addEventListener('pointerover', event => {
+  const pointerOver = event => {
     if (event.target.closest('.skills-orbit-disc')) pointerEnter();
-  });
-  stage.addEventListener('pointerout', event => {
+  };
+  const pointerOut = event => {
     if (!event.relatedTarget?.closest?.('.skills-orbit-disc')) pointerLeave();
-  });
+  };
+  stage.addEventListener('pointerover', pointerOver);
+  stage.addEventListener('pointerout', pointerOut);
   stage.addEventListener('focusin', focusIn);
   stage.addEventListener('focusout', focusOut);
   window.addEventListener('scroll', wake, { passive: true });
@@ -330,11 +334,17 @@ if (slots.length) {
   window.addEventListener('pagehide', event => {
     stop();
     if (event.persisted) return;
+    disposed=true;
     iconObserver.disconnect();disposeIcons?.();
     observer.disconnect(); bodyObserver.disconnect(); unobserveScene();
     window.removeEventListener('scroll', wake);
     window.removeEventListener('resize', resize);
     window.removeEventListener('load', resize);
+    window.removeEventListener('pageshow', resize);
+    stage.removeEventListener('pointerover', pointerOver);
+    stage.removeEventListener('pointerout', pointerOut);
+    stage.removeEventListener('focusin', focusIn);
+    stage.removeEventListener('focusout', focusOut);
     reduced.removeEventListener('change', wake);
     document.removeEventListener('visibilitychange', visibilityChanged);
   });

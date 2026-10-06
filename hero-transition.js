@@ -44,16 +44,27 @@ import { sceneMotion } from './skills-hobbies-scene.js';
   const transitionResizeObserver = new ResizeObserver(resize);
   transitionResizeObserver.observe(hero);
   transitionResizeObserver.observe(skills);
-  new IntersectionObserver(entries => {
+  const visibilityObserver = new IntersectionObserver(entries => {
     visible = entries[0].isIntersecting;
     if (visible) schedule();
     else { stop(); wrapper.classList.remove('transition-running'); }
-  }).observe(wrapper);
+  });
+  visibilityObserver.observe(wrapper);
   window.addEventListener('scroll', schedule, {passive:true});
   window.addEventListener('resize', resize, {passive:true});
-  preference.addEventListener('change', () => {previous = -1;schedule();});
-  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else schedule(); });
-  window.addEventListener('pagehide', stop);
+  const preferenceChanged = () => {previous = -1;schedule();};
+  const visibilityChanged = () => { if (document.hidden) stop(); else schedule(); };
+  preference.addEventListener('change', preferenceChanged);
+  document.addEventListener('visibilitychange', visibilityChanged);
+  window.addEventListener('pagehide', event => {
+    stop();
+    if (event.persisted) return;
+    transitionResizeObserver.disconnect(); visibilityObserver.disconnect();
+    window.removeEventListener('scroll', schedule); window.removeEventListener('resize', resize);
+    window.removeEventListener('pageshow', resize);
+    preference.removeEventListener('change', preferenceChanged);
+    document.removeEventListener('visibilitychange', visibilityChanged);
+  });
   window.addEventListener('pageshow', resize);
   update();
 })();

@@ -17,6 +17,7 @@ interface Particle {
   vx: number;
   vy: number;
   size: number;
+  highlighted: boolean;
 }
 
 /** The supplied particle hero, adapted for the portfolio's connect section. */
@@ -53,6 +54,8 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
     let width = 0, height = 0, density = 0;
     let visible = false, frame = 0, lastDraw = 0;
     let suspended = false;
+    let pointerPending = false, boundsDirty = true;
+    let pointerX = 0, pointerY = 0, pointerBounds: DOMRect | null = null;
     let particles: Particle[] = [];
     let buckets: Particle[][] = [];
     let columns = 1, rows = 1, cellSize = 1, connectionSquared = 0;
@@ -70,6 +73,7 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
       ctx.fillRect(0, 0, width, height);
       ctx.fillStyle = '#5685c1';
       ctx.globalAlpha = .8;
+      const radiusSquared = mouse.radius * mouse.radius;
       // Match the reference's straight drift, dot sizes and direct repulsion.
       for (const particle of particles) {
         if (step) {
@@ -88,6 +92,8 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
           particle.x += particle.vx * step;
           particle.y += particle.vy * step;
         }
+        particle.highlighted = mouse.active &&
+          (particle.x - mouse.x) ** 2 + (particle.y - mouse.y) ** 2 < radiusSquared;
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         ctx.fill();
@@ -97,6 +103,8 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
       // Reusing local buckets preserves that look without an all-pairs scan.
       for (const bucket of buckets) bucket.length = 0;
       ctx.lineWidth = 1;
+      let lineHighlighted = false;
+      ctx.strokeStyle = '#87acd9';
       for (const particle of particles) {
         const column = Math.max(0, Math.min(columns - 1, Math.floor(particle.x / cellSize)));
         const row = Math.max(0, Math.min(rows - 1, Math.floor(particle.y / cellSize)));
@@ -107,9 +115,10 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
               const distanceSquared = dx * dx + dy * dy;
               if (distanceSquared >= connectionSquared) continue;
               ctx.globalAlpha = Math.max(0, 1 - distanceSquared / 20000);
-              const highlighted = mouse.active &&
-                (neighbor.x - mouse.x) ** 2 + (neighbor.y - mouse.y) ** 2 < mouse.radius ** 2;
-              ctx.strokeStyle = highlighted ? '#e7ebf0' : '#87acd9';
+              if (neighbor.highlighted !== lineHighlighted) {
+                lineHighlighted = neighbor.highlighted;
+                ctx.strokeStyle = lineHighlighted ? '#e7ebf0' : '#87acd9';
+              }
               ctx.beginPath();
               ctx.moveTo(neighbor.x, neighbor.y);
               ctx.lineTo(particle.x, particle.y);
@@ -126,6 +135,12 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
       frame = 0;
       if (paused()) return;
       if (!lastDraw || now - lastDraw >= frameInterval - 1) {
+        if (pointerPending) {
+          if (boundsDirty || !pointerBounds) { pointerBounds = stage!.getBoundingClientRect(); boundsDirty = false; }
+          mouse.x = pointerX - pointerBounds.left;
+          mouse.y = pointerY - pointerBounds.top;
+          mouse.active = true; pointerPending = false;
+        }
         draw(lastDraw ? Math.min(50, now - lastDraw) : 1000 / 60);
         lastDraw = now;
       }
@@ -138,6 +153,7 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
         frame = 0;
         lastDraw = 0;
         mouse.active = false;
+        pointerPending = false;
       } else if (!frame) {
         lastDraw = 0;
         frame = requestAnimationFrame(tick);
@@ -150,6 +166,7 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
       const nextDensity = Math.min(window.devicePixelRatio || 1, 1.5);
       if (!nextWidth || !nextHeight || (width === nextWidth && height === nextHeight && density === nextDensity)) return;
       const previousWidth = width, previousHeight = height;
+      boundsDirty = true;
       width = nextWidth;
       height = nextHeight;
       density = nextDensity;
@@ -175,7 +192,7 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
         particles.push({
           x: Math.random() * Math.max(1, width - size * 4) + size * 2,
           y: Math.random() * Math.max(1, height - size * 4) + size * 2,
-          vx: Math.random() * .4 - .2, vy: Math.random() * .4 - .2, size,
+          vx: Math.random() * .4 - .2, vy: Math.random() * .4 - .2, size, highlighted: false,
         });
       }
       mouse.active = false;
@@ -185,12 +202,10 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
 
     function pointerMove(event: PointerEvent) {
       if (paused() || event.pointerType === 'touch') return;
-      const bounds = stage!.getBoundingClientRect();
-      mouse.x = event.clientX - bounds.left;
-      mouse.y = event.clientY - bounds.top;
-      mouse.active = true;
+      pointerX = event.clientX; pointerY = event.clientY; pointerPending = true;
     }
-    function pointerLeave() { mouse.active = false; }
+    function pointerLeave() { mouse.active = false; pointerPending = false; }
+    function invalidateBounds() { boundsDirty = true; if (mouse.active) pointerPending = true; }
     function suspend() { suspended = true; sync(); }
     function resume() { suspended = false; sync(); }
     const visibility = new IntersectionObserver(entries => {
@@ -205,6 +220,8 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
     bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     pointerSurface.addEventListener('pointermove', pointerMove, { passive: true });
     pointerSurface.addEventListener('pointerleave', pointerLeave);
+    window.addEventListener('scroll', invalidateBounds, { passive: true });
+    window.addEventListener('resize', invalidateBounds, { passive: true });
     document.addEventListener('visibilitychange', sync);
     motionPreference.addEventListener('change', sync);
     window.addEventListener('pageshow', resume);
@@ -216,6 +233,8 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
       bodyObserver.disconnect();
       pointerSurface.removeEventListener('pointermove', pointerMove);
       pointerSurface.removeEventListener('pointerleave', pointerLeave);
+      window.removeEventListener('scroll', invalidateBounds);
+      window.removeEventListener('resize', invalidateBounds);
       document.removeEventListener('visibilitychange', sync);
       motionPreference.removeEventListener('change', sync);
       window.removeEventListener('pageshow', resume);

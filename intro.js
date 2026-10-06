@@ -1,4 +1,9 @@
 (() => {
+  // A fresh visit always starts the portfolio at its hero, including reloads
+  // of a section URL. Prevent native history/fragment restoration behind PLAY.
+  history.scrollRestoration='manual';
+  if(location.hash)history.replaceState(history.state,'',location.pathname+location.search);
+  window.scrollTo({top:0,behavior:'instant'});
   const intro = document.querySelector('.portfolio-intro') || document.createElement('div');
   intro.className = 'portfolio-intro';
   intro.setAttribute('role','dialog');
@@ -126,6 +131,7 @@
     stopCrowd();
     button.disabled=true;
     intro.classList.add('is-zooming');
+    if(location.hash)history.replaceState(history.state,'',location.pathname+location.search);
     // Restore the page's final layout while it is still covered, avoiding a
     // scrollbar/layout jump at the end of the fade. Content remains inert.
     document.body.classList.remove('intro-active');

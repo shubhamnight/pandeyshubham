@@ -127,3 +127,33 @@ Run `npm run build:offline` to regenerate the compiled assets and content-versio
 `offline-sw.js` from `lib/offline-worker.js`. The full build includes this step.
 Use `/offline.html?preview=1` for a separate preview that remains open while online.
 The existing 404 page continues to handle missing URLs.
+
+## Navigation and animation scheduling
+
+`smooth-scroll.js` owns same-page navigation for Hero, Skills, Hobbies, Projects,
+and Contact. Hero resolves to document zero; Skills and Hobbies use the pinned
+scene's timeline, and regular sections use stable layout coordinates. The custom
+handler disables Lenis's duplicate anchor handler. Travel uses cubic easing and
+distance-based durations between 0.65 and 1.6 seconds, with interruptible motion,
+keyboard focus handling, in-session hash restoration, and immediate reduced motion.
+Fresh visits and reloads clear the saved section hash and disable native scroll
+restoration during the intro. PLAY always lands at Hero; the scroll controller
+discards any queued section destination when the intro releases the page.
+Navigation geometry is cached until resize or font/layout changes, and the
+current destination is marked with `aria-current="location"` on the shared clock.
+
+Contact word changes use a visibility-driven timeout instead of a permanent
+interval, canceling transitions when hidden. The particle field samples pointer
+positions once per rendered frame, caches bounds until scroll/resize, and computes
+each particle's highlight once instead of once per connection. Existing particle
+density, colors, repulsion, and motion timing are retained. Hero transition and
+parallax observers/listeners are released on page disposal and pause when hidden.
+
+The shared clock retains callback records during a frame, so callbacks that cancel
+and reschedule themselves do not trigger repeated sorting. Inactive callbacks are
+removed after the frame; newly registered callbacks join the next ordered frame.
+The pinned scene compares a reusable numeric snapshot, and the settled skills ring
+uses its shared circular phase without per-holder wrapping calculations. Hobby
+models sample the latest pointer coordinates without allocating event objects,
+release their interaction listeners on disposal, and ignore late shader completion
+after disposal. Pending skill icon imports also avoid mounting into a disposed page.
