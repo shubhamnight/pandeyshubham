@@ -5,6 +5,8 @@ import { sceneAnchorPosition, sceneMotion } from './skills-hobbies-scene.js';
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const navigation=document.querySelector('.floating-nav');
 const links=[...(navigation?.querySelectorAll('a[href^="#"]')||[])];
+const dialogs=[...document.querySelectorAll('dialog')];
+const scrollKeys=new Set(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' ']);
 const navigationEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 let lenis=null,frame=0,locked=false,disposed=false;
 let navigationFrame=0,geometryDirty=true,destinations=[],currentLink=null;
@@ -68,6 +70,7 @@ function queueNavigation(){
 }
 function geometryChanged(){geometryDirty=true;queueNavigation();}
 function cancelNavigation(){
+  if(!activeNavigation)return;
   if(activeNavigation&&lenis?.isScrolling==='smooth'){
     lenis.stop();if(!locked)lenis.start();
   }
@@ -108,7 +111,7 @@ function goTo(hash,{immediate=false,link=null,focus=false}={}){
 }
 function sync(){
   const nextLocked=document.hidden||document.body.classList.contains('intro-active')||
-    document.body.classList.contains('photography-gallery-open')||Boolean(document.querySelector('dialog[open]'));
+    document.body.classList.contains('photography-gallery-open')||dialogs.some(dialog=>dialog.open);
   if(nextLocked!==locked){
     locked=nextLocked;
     if(locked){cancelNavigation();cancel();lenis?.stop();}
@@ -154,12 +157,12 @@ function hashChanged(){
   goTo(hash,{immediate:true});
 }
 function keyboardInput(event){
-  if(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(event.key))cancelNavigation();
+  if(scrollKeys.has(event.key))cancelNavigation();
 }
 const bodyObserver=new MutationObserver(sync);
 bodyObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
 const dialogObserver=new MutationObserver(sync);
-document.querySelectorAll('dialog').forEach(dialog=>dialogObserver.observe(dialog,{attributes:true,attributeFilter:['open']}));
+dialogs.forEach(dialog=>dialogObserver.observe(dialog,{attributes:true,attributeFilter:['open']}));
 const resizeObserver=new ResizeObserver(geometryChanged);
 resizeObserver.observe(document.body);
 if(sceneMotion.viewport)resizeObserver.observe(sceneMotion.viewport);

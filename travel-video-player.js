@@ -14,14 +14,20 @@ export function createTravelVideoPlayer(item){
   const full=document.createElement('button');full.type='button';full.textContent='⛶';full.setAttribute('aria-label','Enter fullscreen');
   if(!player.requestFullscreen)full.hidden=true;
   const format=value=>`${Math.floor(value/60)}:${String(Math.floor(value%60)).padStart(2,'0')}`;
+  let lastPlaying=null,lastValid=null,lastSeek=null,lastTime='',lastValueText='';
   const sync=()=>{
     const playing=!video.paused&&!video.ended;
-    player.classList.toggle('is-playing',playing);play.textContent=playing?'Ⅱ':'▶';
-    play.setAttribute('aria-label',playing?'Pause video':'Play video');
+    if(playing!==lastPlaying){
+      lastPlaying=playing;player.classList.toggle('is-playing',playing);play.textContent=playing?'Ⅱ':'▶';
+      play.setAttribute('aria-label',playing?'Pause video':'Play video');
+    }
     const duration=video.duration,valid=Number.isFinite(duration)&&duration>0;
-    seek.disabled=!valid;seek.value=valid?String(Math.round(video.currentTime/duration*1000)):'0';
-    seek.setAttribute('aria-valuetext',format(video.currentTime)+(valid?' of '+format(duration):''));
-    time.textContent=format(video.currentTime);
+    if(valid!==lastValid){lastValid=valid;seek.disabled=!valid;}
+    const seekValue=valid?String(Math.round(video.currentTime/duration*1000)):'0';
+    if(seekValue!==lastSeek){lastSeek=seekValue;seek.value=seekValue;}
+    const timestamp=format(video.currentTime),valueText=timestamp+(valid?' of '+format(duration):'');
+    if(valueText!==lastValueText){lastValueText=valueText;seek.setAttribute('aria-valuetext',valueText);}
+    if(timestamp!==lastTime){lastTime=timestamp;time.textContent=timestamp;}
   };
   play.addEventListener('click',()=>{
     if(video.paused||video.ended)video.play().catch(sync);else video.pause();

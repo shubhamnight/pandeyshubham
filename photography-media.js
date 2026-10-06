@@ -39,21 +39,27 @@ function mediaElement(item,gallery=false){
 const section=document.querySelector('#projects');
 const slots=[...section.querySelectorAll('.hobby-photography .hobby-image-placeholder')].slice(0,3);
 const visible=new Set();
+const players=new WeakMap(),surfaces=new Map(slots.map(slot=>[slot,slot.querySelector('.hobby-image-surface')]));
+let disposed=false,previousAllowed=null;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+function playbackAllowed(){return !disposed&&!document.body.classList.contains('hobbies-intro-active')&&!document.hidden&&!reduced.matches&&!document.body.classList.contains('motion-paused')&&!document.body.classList.contains('photography-gallery-open');}
 function playback(){
-  const allowed=!document.body.classList.contains('hobbies-intro-active')&&!document.hidden&&!reduced.matches&&!document.body.classList.contains('motion-paused')&&!document.body.classList.contains('photography-gallery-open');
-  for(const slot of slots){const video=slot.querySelector('.hobby-video-canvas')?.videoPlayback;if(!video)continue;
+  const allowed=playbackAllowed();
+  for(const slot of slots){const video=players.get(slot);if(!video)continue;
     if(allowed&&visible.has(slot))video.play().catch(()=>{});else video.pause();
   }
 }
+function syncPlayback(){const next=playbackAllowed();if(next!==previousAllowed){previousAllowed=next;playback();}}
 async function fill(slot){
+  if(disposed)return;
   const item=nextMedia();if(!item)return;
   const version=(slot.mediaVersion||0)+1;slot.mediaVersion=version;
   const element=mediaElement(item);
   if(item.type==='image'){try{await element.decode();}catch{return;}}
-  if(slot.mediaVersion!==version){element.videoPlayback?.dispose();return;}
-  slot.querySelector('.hobby-video-canvas')?.videoPlayback.dispose();
-  slot.querySelector('.hobby-image-surface').replaceChildren(element);
+  if(disposed||slot.mediaVersion!==version){element.videoPlayback?.dispose();return;}
+  players.get(slot)?.dispose();
+  surfaces.get(slot).replaceChildren(element);
+  players.set(slot,element.videoPlayback);element.videoPlayback?.resize();
   playback();
 }
 let started=false;
@@ -61,14 +67,24 @@ const startup=new IntersectionObserver(entries=>{
   if(started||!entries.some(e=>e.isIntersecting))return;
   started=true;startup.disconnect();slots.forEach(slot=>fill(slot));
 },{rootMargin:'350px'});startup.observe(section);
-slots.forEach(slot=>slot.addEventListener('hobby-cycle',()=>fill(slot)));
+const cycleHandlers=new Map();
+slots.forEach(slot=>{const cycle=()=>fill(slot);cycleHandlers.set(slot,cycle);slot.addEventListener('hobby-cycle',cycle);});
 const observer=new IntersectionObserver(entries=>{
   for(const entry of entries)if(entry.isIntersecting)visible.add(entry.target);else visible.delete(entry.target);
   playback();
 },{threshold:0});slots.forEach(slot=>observer.observe(slot));
-document.addEventListener('visibilitychange',playback);
-reduced.addEventListener('change',playback);
-new MutationObserver(playback).observe(document.body,{attributes:true,attributeFilter:['class']});
+document.addEventListener('visibilitychange',syncPlayback);
+reduced.addEventListener('change',syncPlayback);
+const playbackObserver=new MutationObserver(syncPlayback);playbackObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
+window.addEventListener('pageshow',playback);
+window.addEventListener('pagehide',event=>{
+  slots.forEach(slot=>players.get(slot)?.pause());
+  if(event.persisted)return;
+  disposed=true;startup.disconnect();observer.disconnect();playbackObserver.disconnect();visible.clear();
+  slots.forEach(slot=>{slot.mediaVersion=(slot.mediaVersion||0)+1;players.get(slot)?.dispose();slot.removeEventListener('hobby-cycle',cycleHandlers.get(slot));});
+  document.removeEventListener('visibilitychange',syncPlayback);reduced.removeEventListener('change',syncPlayback);window.removeEventListener('pageshow',playback);
+  carouselAbort?.abort();disposeCarousel?.();
+});
 
 let carouselModule=null,disposeCarousel=null,galleryVersion=0,galleryConnected=false,carouselAbort=null;
 export async function fillPhotographyGallery(gallery){

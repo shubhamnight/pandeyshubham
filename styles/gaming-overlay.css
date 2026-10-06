@@ -17,5 +17,13 @@
 .tilted-artwork-link:focus-visible { outline:2px solid #5685c1; outline-offset:-4px; }
 .tilted-caption { position:relative; visibility:hidden; margin-top:14px; color:#a4aab3; font-size:12px; font-weight:500; line-height:1.5; letter-spacing:.02em; text-align:center; }
 @media(max-width:520px) { .tilted-grid { grid-template-columns:1fr; max-width:360px; padding-inline:26px; row-gap:64px; } }
+/* Bound artwork by the overlay's height in landscape, retaining column count,
+   card ratio and the existing scroll-driven transforms. */
+@media(max-width:1100px) and (max-height:550px), (pointer:coarse) and (max-height:550px) {
+  .tilted-grid { max-width:min(768px,calc(160cqh + 88px)); }
+}
+@media(max-width:520px) and (max-height:550px) {
+  .tilted-grid { max-width:min(360px,calc(80cqh + 52px)); }
+}
 @media(hover:hover) and (pointer:fine) { :host([data-batman-cursor]) * { cursor:inherit!important; } }
 @media(prefers-reduced-motion:reduce) { .tilted-grid { padding-block:28px; row-gap:28px; } }

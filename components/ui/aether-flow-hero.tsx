@@ -59,11 +59,14 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
     let particles: Particle[] = [];
     let buckets: Particle[][] = [];
     let columns = 1, rows = 1, cellSize = 1, connectionSquared = 0;
+    let neighbors: number[][] = [];
+    const bodyClasses = document.body.classList;
+    const bodyPauseState = () => bodyClasses.contains('intro-active') || bodyClasses.contains('motion-paused') || bodyClasses.contains('photography-gallery-open');
+    let bodyPaused = bodyPauseState();
     const frameInterval = 1000 / (matchMedia('(pointer:coarse)').matches ? 30 : 60);
 
     function paused() {
-      return suspended || document.hidden || !visible || motionPreference.matches ||
-        ['intro-active', 'motion-paused', 'photography-gallery-open'].some(name => document.body.classList.contains(name));
+      return suspended || document.hidden || !visible || motionPreference.matches || bodyPaused;
     }
 
     function draw(elapsed = 0) {
@@ -81,9 +84,10 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
           if (particle.y > height || particle.y < 0) particle.vy *= -1;
           if (mouse.active) {
             const dx = mouse.x - particle.x, dy = mouse.y - particle.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
+            const squared = dx * dx + dy * dy;
             // Guard the zero-distance case in the original component.
-            if (distance > .001 && distance < mouse.radius + particle.size) {
+            if (squared > .000001 && squared < (mouse.radius + particle.size) ** 2) {
+              const distance = Math.sqrt(squared);
               const force = (mouse.radius - distance) / mouse.radius * 5 * step;
               particle.x -= dx / distance * force;
               particle.y -= dy / distance * force;
@@ -108,9 +112,8 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
       for (const particle of particles) {
         const column = Math.max(0, Math.min(columns - 1, Math.floor(particle.x / cellSize)));
         const row = Math.max(0, Math.min(rows - 1, Math.floor(particle.y / cellSize)));
-        for (let y = Math.max(0, row - 1); y <= Math.min(rows - 1, row + 1); y++) {
-          for (let x = Math.max(0, column - 1); x <= Math.min(columns - 1, column + 1); x++) {
-            for (const neighbor of buckets[y * columns + x]) {
+        for (const cell of neighbors[row * columns + column]) {
+            for (const neighbor of buckets[cell]) {
               const dx = particle.x - neighbor.x, dy = particle.y - neighbor.y;
               const distanceSquared = dx * dx + dy * dy;
               if (distanceSquared >= connectionSquared) continue;
@@ -124,7 +127,6 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
               ctx.lineTo(particle.x, particle.y);
               ctx.stroke();
             }
-          }
         }
         buckets[row * columns + column].push(particle);
       }
@@ -148,6 +150,7 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
     }
 
     function sync() {
+      bodyPaused = bodyPauseState();
       if (paused()) {
         cancelAnimationFrame(frame);
         frame = 0;
@@ -178,6 +181,14 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
       columns = Math.max(1, Math.ceil(width / cellSize));
       rows = Math.max(1, Math.ceil(height / cellSize));
       buckets = Array.from({ length: columns * rows }, () => []);
+      // Cell adjacency changes only on resize. Preserve the same pair order.
+      neighbors = buckets.map((_, cell) => {
+        const column = cell % columns, row = Math.floor(cell / columns), adjacent: number[] = [];
+        for (let y = Math.max(0, row - 1); y <= Math.min(rows - 1, row + 1); y++) {
+          for (let x = Math.max(0, column - 1); x <= Math.min(columns - 1, column + 1); x++) adjacent.push(y * columns + x);
+        }
+        return adjacent;
+      });
       // Mirror the reference density at normal sizes, bound very large screens.
       const count = Math.min(220, Math.ceil(width * height / 9000));
       if (previousWidth && previousHeight) {

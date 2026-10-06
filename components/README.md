@@ -157,3 +157,50 @@ uses its shared circular phase without per-holder wrapping calculations. Hobby
 models sample the latest pointer coordinates without allocating event objects,
 release their interaction listeners on disposal, and ignore late shader completion
 after disposal. Pending skill icon imports also avoid mounting into a disposed page.
+
+## Responsive size constraints
+
+`responsive.css` loads after the existing portfolio styles. Its overrides apply
+to viewports up to 1100px wide, tall portrait ratios, and short touch landscapes.
+Ordinary laptop layouts retain their existing dimensions. The overrides change
+size bounds, gutters and safe-area padding, keeping the same content, section
+order, colours, circular paths, corner positions, motion curves and timing.
+
+The hero badge and strap share fitted dimensions that the existing controller
+measures. The pinned scene keeps its scroll-length multiplier while sizing its
+stage to the stable viewport height, preventing mobile browser chrome from
+stretching the stage during a scroll. Skills, model canvases and arc cards inherit
+smaller size limits. Contact retains its two heading columns and second-line word;
+its font size is bounded by the invitation width. The five contact icons retain
+their row, with narrower gaps on phones and unchanged dock springs and fill.
+
+Dialog dimensions account for available height and safe areas. The photography
+filmstrip retains its spring and reveal animations, with a width bound on tall
+phone cards. Gaming keeps its existing column breakpoints and tilt transforms,
+with a height-based maximum width in short landscapes. Offline content uses
+safe-area padding and tighter height bounds. Rebuild affected React island assets
+with `build:connect`, `build:photography`, `build:gaming` and `build:offline`, then
+run `node build-vercel.cjs` to package the responsive stylesheet for production.
+
+## Resource and interaction work
+
+The particle field precomputes neighboring cell indices on resize, preserving
+connection order, colours, opacity and timing while avoiding repeated bounds
+calculations. Pointer repulsion takes square roots only for particles within its
+existing range. Pause state is cached between body and visibility changes.
+
+The playground pointer response samples once per paint and caches stage bounds
+until scroll or resize. Gallery video observers track inserted and removed
+branches, pause detached or hidden media, and release listeners on disposal.
+Photography, gaming and travel orbit media retain direct player/surface references
+and ignore unrelated body class changes. Pending loads cannot mount after disposal.
+Video canvases fit the rendered card width at the existing density/hover limits;
+the compatibility frame loop skips already decoded frames where supported.
+
+The games artwork component is memoized and its visibility observer allocates a
+new set only when membership changes. Photography ignores unchanged resize
+measurements and releases a replaced video's decoder. Hero observers, model build
+queues and intro sprites release unused resources; the crowd's final painted
+frame remains available for its original exit fade. Navigation ignores redundant
+cancel requests, and travel playback controls skip unchanged DOM updates. No
+animation curves, spring constants, artwork, colours or content were changed.

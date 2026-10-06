@@ -78,23 +78,32 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
     hoverVisible=true;
   }
   function invalidateBounds() { bounds=null; clearHover(); }
-  host.addEventListener('pointermove',event=>{
+  const pointerMove=event=>{
     if(event.pointerType==='touch' || paused) return;
     x=event.clientX; y=event.clientY;
     if(frame) return;
     frame=requestHobbyFrame(paintHover,18);
-  },{passive:true});
+  };
+  host.addEventListener('pointermove',pointerMove,{passive:true});
   host.addEventListener('pointerleave',clearHover);
   window.addEventListener('scroll',invalidateBounds,{passive:true});
   window.addEventListener('resize',invalidateBounds,{passive:true});
-  new ResizeObserver(invalidateBounds).observe(host);
+  const sizeObserver=new ResizeObserver(invalidateBounds);sizeObserver.observe(host);
   const stateObserver=new MutationObserver(updateState);
   stateObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
   stateObserver.observe(host,{attributes:true,attributeFilter:['class']});
-  new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;updateState();}).observe(host);
+  const visibilityObserver=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;updateState();});visibilityObserver.observe(host);
   document.addEventListener('visibilitychange',updateState);
   reduce.addEventListener('change',updateState);
-  window.addEventListener('pagehide',clearHover);
-  window.addEventListener('pageshow',()=>{invalidateBounds();updateState();});
+  const resume=()=>{invalidateBounds();updateState();};
+  window.addEventListener('pagehide',event=>{
+    clearHover();if(event.persisted)return;
+    sizeObserver.disconnect();stateObserver.disconnect();visibilityObserver.disconnect();
+    host.removeEventListener('pointermove',pointerMove);host.removeEventListener('pointerleave',clearHover);
+    window.removeEventListener('scroll',invalidateBounds);window.removeEventListener('resize',invalidateBounds);
+    document.removeEventListener('visibilitychange',updateState);reduce.removeEventListener('change',updateState);
+    window.removeEventListener('pageshow',resume);
+  });
+  window.addEventListener('pageshow',resume);
   updateState();
 })();

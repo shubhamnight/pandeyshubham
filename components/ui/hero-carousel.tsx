@@ -156,15 +156,20 @@ export function HeroCarousel({
   React.useEffect(() => {
     const stage = stageRef.current
     if (!stage) return
-    const read = () =>
-      setBox({ w: stage.clientWidth, h: stage.clientHeight })
+    const read = () => {
+      const w = stage.clientWidth, h = stage.clientHeight
+      setBox(previous => previous.w === w && previous.h === h ? previous : { w, h })
+    }
     read()
     const ro = new ResizeObserver(read)
     ro.observe(stage)
     return () => ro.disconnect()
   }, [])
 
-  const fullH = clamp(box.h * CARD_H, 96, 360) * CARD_SCALE
+  // Preserve the filmstrip proportions, with a width bound for tall phones.
+  // The focused photograph must fit across the stage before its neighbours.
+  const fullH = Math.min(clamp(box.h * CARD_H, 96, 360) * CARD_SCALE,
+    Math.max(1, box.w - 32) / CARD_AR)
   const halfH = fullH / 2
   const cardW = fullH * CARD_AR
   const gap = Math.max(4, Math.round(cardW * GAP))
@@ -245,6 +250,23 @@ export function HeroCarousel({
     )
     return () => window.clearTimeout(id)
   }, [autoplay, autoplayDelay, dragging, go, index, items.length, last, paused])
+
+  React.useEffect(() => {
+    const video = stageRef.current?.querySelector('video')
+    if (!video) return
+    const pauseHidden = () => { if (document.hidden) video.pause() }
+    const pause = () => video.pause()
+    document.addEventListener('visibilitychange', pauseHidden)
+    window.addEventListener('pagehide', pause)
+    return () => {
+      document.removeEventListener('visibilitychange', pauseHidden)
+      window.removeEventListener('pagehide', pause)
+      video.pause()
+      // A replaced slide no longer needs its decoder or pending media request.
+      video.removeAttribute('src')
+      video.load()
+    }
+  }, [active?.videoSrc])
 
   if (!active) return null
 

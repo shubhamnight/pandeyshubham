@@ -17,8 +17,9 @@ function removePaint(paint){
   pendingPaints.delete(paint);
   if(!pendingPaints.size&&paintFrame){cancelHobbyFrame(flushPaints);paintFrame=0;}
 }
-function cardResolution(){
-  const width=innerWidth<=900?Math.max(79.2,Math.min(132,innerWidth*.228)):Math.max(132,Math.min(211.2,innerWidth*.156));
+function cardResolution(canvas){
+  const width=canvas?.closest('.hobby-image-placeholder')?.offsetWidth||
+    (innerWidth<=900?Math.max(79.2,Math.min(132,innerWidth*.228)):Math.max(132,Math.min(211.2,innerWidth*.156)));
   return Math.ceil(Math.min(536,width*1.265*Math.min(devicePixelRatio||1,2))/4)*4;
 }
 window.addEventListener('resize',()=>{for(const player of liveCards)player.resize();},{passive:true});
@@ -35,7 +36,10 @@ export function createVideoCard(item) {
   video.src=item.preview||item.src;video.preload='metadata';
   video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;
   let playing=false,disposed=false,callback=null,lastFrame=-1,playVersion=0;
+  let lastDecodedFrame=-1;
+  const alreadyPlaying=Promise.resolve();
   const nativeFrames='requestVideoFrameCallback' in video;
+  const decodedFrameCount=!nativeFrames&&typeof video.getVideoPlaybackQuality==='function';
   function paint(source,w,h) {
     if(disposed||!w||!h)return;
     const ratio=canvas.width/canvas.height;
@@ -45,7 +49,10 @@ export function createVideoCard(item) {
   const poster=new Image();poster.onload=()=>{if(lastFrame<0)paint(poster,poster.naturalWidth,poster.naturalHeight);};poster.src=item.poster;
   function drawFrame(){
     if(!playing||disposed||video.readyState<2||video.currentTime===lastFrame)return;
+    const decoded=decodedFrameCount?video.getVideoPlaybackQuality().totalVideoFrames:-1;
+    if(decodedFrameCount&&decoded>0&&decoded===lastDecodedFrame)return;
     paint(video,video.videoWidth,video.videoHeight);lastFrame=video.currentTime;
+    lastDecodedFrame=decoded;
   }
   function update() {
     callback=null;
@@ -69,13 +76,13 @@ export function createVideoCard(item) {
   canvas.videoPlayback={
     resize(){
       if(disposed)return;
-      const size=cardResolution();if(canvas.width===size)return;
+      const size=cardResolution(canvas);if(canvas.width===size)return;
       canvas.width=size;canvas.height=size*3/4;context.imageSmoothingQuality='high';
       if(video.readyState>=2)paint(video,video.videoWidth,video.videoHeight);
       else if(poster.complete)paint(poster,poster.naturalWidth,poster.naturalHeight);
     },
     play(){
-      if(playing||disposed)return Promise.resolve();
+      if(playing||disposed)return alreadyPlaying;
       const version=++playVersion;
       playing=true;schedule();
       // A rejected older play request must not cancel a newer successful one.

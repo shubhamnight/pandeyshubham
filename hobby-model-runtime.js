@@ -15,27 +15,41 @@ function deactivate(update) {
 }
 
 const buildQueue = [];
-let building = false;
+const deferredObservers=new Set();
+let building = false,buildFrame=0,idleBuild=0,buildTimeout=0,buildDisposed=false;
 function scheduleBuild() {
-  if (building || !buildQueue.length || document.hidden) return;
+  if (building || buildDisposed || !buildQueue.length || document.hidden) return;
   building = true;
-  requestAnimationFrame(() => {
+  buildFrame=requestAnimationFrame(() => {
+    buildFrame=0;
     const build = () => {
-      building=false;
-      if (!document.hidden) buildQueue.shift()?.();
-      scheduleBuild();
+      building=false;idleBuild=buildTimeout=0;
+      if(buildDisposed)return;
+      try{if(!document.hidden)buildQueue.shift()?.();}
+      catch(error){console.error('Hobby model could not be prepared',error);}
+      finally{scheduleBuild();}
     };
-    if ('requestIdleCallback' in window) requestIdleCallback(build,{timeout:500});
-    else setTimeout(build,0);
+    if ('requestIdleCallback' in window) idleBuild=requestIdleCallback(build,{timeout:500});
+    else buildTimeout=setTimeout(build,0);
   });
 }
 document.addEventListener('visibilitychange',scheduleBuild);
+window.addEventListener('pagehide',event=>{
+  if(event.persisted)return;
+  buildDisposed=true;cancelAnimationFrame(buildFrame);
+  if(idleBuild)cancelIdleCallback(idleBuild);
+  clearTimeout(buildTimeout);buildQueue.length=0;
+  deferredObservers.forEach(observer=>observer.disconnect());deferredObservers.clear();
+  document.removeEventListener('visibilitychange',scheduleBuild);
+});
 export function deferHobbyModel(button,build) {
   const observer=new IntersectionObserver(entries=>{
     if (!entries.some(e=>e.isIntersecting)) return;
-    observer.disconnect(); buildQueue.push(build); scheduleBuild();
+    observer.disconnect();deferredObservers.delete(observer);
+    buildQueue.push(()=>{try{build();}catch(error){button.dataset.hobbyModelFailed='true';throw error;}});scheduleBuild();
   },{rootMargin:'650px'});
-  observer.observe(document.querySelector('#projects')||button);
+  if(buildDisposed)return;
+  deferredObservers.add(observer);observer.observe(document.querySelector('#projects')||button);
 }
 
 export function connectHobbyMotion({button,renderer,scene,view,model,orientModel=null}) {

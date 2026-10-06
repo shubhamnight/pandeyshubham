@@ -28,5 +28,7 @@
 .social-link:focus-visible { outline:2px solid #96b7df; outline-offset:6px; }
 .social-link[aria-disabled="true"] { cursor:default; }
 @media(hover:hover) and (pointer:fine) { :host([data-batman-cursor]) * { cursor:inherit!important; } }
-@media(max-width:600px) { .social-links { flex-wrap:wrap; height:auto; min-height:72px; gap:48px 24px; } }
+/* Keep the same five-icon row within the contact content width on phones.
+   Motion still owns icon dimensions, springs, fill and magnification. */
+@media(max-width:600px) { .social-links { flex-wrap:nowrap; height:72px; min-height:72px; gap:48px clamp(0px,calc((100vw - 282px)/4),24px); padding-inline:0; } }
 @media(prefers-reduced-motion:reduce) { .social-link,.social-item * { transition:none; } }

@@ -34,4 +34,14 @@ body { margin:0; }
 .flow-button:focus-visible { outline:2px solid #96b7df; outline-offset:6px; }
 .flow-button:disabled { cursor:wait; opacity:.65; }
 @media(max-width:600px) { .offline-art { gap:12px; margin-bottom:36px; } .offline-word { font-size:clamp(28px,7vw,42px); } .offline-batman { width:144px; height:100px; } }
+@media(max-width:1100px), (max-aspect-ratio:4/5) {
+  .offline-page { padding-left:max(20px,env(safe-area-inset-left)); padding-right:max(20px,env(safe-area-inset-right)); padding-top:max(32px,env(safe-area-inset-top)); padding-bottom:max(32px,env(safe-area-inset-bottom)); }
+  .offline-batman { max-width:calc(100vw - 64px); }
+  .offline-description,.offline-status { overflow-wrap:break-word; }
+}
+@media(max-width:1100px) and (max-height:550px) {
+  .offline-art { margin-bottom:24px; }
+  .offline-batman { width:144px; height:100px; }
+  .offline-status { margin-top:24px; }
+}
 @media(prefers-reduced-motion:reduce) { .offline-page *, .offline-page *::before, .offline-page *::after { transition:none!important; } }

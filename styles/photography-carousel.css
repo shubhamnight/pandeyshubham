@@ -23,4 +23,12 @@
 .photo-carousel .photo-active-caption { position:absolute; top:calc(84.32% + 14px); left:0; right:0; text-align:center; color:#ffffffb3; font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
 @media(max-width:600px) {
   .photo-carousel .photo-active-caption { top:calc(84.32% + 12px); font-size:9px; }
+  .photo-carousel .photo-title { font-size:min(6.7vh,12vw)!important; }
+  .photo-carousel .photo-headline { padding-inline:max(16px,env(safe-area-inset-left),env(safe-area-inset-right))!important; }
+  .photo-carousel .photo-active-caption { padding-inline:16px; overflow-wrap:break-word; }
+}
+@media(max-width:1100px) and (max-height:550px), (pointer:coarse) and (max-height:550px) {
+  .photo-carousel .photo-title { font-size:clamp(18px,6.7dvh,36px)!important; }
+  .photo-carousel .photo-headline { padding-right:max(72px,env(safe-area-inset-right))!important; }
+  .photo-carousel .photo-active-caption { font-size:9px; }
 }

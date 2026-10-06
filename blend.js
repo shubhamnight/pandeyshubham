@@ -44,12 +44,34 @@ dialog.addEventListener('click', event => { if (event.target === dialog) { const
 dialog.addEventListener('close', () => { document.body.style.overflow = ''; lastStudy?.focus(); });
 const stage = document.querySelector('.play-stage');
 const kinetic = document.querySelector('.kinetic-object');
-stage.addEventListener('pointermove', event => {
-  if (paused || event.pointerType === 'touch') return;
-  const rect = stage.getBoundingClientRect();
-  kinetic.style.translate = `${(event.clientX - rect.left - rect.width / 2) * .12}px ${(event.clientY - rect.top - rect.height / 2) * .15}px`;
+let kineticFrame=0,kineticBounds=null,kineticX=0,kineticY=0,kineticPaint='';
+function paintKinetic(){
+  kineticFrame=0;
+  if(paused||document.hidden)return;
+  kineticBounds ||= stage.getBoundingClientRect();
+  const value=`${(kineticX-kineticBounds.left-kineticBounds.width/2)*.12}px ${(kineticY-kineticBounds.top-kineticBounds.height/2)*.15}px`;
+  if(value!==kineticPaint){kineticPaint=value;kinetic.style.translate=value;}
+}
+function kineticPointer(event){
+  if(paused||document.hidden||event.pointerType==='touch')return;
+  kineticX=event.clientX;kineticY=event.clientY;
+  if(!kineticFrame)kineticFrame=requestAnimationFrame(paintKinetic);
+}
+function resetKinetic(){cancelAnimationFrame(kineticFrame);kineticFrame=0;kineticPaint='0 0';kinetic.style.translate=kineticPaint;}
+function invalidateKinetic(){kineticBounds=null;}
+function kineticVisibility(){if(document.hidden)resetKinetic();}
+stage.addEventListener('pointermove',kineticPointer,{passive:true});
+stage.addEventListener('pointerleave',resetKinetic);
+window.addEventListener('scroll',invalidateKinetic,{passive:true});
+window.addEventListener('resize',invalidateKinetic,{passive:true});
+document.addEventListener('visibilitychange',kineticVisibility);
+const kineticResize=new ResizeObserver(invalidateKinetic);kineticResize.observe(stage);
+window.addEventListener('pagehide',event=>{
+  resetKinetic();if(event.persisted)return;
+  kineticResize.disconnect();stage.removeEventListener('pointermove',kineticPointer);stage.removeEventListener('pointerleave',resetKinetic);
+  window.removeEventListener('scroll',invalidateKinetic);window.removeEventListener('resize',invalidateKinetic);
+  document.removeEventListener('visibilitychange',kineticVisibility);
 });
-stage.addEventListener('pointerleave', () => { kinetic.style.translate = '0 0'; });
 document.querySelectorAll('[data-color]').forEach(button => button.addEventListener('click', () => {
   stage.dataset.mood = button.dataset.color;
   document.querySelectorAll('[data-color]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));

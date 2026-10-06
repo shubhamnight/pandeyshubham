@@ -10,7 +10,8 @@ window.startIntroCrowd = function(host) {
   const img=new Image();
   let frame=0,last=0,w=0,h=0,people=[],sprites=[],dead=false,loaded=false;
   // The existing alpha repair is baked once by build-intro-crowd.cjs.
-  const spriteManifest=fetch('assets/intro-crowd-sprites.json').then(response=>{
+  const spriteRequest=new AbortController();
+  const spriteManifest=fetch('assets/intro-crowd-sprites.json',{signal:spriteRequest.signal}).then(response=>{
     if(!response.ok)throw new Error('Crowd sprite metadata unavailable');
     return response.json();
   }).catch(()=>null);
@@ -62,5 +63,12 @@ window.startIntroCrowd = function(host) {
   document.addEventListener('visibilitychange',visibility);reduce.addEventListener('change',visibility);
   img.onload=async()=>{if(dead)return;await prepareSprites();if(dead||!sprites.length)return;loaded=true;size();};
   img.src='assets/intro-crowd.webp';
-  return ()=>{dead=true;cancelAnimationFrame(frame);observer.disconnect();hostObserver.disconnect();document.removeEventListener('visibilitychange',visibility);reduce.removeEventListener('change',visibility);img.onload=null;};
+  return ()=>{
+    dead=true;cancelAnimationFrame(frame);observer.disconnect();hostObserver.disconnect();spriteRequest.abort();
+    document.removeEventListener('visibilitychange',visibility);reduce.removeEventListener('change',visibility);img.onload=null;
+    // The crowd has finished; release its decoded sprite surfaces immediately.
+    people.length=0;for(const sprite of sprites)sprite.width=sprite.height=1;sprites.length=0;
+    // Keep the last painted crowd frame for the existing 400ms exit fade.
+    img.removeAttribute('src');
+  };
 };

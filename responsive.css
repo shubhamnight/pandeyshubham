@@ -1,0 +1,127 @@
+/* Size constraints only. Existing content, order, surfaces and motion stay owned
+   by their original styles and animation controllers. Ordinary laptop layouts
+   keep their current rules; narrower and portrait viewports get fitting bounds. */
+@media (max-width:1100px), (max-aspect-ratio:4/5), (pointer:coarse) and (max-height:550px) {
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  body { min-width:0; }
+  .floating-nav {
+    top:max(12px,env(safe-area-inset-top));
+    max-width:calc(100% - max(12px,env(safe-area-inset-left)) - max(12px,env(safe-area-inset-right)));
+    gap:clamp(12px,2.8vw,26px);
+  }
+  .floating-nav a { min-height:30px; display:flex; align-items:center; }
+
+  #home {
+    height:105svh; min-height:0;
+    --fit-badge-width:min(280px,60vw,34svh);
+    --fit-badge-height:calc(var(--fit-badge-width)*10/7);
+    --fit-badge-top:min(113px,20svh);
+  }
+  #home .badge-rig {
+    width:var(--fit-badge-width);
+    height:calc(var(--fit-badge-top) + var(--fit-badge-height) + 12px);
+  }
+  #home .badge {
+    width:var(--fit-badge-width); height:var(--fit-badge-height);
+    top:var(--fit-badge-top);
+  }
+  #home .strap { height:calc(var(--fit-badge-top) + 24px); }
+  #home .badge-title { font-size:calc(var(--fit-badge-width)*.129); }
+  #home .badge-name { width:calc(var(--fit-badge-width) - 48px); }
+
+  /* The same scroll spans and circular paths now use a visible stage, rather
+     than a fixed 780/860px stage taller than many phones and landscape screens. */
+  .skills-hobbies-scene { --fit-stage-height:calc(100svh + 48px); }
+  .scene-pinned { height:calc(var(--fit-stage-height)*var(--scene-scroll-length,3.56398625)); }
+  .scene-pinned .skills-hobbies-viewport { height:var(--fit-stage-height); }
+  #about,.hero-skills-transition>#about,#projects {
+    height:calc(100svh + 48px); min-height:0;
+  }
+  #about,.hero-skills-transition>#about { --skills-disc-size:clamp(40px,min(13vw,11svh),64px); }
+  #about .skills-heading h2 { font-size:clamp(18px,3.8vw,52px); }
+  #about .skills-heading>p { font-size:clamp(10px,1.4vw,14px); }
+  #projects .project-heading { width:min(72%,calc(100% - 128px)); }
+  #projects .project-heading h2 { font-size:clamp(20px,4.3vw,32px); }
+  #projects { --fit-model-width:min(90px,18vw,18svh); }
+  #projects :is(#photography-camera,#gaming-controller,#music-walkman) {
+    width:var(--fit-model-width); height:calc(var(--fit-model-width)*53/63);
+  }
+  #projects #travel-plane {
+    width:calc(var(--fit-model-width)*1.2); height:calc(var(--fit-model-width)*53/63*1.2);
+  }
+  #projects .hobby-orbit-center svg { width:min(31.05px,9vw,9svh); height:min(31.05px,9vw,9svh); }
+  #projects .hobby-orbit-center .hobby-camera-icon {
+    width:min(50px,13vw,13svh); height:min(31.05px,9vw,9svh);
+  }
+  #projects :is(.hobby-photography,.hobby-travel) .hobby-orbit-center { top:max(calc(156px + env(safe-area-inset-top)),16%); }
+  #projects :is(.hobby-gaming,.hobby-music) .hobby-orbit-center { bottom:12%; }
+  #projects .hobby-image-placeholder { width:min(clamp(79.2px,22.8vw,132px),22svh); }
+
+  #playground .play-heading h2 { font-size:clamp(32px,5vw,72px); }
+  #playground .play-stage { height:clamp(280px,65svh,500px); }
+  #playground .kinetic-object { width:min(180px,42vw,38svh); height:min(180px,42vw,38svh); }
+  #playground .kinetic-object span { font-size:min(210px,49vw,44svh); }
+  #playground .stage-label { font-size:clamp(28px,5.7vw,50px); }
+
+  /* Keep both heading columns and the second-line word in their current places. */
+  .connect-invitation { container-type:inline-size; padding-inline:max(20px,env(safe-area-inset-left),env(safe-area-inset-right)); }
+  #contact #connect-heading {
+    --fit-heading-gap:clamp(12px,2.5vw,40px);
+    column-gap:var(--fit-heading-gap);
+    font-size:min(clamp(44px,7.5vw,110px),calc((100cqi - var(--fit-heading-gap))/11.5));
+  }
+  .connect-details { padding-left:max(24px,env(safe-area-inset-left)); padding-right:max(24px,env(safe-area-inset-right)); padding-bottom:max(48px,env(safe-area-inset-bottom)); }
+
+  dialog.hobby-gallery {
+    --gallery-gutter:12px;
+    width:min(1060px,calc(100vw - max(var(--gallery-gutter),env(safe-area-inset-left)) - max(var(--gallery-gutter),env(safe-area-inset-right)));
+    height:min(780px,calc(100dvh - max(12px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom))));
+    max-height:calc(100dvh - max(12px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom)));
+  }
+  dialog.hobby-gallery header { padding:18px 20px; gap:16px; }
+  dialog.hobby-gallery header>div { min-width:0; }
+  dialog.hobby-gallery h2 { overflow-wrap:break-word; }
+  .hobby-gallery-content { padding:20px; }
+  dialog#photography-gallery { width:100%; height:100dvh; max-height:100dvh; }
+  dialog#photography-gallery>header { top:max(12px,env(safe-area-inset-top)); right:max(12px,env(safe-area-inset-right)); }
+  #study-dialog { max-height:calc(100dvh - 24px); }
+  #study-dialog h2 { font-size:clamp(28px,6vw,52px); overflow-wrap:break-word; }
+  .travel-video-controls { gap:4px; padding-inline:4px; }
+  .travel-video-controls button { width:32px; height:36px; flex-basis:32px; }
+  .travel-video-controls input { height:36px; }
+}
+
+@media (max-width:700px) {
+  #home { --fit-badge-width:min(220px,60vw,34svh); --fit-badge-height:calc(var(--fit-badge-width)*16/11); --fit-badge-top:min(190px,26svh); }
+  #home .strap { width:calc(var(--fit-badge-width)*8/55); left:calc(50% - var(--fit-badge-width)*4/55); }
+  #home .badge-title { font-size:calc(var(--fit-badge-width)*29/220); }
+  #home .badge-name { width:calc(var(--fit-badge-width) - 42px); font-size:clamp(7px,2.2vw,9px); letter-spacing:clamp(1px,.5vw,2px); }
+  #home .name-track { font-size:clamp(80px,22vw,142.5px); }
+}
+
+@media (max-width:600px) {
+  .connect-invitation { padding-top:clamp(88px,17svh,120px); padding-bottom:48px; }
+  #contact #connect-heading { --fit-heading-gap:12px; font-size:min(clamp(20px,6.8vw,40px),calc((100cqi - 12px)/11.5)); }
+  .connect-person p { overflow-wrap:break-word; }
+}
+
+/* Phone/tablet landscape: fit both axes, without changing the four corners or
+   the shared ring. These rules do not apply to a normal laptop viewport. */
+@media (max-width:1100px) and (max-height:550px), (pointer:coarse) and (max-height:550px) {
+  #home { height:105svh; min-height:0; --fit-badge-width:min(220px,48svh); --fit-badge-height:calc(var(--fit-badge-width)*16/11); --fit-badge-top:20svh; }
+  #home .name-track { font-size:clamp(80px,24svh,142.5px); }
+  .skills-hobbies-scene { --fit-stage-height:100svh; }
+  .scene-pinned .skills-hobbies-viewport,#about,.hero-skills-transition>#about,#projects { height:100svh; min-height:0; }
+  #about,.hero-skills-transition>#about { --skills-disc-size:clamp(36px,11svh,56px); }
+  #about .skills-heading h2 { font-size:clamp(18px,5.5svh,28px); }
+  #about .skills-heading>p { font-size:10px; line-height:1.45; margin-top:10px; }
+  #projects .project-heading h2 { font-size:clamp(18px,5.5svh,28px); }
+  #projects .project-heading p { font-size:11px; line-height:1.45; margin-top:10px; }
+  #projects :is(.hobby-photography,.hobby-travel) .hobby-orbit-center { top:max(calc(84px + env(safe-area-inset-top)),22%); }
+  #projects :is(.hobby-gaming,.hobby-music) .hobby-orbit-center { bottom:14%; }
+  #projects { --fit-model-width:min(70px,14svh); }
+  .connect-invitation { padding-top:80px; padding-bottom:32px; }
+  .connect-details { padding-top:28px; padding-bottom:max(28px,env(safe-area-inset-bottom)); }
+  dialog.hobby-gallery header { padding:12px 18px; }
+  dialog.hobby-gallery h2 { font-size:24px; }
+}

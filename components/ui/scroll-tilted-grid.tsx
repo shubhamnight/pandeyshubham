@@ -35,7 +35,7 @@ type TileConfig = {
   rounded: string;
 };
 
-function Artwork({ image, index, requested = true }: { image: TiltedGridImage; index: number; requested?: boolean }) {
+const Artwork = memo(function Artwork({ image, index, requested = true }: { image: TiltedGridImage; index: number; requested?: boolean }) {
   const picture = <img className="tilted-artwork" src={requested ? image.src : undefined}
     srcSet={requested ? image.srcSet : undefined}
     sizes="(max-width:520px) 308px, (max-width:820px) 42vw, 340px"
@@ -47,7 +47,7 @@ function Artwork({ image, index, requested = true }: { image: TiltedGridImage; i
       {picture}
     </a>
   ) : picture;
-}
+});
 
 function ScrollCardMotion({ index, config, container, target, card, inner, caption, focused }: {
   index: number; config: TileConfig; container?: ScrollContainer;
@@ -163,15 +163,14 @@ export function ScrollTiltedGrid({
     // One observer for the entire grid; the buffer covers the cards' entry/exit transforms.
     const observer = new IntersectionObserver(entries => {
       setActiveTiles(previous => {
-        const next = new Set(previous);
-        let changed = false;
+        let next: Set<number> | null = null;
         for (const entry of entries) {
           const index = Number((entry.target as HTMLElement).dataset.tiltedIndex);
-          if (entry.isIntersecting === previous.has(index)) continue;
-          changed = true;
+          if (entry.isIntersecting === (next ?? previous).has(index)) continue;
+          next ??= new Set(previous);
           if (entry.isIntersecting) next.add(index); else next.delete(index);
         }
-        return changed ? next : previous;
+        return next ?? previous;
       });
     }, { root: container?.current, rootMargin: '350px 0px', threshold: 0 });
     gridRef.current.querySelectorAll('[data-tilted-index]').forEach(tile => observer.observe(tile));
