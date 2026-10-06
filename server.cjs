@@ -1,6 +1,8 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
+// Local secrets stay outside the generated deployment and Git history.
+try { process.loadEnvFile(path.join(__dirname, '.env.local')); } catch (error) { if (error.code !== 'ENOENT') throw error; }
 const zlib = require('node:zlib');
 const {promisify}=require('node:util');
 const brotli=promisify(zlib.brotliCompress),gzip=promisify(zlib.gzip);
@@ -21,6 +23,10 @@ const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-
 http.createServer((req,res) => {
   let pathname;
   try { pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname); } catch { res.writeHead(400); return res.end('Bad request'); }
+  // Never serve dotfiles, server code, environment files, or provider secrets.
+  pathname=pathname.replaceAll('\\','/');
+  const segments=pathname.split('/');
+  if(segments.some(segment=>segment.startsWith('.')) || /\.cjs$/i.test(pathname) || /^\/(?:lib|tmp|api)(?:\/|$)/i.test(pathname) && pathname!=='/api/travel-locations') {res.writeHead(404);return res.end('Not found');}
   if(pathname === '/index.html'){res.writeHead(308,{Location:'/'});return res.end();}
   if(pathname === '/api/travel-locations' && process.env.SERVE_DIST !== '1') {
     const locationFile=path.join(root,'travel-locations.json');
