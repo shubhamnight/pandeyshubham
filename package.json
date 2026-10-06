@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node server.cjs",
-    "build": "node build-site-assets.cjs && node build-seo.cjs && node build-photography-carousel.cjs && node build-connect.cjs && node build-gaming-overlay.cjs && node build-skills-icons.cjs && node build-vercel.cjs",
+    "build": "node build-site-assets.cjs && node build-seo.cjs && node build-photography-carousel.cjs && node build-connect.cjs && node build-gaming-overlay.cjs && node build-skills-icons.cjs && node build-offline.cjs && node build-vercel.cjs",
     "build:seo": "node build-site-assets.cjs && node build-seo.cjs",
     "typecheck": "tsc --noEmit",
     "check": "node check-site.cjs",
@@ -12,6 +12,7 @@
     "build:connect": "node build-connect.cjs",
     "build:gaming": "node build-gaming-overlay.cjs",
     "build:skills": "node build-skills-icons.cjs",
+    "build:offline": "node build-offline.cjs",
     "enhance:photography": "node enhance-photography-ai.cjs"
   },
   "dependencies": {

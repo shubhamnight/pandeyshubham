@@ -18,7 +18,7 @@
 .connect-person img { width:64px; height:80px; object-fit:cover; object-position:center; border-radius:8px; filter:url('#connect-portrait-grey-outline'); }
 .connect-person strong { display:block; font-family:Anton,Impact,'Arial Narrow',sans-serif; font-size:30px; font-weight:400; letter-spacing:0; color:#5685c1; }
 .connect-person p { margin:0; font-size:17px; letter-spacing:.025em; color:#a4aab3; }
-.connect-secondary { display:flex; flex-direction:column; align-items:flex-end; gap:40px; padding-top:0; font-family:Anton,Impact,'Arial Narrow',sans-serif; }
+.connect-secondary { display:flex; justify-content:center; align-items:center; margin:44px auto 0; font-family:Anton,Impact,'Arial Narrow',sans-serif; }
 #contact .connect-secondary a,.connect-secondary span { font-size:18px; color:#a4aab3; }
 #contact .connect-secondary a:hover { color:#96b7df; }
 .connect-secondary [aria-disabled="true"] { cursor:default; }
@@ -32,6 +32,5 @@
   .connect-person img { width:48px; height:60px; }
   .connect-person strong { font-size:22px; }
   .connect-person p { font-size:12px; }
-  .connect-secondary { gap:32px; }
   #contact .connect-secondary a,.connect-secondary span { font-size:15px; }
 }

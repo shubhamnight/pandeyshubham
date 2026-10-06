@@ -7,6 +7,8 @@
   "redirects": [{ "source": "/index.html", "destination": "/", "permanent": true }],
   "headers": [
     { "source": "/(.*)", "headers": [{ "key": "X-Content-Type-Options", "value": "nosniff" }] },
-    { "source": "/404.html", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] }
+    { "source": "/404.html", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
+    { "source": "/offline.html", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
+    { "source": "/offline-sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
   ]
 }

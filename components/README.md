@@ -59,8 +59,8 @@ fixed-width grid column so the complete heading stays centered above the icons
 as each word changes. Both text columns center their content. The handwritten word
 shares the second-line baseline with “SOMETHING” and uses a larger font size to
 match its visible letter height. Both columns scale down together on
-mobile rather than letting the animated word wrap underneath. Social links are centered above the lower
-identity and About / Resume navigation. The fonts are self-hosted with their SIL licenses in
+mobile rather than letting the animated word wrap underneath. Social links and Resume are
+centered above the lower identity block. The fonts are self-hosted with their SIL licenses in
 `assets/fonts`. The identity block shows Shubham's portrait, first name, and role.
 
 `components/ui/social-icons.tsx` maps GitHub, Instagram, LinkedIn, Twitter,
@@ -75,7 +75,7 @@ and tooltips match each icon, with white foregrounds over the filled circles.
 Destinations are configured in
 `social-links.json`; email converts to a mailto link. LinkedIn remains a
 non-navigating placeholder until supplied. Resume also remains inactive until
-a resume file is available. About links to the existing profile section.
+a resume file is available. Resume sits below the social icons; the About link is removed.
 
 The social component loads lazily through `connect-boot.js` into a shadow root.
 `styles/connect-page.css` scopes its reset and interaction styles. Native text
@@ -103,3 +103,27 @@ Hover and keyboard focus reveal matching colored tooltips and a stronger shadow;
 the logos retain their original colors. Reduced motion removes the transitions.
 The orbit remains controlled by `skills.js` and its existing shared animation clock,
 preserving the entrance, full circular path, reverse scroll, and hobby handoff.
+
+## Offline Batman page
+
+`components/ui/ghost-404-page-1.tsx` adapts the supplied layout to an offline state,
+with the intro's rotating 3D Batman emblem, floating and hover motion, an animated `FlowButton`, a retry
+connection check, and automatic return when the browser reports it is online.
+The standalone page uses the existing React, TypeScript, Tailwind, Framer Motion,
+and Lucide dependencies, native HTML instead of Next.js, and local fonts.
+`lib/offline-batman.js` uses the shared `batman-emblem.js` outline, matching the
+intro's bevels, blue metallic materials, lighting, and spin speed. It pauses while
+hidden, renders a still pose for reduced motion, and caps GPU draws at 30 fps.
+The local Batman vector remains visible if WebGL is unavailable.
+
+`offline-boot.js` registers the root service worker and switches an open portfolio
+to the offline page when the browser reports a lost connection. The worker also
+serves it when a navigation request fails. Only offline HTML, compiled UI, Batman model,
+and required fonts are cached; portfolio pages, APIs, and large media are not.
+This requires one successful online visit to install the cache, and HTTPS or
+localhost. Return destinations are restricted to this site's origin.
+
+Run `npm run build:offline` to regenerate the compiled assets and content-versioned
+`offline-sw.js` from `lib/offline-worker.js`. The full build includes this step.
+Use `/offline.html?preview=1` for a separate preview that remains open while online.
+The existing 404 page continues to handle missing URLs.

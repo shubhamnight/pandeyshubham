@@ -34,6 +34,7 @@
 <style>html,body{background:#0c0d10}body.intro-active{overflow:hidden}.portfolio-intro{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#0c0d10;color:#e7e7e7}</style>
 <link rel="stylesheet" href="node_modules/lenis/dist/lenis.css">
 <link rel="modulepreload" href="batman-loader.js">
+<script src="offline-boot.js" defer></script>
 <link rel="stylesheet" href="skills.css"><link rel="stylesheet" href="portfolio-theme.css"><link rel="stylesheet" href="accessibility.css"><link rel="stylesheet" href="connect.css">
 <noscript><style>
 body.intro-active{overflow:auto}.portfolio-intro{display:none!important}.floating-nav{position:sticky;left:auto;top:12px;width:max-content;max-width:95%;margin:12px auto;transform:none;opacity:1}#about{height:auto;min-height:0;padding:65px 6%}#about .skills-heading{position:static;width:auto;transform:none;margin:0 auto 40px}#about .skills-orbit-stage,#about .skills-orbit-list{position:static}#about .skills-orbit-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:40px 18px}#about .skills-orbit-slot{position:static;visibility:visible;margin:0 auto}#about .skills-orbit-name{opacity:1;transform:translate(-50%,0)}#projects .hobby-orbits{display:none}#projects{height:auto;min-height:0}.photo-fallback{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:24px}.photo-fallback img{width:100%;height:180px;object-fit:cover}.photo-fallback a{color:inherit;font-size:13px}.photo-fallback figure{margin:0}.photo-fallback figcaption{padding-top:8px}
@@ -109,13 +110,13 @@ body.intro-active{overflow:auto}.portfolio-intro{display:none!important}.floatin
     <div class="footer-socials">
       <div class="footer-socials-fallback"><nav aria-label="Social links"><a href="https://github.com/shubhamnight" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://www.instagram.com/shubham.night/" target="_blank" rel="noopener noreferrer">Instagram</a><span aria-disabled="true">LinkedIn</span><a href="https://x.com/very_happy_guy" target="_blank" rel="noopener noreferrer">Twitter</a><a href="mailto:contactwithshub@gmail.com">Email</a></nav></div>
       <div class="social-icons-mount" hidden></div>
+      <nav class="connect-secondary" aria-label="Resume"><span aria-disabled="true" title="Resume will be added later">RESUME</span></nav>
     </div>
   </div>
   <div class="connect-details">
     <div class="connect-identity">
       <div class="connect-person"><img src="assets/profile/shubham-pandey-portrait-480.webp" width="64" height="80" alt="" loading="lazy" decoding="async"><div><strong>SHUBHAM</strong><p>Developer / Designer</p></div></div>
     </div>
-    <nav class="connect-secondary" aria-label="Portfolio information"><span aria-disabled="true" title="Resume will be added later">RESUME</span><a href="#profile">ABOUT</a></nav>
   </div>
 </footer>
 <script type="module" src="connect-boot.js"></script>

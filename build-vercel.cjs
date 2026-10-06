@@ -19,7 +19,7 @@ fs.mkdirSync(dist, { recursive: true });
 for (const name of fs.readdirSync(root)) {
   if (name === 'travel-locations-editor.js') continue;
   if (!/\.(?:js|css)$/.test(name) && ![
-    'index.html', '404.html', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest', 'favicon.ico',
+    'index.html', '404.html', 'offline.html', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest', 'favicon.ico',
     'image-shub-2.jpeg', 'shub ka photo.png', 'travel-locations.json', 'social-links.json'
   ].includes(name)) continue;
   const source = path.join(root, name);

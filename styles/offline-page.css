@@ -1,0 +1,37 @@
+/* Standalone stylesheet: these resets never enter the portfolio document. */
+@import "tailwindcss" source(none);
+@source "../components/ui/ghost-404-page-1.tsx";
+@source "../components/ui/flow-button.tsx";
+@font-face { font-family:Inter; src:url('/assets/fonts/inter-latin.woff2') format('woff2'); font-style:normal; font-weight:100 900; font-display:swap; }
+@font-face { font-family:'Lilita One'; src:url('/assets/fonts/lilita-one-latin.woff2') format('woff2'); font-style:normal; font-weight:400; font-display:swap; }
+:root { color-scheme:dark; background:#0c0d10; color:#e7ebf0; font-family:Inter,system-ui,sans-serif; }
+body { margin:0; }
+.offline-page { min-height:100svh; display:grid; place-items:center; padding:48px 24px; }
+.offline-content { width:100%; max-width:760px; text-align:center; }
+.offline-art { display:flex; justify-content:center; align-items:center; gap:24px; margin:0 0 48px; user-select:none; }
+.offline-word { font-family:'Lilita One',Impact,sans-serif; font-size:clamp(42px,7vw,96px); line-height:1; color:#5685c1; }
+.offline-batman { position:relative; width:220px; height:150px; flex:none; }
+.offline-batman canvas { position:absolute; inset:0; display:block; width:100%; height:100%; visibility:hidden; }
+.offline-batman-ready canvas { visibility:visible; }
+.offline-batman-fallback { display:block; width:100%; height:100%; object-fit:contain; padding:20px; user-select:none; }
+.offline-batman-ready .offline-batman-fallback { visibility:hidden; }
+#offline-heading { font-size:clamp(28px,4vw,48px); line-height:1.15; font-weight:700; letter-spacing:-.045em; margin:0 0 22px; }
+.offline-description { color:#a4aab3; font-size:clamp(16px,2vw,20px); line-height:1.65; margin:0 0 36px; }
+.offline-action { display:flex; justify-content:center; }
+.offline-status { color:#a4aab3; font-size:13px; line-height:1.6; min-height:42px; margin:36px auto 0; max-width:360px; }
+.flow-button { position:relative; display:flex; align-items:center; gap:4px; overflow:hidden; border-radius:100px; border:1.5px solid #5685c180; background:transparent; padding:14px 36px; color:#e7ebf0; font:600 14px Inter,system-ui,sans-serif; cursor:pointer; text-decoration:none; transition:border-color .6s,border-radius .6s,transform .3s; }
+.flow-label { position:relative; z-index:1; transform:translateX(-12px); transition:transform .8s ease-out; }
+.flow-arrow { position:absolute; z-index:2; width:16px; height:16px; fill:none; stroke:currentColor; transition:left .8s cubic-bezier(.34,1.56,.64,1),right .8s cubic-bezier(.34,1.56,.64,1); }
+.flow-arrow-in { left:-25%; }
+.flow-arrow-out { right:16px; }
+.flow-circle { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:16px; height:16px; border-radius:50%; opacity:0; background:#183f73; transition:width .8s cubic-bezier(.19,1,.22,1),height .8s cubic-bezier(.19,1,.22,1),opacity .8s; }
+.flow-button:is(:hover,:focus-visible) { border-color:transparent; border-radius:12px; }
+.flow-button:is(:hover,:focus-visible) .flow-label { transform:translateX(12px); }
+.flow-button:is(:hover,:focus-visible) .flow-arrow-in { left:16px; }
+.flow-button:is(:hover,:focus-visible) .flow-arrow-out { right:-25%; }
+.flow-button:is(:hover,:focus-visible) .flow-circle { width:220px; height:220px; opacity:1; }
+.flow-button:active { transform:scale(.95); }
+.flow-button:focus-visible { outline:2px solid #96b7df; outline-offset:6px; }
+.flow-button:disabled { cursor:wait; opacity:.65; }
+@media(max-width:600px) { .offline-art { gap:12px; margin-bottom:36px; } .offline-word { font-size:clamp(28px,7vw,42px); } .offline-batman { width:144px; height:100px; } }
+@media(prefers-reduced-motion:reduce) { .offline-page *, .offline-page *::before, .offline-page *::after { transition:none!important; } }
