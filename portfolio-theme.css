@@ -461,6 +461,13 @@ main>.section,main>dialog,#study-dialog,.hero-skills-transition>#about{--paper:#
 @media(max-width:900px){.scene-pinned{height:calc(max(780px,100dvh + 48px)*var(--scene-scroll-length,3.56398625))}.scene-pinned .skills-hobbies-viewport{height:max(780px,calc(100dvh + 48px))}}
 @media(prefers-reduced-motion:reduce){.skills-hobbies-viewport{transform:none}.skills-hobbies-scene #about,.skills-hobbies-scene #projects{transform:none;border-radius:0;box-shadow:none;background:#0c0d10}}
 
+/* The games island owns its scroll viewport; retain the native grid if loading fails. */
+#gaming-gallery.gaming-tilted-active .hobby-gallery-content{overflow:hidden;padding:0;scrollbar-gutter:auto;background:#0c0d10}
+#gaming-gallery.gaming-tilted-active .gaming-gallery-grid{display:none}
+#gaming-gallery .gaming-gallery-grid[hidden]{display:none}
+#gaming-gallery .gaming-tilted-mount{width:100%;height:100%;min-height:0}
+#gaming-gallery .gaming-tilted-mount[hidden]{display:none}
+
 /* Apply the supplied SocialTooltip interaction to the native orbit holders.
    The inner circle clips the fill; the tooltip stays outside that clipping area.
    Slot transforms and dimensions remain owned by the existing motion clock. */

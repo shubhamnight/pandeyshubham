@@ -71,7 +71,7 @@ reduced.addEventListener('change',playback);
 new MutationObserver(playback).observe(document.body,{attributes:true,attributeFilter:['class']});
 
 let galleryFilled=false;
-export function fillGamingGallery(gallery){
+function fillGamingFallback(gallery){
   if(galleryFilled)return;galleryFilled=true;
   const fragment=document.createDocumentFragment();
   for(const item of order){
@@ -83,5 +83,46 @@ export function fillGamingGallery(gallery){
   }
   gallery.querySelector('.gaming-gallery-grid').replaceChildren(fragment);
   gallery.querySelector('p').hidden=true;
-  gallery.addEventListener('close',()=>gallery.querySelectorAll('video').forEach(video=>video.pause()));
+}
+
+let overlayModule=null,disposeOverlay=null,galleryVersion=0,galleryConnected=false,overlayAbort=null;
+export async function fillGamingGallery(gallery){
+  const version=++galleryVersion;
+  overlayAbort?.abort();
+  const controller=new AbortController();overlayAbort=controller;
+  disposeOverlay?.();disposeOverlay=null;
+  const content=gallery.querySelector('.hobby-gallery-content');
+  const status=content.querySelector('p');
+  const grid=content.querySelector('.gaming-gallery-grid');
+  // Avoid downloading a second set of thumbnails while the animated island loads.
+  status.textContent='Opening games…';status.hidden=false;grid.hidden=true;
+  let mount=content.querySelector('.gaming-tilted-mount');
+  if(!mount){
+    mount=document.createElement('div');mount.className='gaming-tilted-mount';mount.hidden=true;
+    content.append(mount);
+  }
+  if(!galleryConnected){
+    galleryConnected=true;
+    gallery.addEventListener('close',()=>{
+      galleryVersion++;
+      overlayAbort?.abort();overlayAbort=null;
+      disposeOverlay?.();disposeOverlay=null;
+      gallery.querySelectorAll('video').forEach(video=>video.pause());
+    });
+  }
+  try{
+    overlayModule??=import('./assets/ui/gaming-overlay.js').catch(error=>{overlayModule=null;throw error;});
+    const {mountGamingOverlay}=await overlayModule;
+    if(version!==galleryVersion||!gallery.open)return;
+    const dispose=await mountGamingOverlay(mount,order.filter(item=>item.type==='image'),controller.signal);
+    if(version!==galleryVersion||!gallery.open){dispose();return;}
+    disposeOverlay=dispose;
+    status.hidden=true;
+    grid.replaceChildren();galleryFilled=false;
+  }catch(error){
+    if(version!==galleryVersion||!gallery.open)return;
+    gallery.classList.remove('gaming-tilted-active');mount.hidden=true;
+    grid.hidden=false;fillGamingFallback(gallery);status.hidden=true;
+    console.error('Gaming animation could not load; showing the artwork grid.',error);
+  }
 }
