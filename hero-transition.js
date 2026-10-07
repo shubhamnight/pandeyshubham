@@ -27,7 +27,10 @@ import { sceneMotion } from './skills-hobbies-scene.js';
       wrapper.style.setProperty('--hero-sticky-top', Math.min(0, innerHeight-height) + 'px');
       wrapper.style.setProperty('--skills-sticky-top', Math.min(0, innerHeight-skillsHeight) + 'px');
     }
-    const progress = preference.matches ? 0 : Math.max(0, Math.min(1, (getSmoothPosition()-documentTop) / height));
+    const position=getSmoothPosition()-documentTop;
+    // Scroll endpoints can round by a fraction of a CSS pixel. Complete the
+    // covered state at the rendered endpoint rather than leaving it pending.
+    const progress = preference.matches ? 0 : position>=height-1?1:Math.max(0,position/height);
     if (progress === previous) return;
     previous = progress;
     hero.style.setProperty('--exit-scale', 1 - progress * .2);

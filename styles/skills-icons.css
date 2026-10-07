@@ -11,6 +11,8 @@
   display:grid; place-items:center; width:100%; height:100%; padding:0;
   background-color:#101720;
   background-image:linear-gradient(135deg,#1c2a3c,#101720 75%);
+  /* The surface is opaque: sampling the moving page behind it is invisible. */
+  backdrop-filter:none; -webkit-backdrop-filter:none;
   border:1px solid transparent; color:#e7ebf0; outline-color:#e7ebf0;
   box-shadow:0 5px 12px #0006;
   -webkit-tap-highlight-color:transparent;

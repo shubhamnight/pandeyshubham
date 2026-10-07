@@ -6,6 +6,21 @@ export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={
   const visibleVideos=new Set();
   const events=new AbortController();
   const eventOptions={signal:events.signal};
+  const bundle={
+    'photography-gallery':'photography-carousel', 'gaming-gallery':'gaming-overlay',
+    'travel-gallery':'travel-overlay', 'music-gallery':'music-overlay',
+  }[gallery.id];
+  const warm=()=>{
+    if(!bundle)return;
+    const href=new URL(`./assets/ui/${bundle}.js`,import.meta.url).href;
+    if([...document.querySelectorAll('link[rel="modulepreload"]')].some(link=>link.href===href))return;
+    // Fetch and compile on pointer/keyboard intent, ahead of the modal's first
+    // render. This does not mount a gallery or start its animations/media.
+    const link=document.createElement('link');link.rel='modulepreload';link.href=href;
+    document.head.append(link);
+  };
+  button.addEventListener('pointerenter',warm,{...eventOptions,once:true});
+  button.addEventListener('focus',warm,{...eventOptions,once:true});
   button.addEventListener('click',()=>{
     if(gallery.open)return;
     fill?.(gallery);

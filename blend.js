@@ -1,3 +1,5 @@
+import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 const floatNav = document.querySelector('.floating-nav');
 let paused = reducedMotion.matches;
 function setMotion(value) {
@@ -6,12 +8,21 @@ function setMotion(value) {
 }
 setMotion(paused);
 reducedMotion.addEventListener('change', event => setMotion(event.matches));
-const heroObserver = new IntersectionObserver(entries => {
-  const show = !entries[0].isIntersecting;
+const navHero=document.querySelector('.hero');
+let heroIntersecting=true;
+function syncNavVisibility(){
+  // A covered sticky hero still intersects geometrically behind the skills.
+  const show = !heroIntersecting||navHero.classList.contains('hero-covered');
   floatNav.classList.toggle('visible', show);
   floatNav.inert = !show;
+}
+const heroObserver = new IntersectionObserver(entries => {
+  heroIntersecting=entries[0].isIntersecting;syncNavVisibility();
 }, {threshold: 0.15});
-heroObserver.observe(document.querySelector('.hero'));
+heroObserver.observe(navHero);
+const navHeroState=new MutationObserver(syncNavVisibility);
+navHeroState.observe(navHero,{attributes:true,attributeFilter:['class']});
+window.addEventListener('pagehide',event=>{if(!event.persisted){heroObserver.disconnect();navHeroState.disconnect();}});
 floatNav.inert = true;
 document.body.classList.add('motion-enabled');
 const revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
@@ -33,15 +44,17 @@ document.querySelectorAll('[data-study]').forEach(card => card.addEventListener(
   document.querySelector('#dialog-copy').textContent = data.copy;
   const art = document.querySelector('#dialog-art');
   art.replaceChildren(card.querySelector(data.art).cloneNode(true));
+  art.querySelectorAll('.ambient-paused').forEach(element=>element.classList.remove('ambient-paused'));
   art.style.background = data.background;
   dialog.showModal();
+  document.body.classList.add('photography-gallery-open');
   document.body.style.overflow = 'hidden';
 }));
 function closeStudy() { dialog.close(); }
 document.querySelector('.dialog-close').addEventListener('click', closeStudy);
 document.querySelector('.dialog-done').addEventListener('click', closeStudy);
 dialog.addEventListener('click', event => { if (event.target === dialog) { const rect = dialog.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeStudy(); } });
-dialog.addEventListener('close', () => { document.body.style.overflow = ''; lastStudy?.focus(); });
+dialog.addEventListener('close', () => { document.body.style.overflow = ''; document.body.classList.remove('photography-gallery-open'); lastStudy?.focus(); });
 const stage = document.querySelector('.play-stage');
 const kinetic = document.querySelector('.kinetic-object');
 let kineticFrame=0,kineticBounds=null,kineticX=0,kineticY=0,kineticPaint='';
@@ -108,7 +121,9 @@ const sectionObserver = new IntersectionObserver(entries => {
   requestParallaxFrame();
 }, {rootMargin:'20% 0px 20% 0px'});
 function updateParallax() {
+  cancelHobbyFrame(updateParallax);
   parallaxFrame = 0;
+  if(document.body.classList.contains('photography-gallery-open')||document.body.classList.contains('intro-active'))return;
   if (paused || reducedMotion.matches || document.hidden) {
     visibleParallax.forEach(element => writeParallax(element,'--scroll-parallax-y','0px'));
     visibleSections.forEach(section => writeParallax(section,'--scroll-section-y','0px'));
@@ -133,8 +148,9 @@ function updateParallax() {
   sectionMeasurements.forEach(([section, offset]) => writeParallax(section,'--scroll-section-y',`${offset.toFixed(1)}px`));
 }
 function requestParallaxFrame() {
-  if(document.hidden){cancelAnimationFrame(parallaxFrame);parallaxFrame=0;return;}
-  if(!parallaxFrame&&(visibleParallax.size||visibleSections.size))parallaxFrame=requestAnimationFrame(updateParallax);
+  if(document.hidden){cancelHobbyFrame(updateParallax);parallaxFrame=0;return;}
+  // Measure before the scene, orbit and model callbacks write transforms.
+  if(!parallaxFrame&&(visibleParallax.size||visibleSections.size))parallaxFrame=requestHobbyFrame(updateParallax,11.5);
 }
 parallaxLayers.forEach(element => { element.classList.add('scroll-parallax'); parallaxObserver.observe(element); });
 parallaxSections.forEach(section => sectionObserver.observe(section));
@@ -142,10 +158,12 @@ window.addEventListener('scroll', requestParallaxFrame, {passive:true});
 window.addEventListener('resize', requestParallaxFrame, {passive:true});
 reducedMotion.addEventListener('change', requestParallaxFrame);
 document.addEventListener('visibilitychange', requestParallaxFrame);
+const parallaxStateObserver=new MutationObserver(requestParallaxFrame);
+parallaxStateObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
 window.addEventListener('pagehide',event=>{
-  cancelAnimationFrame(parallaxFrame);parallaxFrame=0;
+  cancelHobbyFrame(updateParallax);parallaxFrame=0;
   if(event.persisted)return;
-  parallaxObserver.disconnect();sectionObserver.disconnect();
+  parallaxObserver.disconnect();sectionObserver.disconnect();parallaxStateObserver.disconnect();
   window.removeEventListener('scroll',requestParallaxFrame);window.removeEventListener('resize',requestParallaxFrame);
   reducedMotion.removeEventListener('change',requestParallaxFrame);
   document.removeEventListener('visibilitychange',requestParallaxFrame);
@@ -160,7 +178,7 @@ const footerWordStage = document.querySelector('#contact');
 const footerWord = footerWordStage?.querySelector('.footer-rotator');
 function canRotateFooterWord() {
   return Boolean(footerWord) && !footerWordSuspended && !paused && !document.hidden &&
-    footerWordVisible && !document.body.classList.contains('intro-active');
+    footerWordVisible && !document.body.classList.contains('intro-active') && !document.body.classList.contains('photography-gallery-open');
 }
 function scheduleFooterWord(delay = 3500) {
   if (!footerWordTimer && !footerWordAnimating && canRotateFooterWord()) {

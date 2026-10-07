@@ -1,6 +1,7 @@
 // One event-driven frame scheduler for all four hobby models.
 import { hobbyIntro, observeHobbyIntro } from './hobby-intro.js';
 import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
+import { batchRigidModel } from './hobby-model-batching.js';
 const active = new Set();
 let frame = 0;
 function tick(time) {
@@ -53,6 +54,9 @@ export function deferHobbyModel(button,build) {
 }
 
 export function connectHobbyMotion({button,renderer,scene,view,model,orientModel=null}) {
+  const batches=batchRigidModel(model);
+  button.dataset.modelPieces=String(batches.before);
+  button.dataset.modelDraws=String(batches.after);
   // Only the root turns with the orbit or hover; detailed geometry stays rigid.
   // Reuse each child's local matrix rather than rebuilding it every render.
   model.traverse(node=>{if(node!==model){node.updateMatrix();node.matrixAutoUpdate=false;}});

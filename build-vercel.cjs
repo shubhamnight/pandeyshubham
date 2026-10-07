@@ -52,6 +52,7 @@ for (const folder of ['assets', 'PHOTOGRAPHY', 'TRAVEL']) {
 for (const name of [
   'three/build/three.module.js', 'three/build/three.core.js',
   'three/examples/jsm/geometries/RoundedBoxGeometry.js',
+  'three/examples/jsm/utils/BufferGeometryUtils.js',
   'lenis/dist/lenis.mjs', 'lenis/dist/lenis.css'
 ]) {
   const target = path.join(dist, 'vendor', name);
