@@ -68,7 +68,7 @@ async function buildMusicOverlay() {
     outfile: path.join(output, 'music-overlay.js'), bundle: true, minify: true,
     format: 'esm', platform: 'browser', target: ['es2020'], jsx: 'automatic',
     define: { 'process.env.NODE_ENV': '"production"' }, legalComments: 'eof' });
-  console.log('Music stacking cards compiled for ' + cards.length + ' songs.');
+  console.log('Music disc carousel compiled for ' + cards.length + ' songs.');
 }
 module.exports = buildMusicOverlay;
 if (require.main === module) buildMusicOverlay().catch(error => { console.error(error); process.exitCode = 1; });

@@ -66,8 +66,8 @@ export async function fillMusicGallery(gallery){
   const content=gallery.querySelector('.hobby-gallery-content');
   const status=content.querySelector(':scope>p'),grid=content.querySelector('.music-gallery-grid');
   status.textContent='Opening music…';status.hidden=false;grid.hidden=true;
-  let mount=content.querySelector('.music-stacking-mount');
-  if(!mount){mount=document.createElement('div');mount.className='music-stacking-mount';mount.hidden=true;content.append(mount);}
+  let mount=content.querySelector('.music-cascade-mount');
+  if(!mount){mount=document.createElement('div');mount.className='music-cascade-mount';mount.hidden=true;content.append(mount);}
   if(!galleryConnected){
     galleryConnected=true;
     gallery.addEventListener('close',()=>{
@@ -86,9 +86,9 @@ export async function fillMusicGallery(gallery){
     grid.replaceChildren();delete gallery.dataset.recordsFilled;
   }catch(error){
     if(disposed||version!==galleryVersion||!gallery.open)return;
-    gallery.classList.remove('music-stacking-active');mount.hidden=true;grid.hidden=false;
+    gallery.classList.remove('music-cascade-active');mount.hidden=true;grid.hidden=false;
     fillMusicFallback(gallery);status.hidden=true;
-    console.error('Music stacking cards could not load; showing the record grid.',error);
+    console.error('Music disc carousel could not load; showing the record grid.',error);
   }
 }
 window.addEventListener('pagehide',event=>{

@@ -241,57 +241,46 @@ fallback grid remains non-navigating.
 Visible place captions come only from saved location names. Unnamed images
 have no caption and do not fall back to generated photograph labels.
 
-## Music stacking cards
+## Music disc cascade
 
-The supplied Khoa Phan stacking-cards component lives in
-`components/ui/stacking-cards.tsx`; it uses the existing `framer-motion` API,
-so another Motion runtime and Next.js are unnecessary. Native `img` elements
-serve the existing locally hosted album covers. `styles/music-overlay.css`
-is compiled in isolation; TypeScript, Tailwind and the shadcn component aliases
-are already configured. Rebuild with `npm run build:music-overlay`.
+The supplied Disc Cascade Carousel is in `components/ui/disc-cascade-carousel.tsx`;
+its local-artwork demo is `components/demos/disc-cascade-carousel-demo.tsx`.
+The existing React, TypeScript, Tailwind and shadcn `components/ui` aliases meet
+its setup requirements. No extra dependencies, stock photos or remote fonts are
+needed. `styles/music-overlay.css` is scoped to the Music dialog's shadow root.
+Rebuild with `npm run build:music-overlay`.
 
-`music-highlights.json` contains researched brief song excerpts and source links.
-`build-music-overlay.cjs` combines those with the existing music metadata and
-samples artwork colors to generate `music-overlay-data.js`. Song credits and
-artwork sources remain in `components/music-sources.md`. Artwork, singer credits
-and lyric text are non-navigating elements so clicking a card cannot open another page.
-The left side holds the song title, singer/artist and a brief excerpt formatted
-as two lyric lines. Both lines remain available when they wrap on narrow screens;
-the right side holds its artwork on a rotating record. Card colors are darkened
-versions of the sampled palette, with readable light text.
+`components/music-overlay.tsx` maps all 28 existing album covers to the slanted
+cascade. Drag/flick, trackpad gestures, vertical wheels, arrow keys, previous/next
+buttons, the Songs menu and clicks on adjacent discs navigate the catalogue.
+A selected disc spins at the existing 20-second speed. Clicking it does not
+navigate to an image or song page. Visible serial numbers, movie credits and
+review quotes are hidden; the artist and original two lyric lines remain beside
+the discs, using the same shared song-title font treatments and text styles.
+Main-page music placeholders are unchanged.
+Music overlay text (including the heading, Songs menu and hint) is 25% smaller
+at each existing responsive breakpoint; font families, spacing and content remain.
 
-The right side now displays the same artwork as a vinyl record with grooves,
-a spindle hole and a continuous 20-second turn. Only the front and incoming
-visible records rotate; document visibility pauses them, reduced motion stops
-rotation, and unmount releases the scroll/resize listeners. The record diameter
-uses the previous square artwork's dimensions.
+`music-highlights.json`, `music-typography.json`, `music-overlay-data.js` and the
+local album artwork retain their existing content. `music-title-styles.css`
+provides the shared title styles. Fonts and licenses are self-hosted under
+`assets/fonts/music/`; builds do not fetch fonts. Credits and excerpt references
+remain in `components/music-sources.md`. Album colors still determine the stage
+background.
 
-`music-typography.json` maps every title to an album/campaign lettering style.
-Commercial fonts and custom lettering use open-font approximations, recorded
-honestly per song in `components/music-sources.md`. Fonts are self-hosted under
-`assets/fonts/music/` with their licenses. Font-face declarations load lazily
-into the document when the overlay opens, with title styles scoped to its shadow
-root. Refresh those assets with `node build-music-fonts.cjs` only when needed;
-normal builds need no font network requests.
-
-The Music dialog mounts its React island only when opened and unmounts on close.
-Supported browsers use native CSS scroll timelines for the same linear scale
-curve, percentage ranges and top offsets, avoiding all 28 Motion subscriptions
-and JavaScript transform updates during scroll. Feature detection retains the
-original shared Motion progress implementation in other browsers. A smaller scale multiplier
-and bounded top offsets accommodate all 28 songs in the overlay; sizing uses
-the available dialog height, with dedicated phone and short-height rules.
-Reduced motion renders a normal card list. The previous record grid remains
-available if the island cannot load. The hobby orbit records are unchanged.
-
-Record visibility is tracked by one IntersectionObserver. Geometry is cached
-by ResizeObserver, and the passive scroll handler only changes record activity
-when crossing a card boundary; there are no layout queries or requestAnimationFrame
-loops in the record controller. At most two Web Animations rotate records at the
-same 20-second speed. Inactive animations are cancelled after their angle is saved,
-releasing their layer hints; scrolling back resumes the exact angle. Hidden tabs,
-page suspension and reduced motion stop rotation. Closing disconnects both
-observers, removes all listeners and cancels remaining animations. Low-priority
-lazy artwork and paint containment on the record reduce unrelated rendering work.
-
-Native timeline reference: https://developer.chrome.com/docs/css-ui/scroll-driven-animations
+The supplied spring engine writes transforms directly and stops when settled.
+It culls invisible poses before formatting transforms, caches unchanged style
+writes and memoizes the disc artwork. Hover tilt/glint updates are batched per
+animation frame and stage bounds are cached until resize or scroll. Spring
+constants are cached without changing their values. Only nearby artwork is
+warmed ahead of navigation. Wheel cooldown discards queued momentum; drag
+velocity uses recent samples and releases safely after cancellation or lost
+capture. Stationary drags stop requesting frames after the trailing spring settles.
+Hidden discs skip repeated DOM writes and do not retain layer hints. Disc spin
+and springs pause in hidden tabs or offscreen, and reduced motion stops idle spin.
+The menu uses composed pointer paths to work inside the shadow root and has a
+bounded scroll area so every song remains reachable. Closing the dialog unmounts
+the component and removes observers, event listeners and its frame loop. Container
+units preserve the geometry in the existing dialog, with phone and short-height
+rules for keeping the title, singer and lyrics readable. The static record grid
+remains available if the React island cannot load.

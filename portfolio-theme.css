@@ -471,11 +471,12 @@ dialog#travel-gallery.travel-zoom-active .hobby-gallery-content{padding:0;backgr
 #travel-gallery.travel-zoom-active .travel-gallery-grid{padding:28px 30px 30px}
 @media(max-width:700px){#travel-gallery.travel-zoom-active .travel-gallery-grid{padding:20px}}
 
-/* The music island owns its scroll container and sticky card stack. */
-dialog#music-gallery.music-stacking-active .hobby-gallery-content{padding:0;overflow:hidden;scrollbar-gutter:auto;background:#0c0d10}
-#music-gallery.music-stacking-active .music-gallery-grid,#music-gallery .music-gallery-grid[hidden]{display:none}
-#music-gallery .music-stacking-mount{width:100%;height:100%;min-height:0}
-#music-gallery .music-stacking-mount[hidden]{display:none}
+/* The music island owns the disc carousel and song navigation. */
+dialog#music-gallery.music-cascade-active .hobby-gallery-content{padding:0;overflow:hidden;scrollbar-gutter:auto;background:#0c0d10}
+dialog#music-gallery h2{font-size:clamp(21px,3vw,31.5px)}
+#music-gallery.music-cascade-active .music-gallery-grid,#music-gallery .music-gallery-grid[hidden]{display:none}
+#music-gallery .music-cascade-mount{width:100%;height:100%;min-height:0}
+#music-gallery .music-cascade-mount[hidden]{display:none}
 
 /* Apply the supplied SocialTooltip interaction to the native orbit holders.
    The inner circle clips the fill; the tooltip stays outside that clipping area.
