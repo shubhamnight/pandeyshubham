@@ -6,7 +6,7 @@ import { fillTravelGallery } from './travel-media.js';
 
 const button = document.querySelector('#travel-plane');
 const gallery = document.querySelector('#travel-gallery');
-connectHobbyGallery(button, gallery, fillTravelGallery);
+connectHobbyGallery(button, gallery, fillTravelGallery, { autoplayVideos:true });
 
 // Initialize once near the viewport, staggered across idle frames.
 deferHobbyModel(button, buildPlane);

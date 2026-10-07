@@ -34,6 +34,10 @@ export interface HeroCarouselItem {
   fullSources?: { src: string; width: number }[]
   width?: number
   height?: number
+  fullWidth?: number
+  fullHeight?: number
+  /** Prefer this source width on desktop; mobile retains responsive selection. */
+  desktopSourceWidth?: number
   /** Responsive sources retain the original photograph's full resolution. */
   srcSet?: string
   alt?: string
@@ -112,8 +116,9 @@ export function HeroCarousel({
   const last = items.length - 1
   const index = clamp(controlled ?? uncontrolled, 0, Math.max(0, last))
   const active = items[index]
-  const coverWidth = Math.max(box.w, box.h * ((active?.width ?? 1) / (active?.height ?? 1)))
-  const neededWidth = Math.ceil(coverWidth * Math.min(window.devicePixelRatio || 1, 2))
+  const coverWidth = Math.max(box.w, box.h * ((active?.fullWidth ?? active?.width ?? 1) / (active?.fullHeight ?? active?.height ?? 1)))
+  const neededWidth = Math.max(Math.ceil(coverWidth * Math.min(window.devicePixelRatio || 1, 2)),
+    box.w >= 1024 ? active?.desktopSourceWidth ?? 0 : 0)
   const sources = active?.fullSources
   const fullSource = sources?.find(source => source.width >= neededWidth)?.src ?? sources?.[sources.length - 1]?.src ?? active?.fullImage ?? active?.image
 
@@ -169,7 +174,8 @@ export function HeroCarousel({
   // Preserve the filmstrip proportions, with a width bound for tall phones.
   // The focused photograph must fit across the stage before its neighbours.
   const fullH = Math.min(clamp(box.h * CARD_H, 96, 360) * CARD_SCALE,
-    Math.max(1, box.w - 32) / CARD_AR)
+    Math.max(1, box.w - 32) / CARD_AR,
+    Math.max(1, box.h * (1 - STRIP_TOP) - 40))
   const halfH = fullH / 2
   const cardW = fullH * CARD_AR
   const gap = Math.max(4, Math.round(cardW * GAP))

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Image studio — Shubham</title>
+  <link rel="stylesheet" href="image-manager.css">
+  <script src="image-manager.js" type="module"></script>
+</head>
+<body>
+  <header class="page-header">
+    <div><span class="eyebrow">LOCAL IMAGE STUDIO</span><h1>A frame for every moment.</h1></div>
+    <a class="button secondary" href="/" target="_blank" rel="noopener">Open website ↗</a>
+  </header>
+  <main>
+    <section class="library" aria-labelledby="library-title">
+      <div class="library-heading"><h2 id="library-title">Your images</h2><button id="add-image" class="button" disabled>+ Add image</button></div>
+      <div class="tabs" role="group" aria-label="Image collection">
+        <button data-category="photography" aria-pressed="true">Photography</button>
+        <button data-category="travel" aria-pressed="false">Travel</button>
+      </div>
+      <div class="library-tools"><label class="search-label">Find an image<input id="search" type="search" placeholder="Search descriptions or filenames"></label><label class="deleted-filter"><input id="show-deleted" type="checkbox"> Show deleted</label></div>
+      <p id="image-count" class="muted"></p>
+      <div id="image-list" class="image-list" aria-label="Images"></div>
+    </section>
+    <section class="editor" aria-labelledby="editor-title">
+      <div class="editor-heading"><span class="eyebrow">CROP & UPDATE</span><h2 id="editor-title">Choose an image to begin</h2></div>
+      <p id="empty-editor" class="empty-editor">Choose Crop / update on any image, or add a new one.</p>
+      <div id="editor-controls" hidden>
+        <div class="editor-toolbar">
+          <label>View<select id="crop-mode"><option value="card">Filmstrip card</option><option value="backdrop">Full-screen background</option></select></label>
+          <label>Crop frame<select id="ratio"><option value="placeholder">Match placeholder</option><option value="saved" disabled>Saved crop</option><option value="portrait">3:4 portrait</option><option value="landscape">4:3 landscape</option><option value="wide">16:9 landscape</option><option value="square">1:1 square</option><option value="original">Original ratio</option></select></label>
+          <label>Preview screen<select id="screen-size"><option value="current">This screen</option><option value="laptop">Laptop · 1440 × 900</option><option value="tablet">Tablet · 768 × 1024</option><option value="phone">Phone · 390 × 844</option></select></label>
+        </div>
+        <p id="frame-description" class="muted"></p>
+        <div id="crop-stage" class="crop-stage"><canvas id="crop-canvas" tabindex="0" role="img" aria-label="Crop preview. Drag to reposition, or use the arrow keys."></canvas><span id="loading-image" hidden>Loading image…</span></div>
+        <p class="crop-help">Drag to reposition · Use arrow keys for fine adjustments</p>
+        <div class="zoom-row"><label for="zoom">Zoom</label><input id="zoom" type="range" min="1" max="5" step="0.01" value="1"><output id="zoom-value" for="zoom">1.00×</output><button id="center-crop" class="button secondary">Reset crop</button></div>
+        <label class="description-label">Image description<input id="image-description" maxlength="300" placeholder="Describe the image"></label>
+        <div class="save-row"><button id="save-image" class="button primary">Save & update website</button><button id="replace-image" class="button secondary">Replace image</button><button id="cancel-edit" class="button secondary">Cancel</button></div>
+        <p class="muted save-note">Saving updates the local website. Open website tabs refresh automatically. Original files are kept so you can recrop or restore.</p>
+      </div>
+    </section>
+  </main>
+  <div id="status" role="status" aria-live="polite">Loading your image library…</div>
+  <input id="file-picker" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+</body>
+</html>

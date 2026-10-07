@@ -13,8 +13,8 @@ fs.writeFileSync(path.join(checkout, '.openai', 'hosting.json'), JSON.stringify(
 }, null, 2));
 fs.writeFileSync(path.join(checkout, '.gitignore'), '.sites-runtime/\n');
 for (const name of fs.readdirSync(root)) {
-  if (name === 'travel-locations-editor.js') continue;
-  if (!/\.(?:js|css)$/.test(name) && !['index.html', 'image-shub-2.jpeg', 'shub ka photo.png', 'travel-locations.json'].includes(name)) continue;
+  if (name === 'travel-locations-editor.js' || name.startsWith('image-manager')) continue;
+  if (!/\.(?:js|css)$/.test(name) && !['index.html', 'image-shub-2.jpeg', 'shub ka photo.png', 'travel-locations.json', 'media-library.json'].includes(name)) continue;
   const source = path.join(root, name);
   if (!fs.statSync(source).isFile()) continue;
   if (name === 'travel-location-label.js') {

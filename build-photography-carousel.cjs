@@ -12,7 +12,7 @@ async function buildPhotographyCarousel() {
   execFileSync(process.execPath, [cli,
     '-i', 'styles/photography-carousel.css', '-o', 'assets/ui/photography-carousel.css', '--minify'
   ], { cwd: root, stdio: 'inherit' });
-  await build({
+  const result = await build({
     absWorkingDir: root,
     entryPoints: ['components/photography-overlay.tsx'],
     outfile: path.join(output, 'photography-carousel.js'),
@@ -23,8 +23,9 @@ async function buildPhotographyCarousel() {
     target: ['es2020'],
     jsx: 'automatic',
     define: { 'process.env.NODE_ENV': '"production"' },
-    legalComments: 'eof'
+    legalComments: 'eof', write: false
   });
+  await require('./lib/write-build-files.cjs')(result.outputFiles);
   console.log('Photography carousel compiled.');
 }
 

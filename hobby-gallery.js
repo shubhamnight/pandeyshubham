@@ -1,8 +1,9 @@
-export function connectHobbyGallery(button,gallery,fill) {
+export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={}) {
   let saved=null;
   const content=gallery.querySelector('.hobby-gallery-content');
   const closeButton=gallery.querySelector('header button');
   const watchedVideos=new Set();
+  const visibleVideos=new Set();
   const events=new AbortController();
   const eventOptions={signal:events.signal};
   button.addEventListener('click',()=>{
@@ -33,13 +34,19 @@ export function connectHobbyGallery(button,gallery,fill) {
     document.body.classList.remove('photography-gallery-open');
     button.focus({preventScroll:true});
   },eventOptions);
-  // Only one gallery video plays at a time; stop hidden media as it scrolls out.
+  // Manual galleries play one video at a time; Travel loops visible media.
   gallery.addEventListener('play',event=>{
-    if(event.target.tagName!=='VIDEO')return;
+    if(event.target.tagName!=='VIDEO'||autoplayVideos)return;
     watchedVideos.forEach(video=>{if(video!==event.target)video.pause();});
   },{...eventOptions,capture:true});
   const mediaObserver=new IntersectionObserver(entries=>{
-    entries.forEach(entry=>{if(!entry.isIntersecting)entry.target.pause();});
+    entries.forEach(entry=>{
+      if(!entry.isIntersecting){visibleVideos.delete(entry.target);entry.target.pause();}
+      else {
+        visibleVideos.add(entry.target);
+        if(autoplayVideos&&gallery.open&&!document.hidden)entry.target.play().catch(()=>{});
+      }
+    });
   },{root:content,threshold:0});
   function visitVideos(node,visit){
     if(node.nodeType!==1)return;
@@ -52,7 +59,7 @@ export function connectHobbyGallery(button,gallery,fill) {
   }
   function unwatch(video){
     if(content.contains(video))return;
-    video.pause();mediaObserver.unobserve(video);watchedVideos.delete(video);
+    video.pause();mediaObserver.unobserve(video);watchedVideos.delete(video);visibleVideos.delete(video);
   }
   // Inspect only inserted/removed branches, not the entire gallery on each
   // caption or loading-status update. Release detached media immediately.
@@ -64,10 +71,13 @@ export function connectHobbyGallery(button,gallery,fill) {
   });
   observer.observe(content,{childList:true,subtree:true});
   content.querySelectorAll('video').forEach(watch);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)watchedVideos.forEach(video=>video.pause());},eventOptions);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden)watchedVideos.forEach(video=>video.pause());
+    else if(autoplayVideos&&gallery.open)visibleVideos.forEach(video=>video.play().catch(()=>{}));
+  },eventOptions);
   window.addEventListener('pagehide',event=>{
     watchedVideos.forEach(video=>video.pause());
     if(event.persisted)return;
-    observer.disconnect();mediaObserver.disconnect();watchedVideos.clear();events.abort();
+    observer.disconnect();mediaObserver.disconnect();watchedVideos.clear();visibleVideos.clear();events.abort();
   },eventOptions);
 }

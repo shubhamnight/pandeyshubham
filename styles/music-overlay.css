@@ -1,0 +1,67 @@
+/* Local Tailwind island in the Music dialog; the page styles remain isolated. */
+@import "tailwindcss" source(none);
+@source "../components/ui/stacking-cards.tsx";
+@source "../components/music-overlay.tsx";
+:host { display:block; width:100%; height:100%; color:#e7ebf0; font-family:Inter,Helvetica,sans-serif; }
+:host([hidden]) { display:none!important; }
+.music-react-root { width:100%; height:100%; }
+.music-scroll-viewport { position:relative; width:100%; height:100%; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; touch-action:pan-y; container-type:size; scrollbar-gutter:stable; scrollbar-color:#5685c1 #0c0d10; background:#0c0d10; }
+.music-scroll-viewport:focus-visible { outline:2px solid #5685c1; outline-offset:-3px; }
+.music-stack-intro { display:flex; align-items:center; justify-content:center; height:14cqh; min-height:36px; color:#a4aab3; font-size:12px; letter-spacing:.06em; }
+.music-stack-slot { height:100cqh; }
+.music-native-stack-scale { animation:music-stack-scale 1s linear both; animation-timeline:scroll(nearest block); }
+@keyframes music-stack-scale { from { transform:scale(1); } to { transform:scale(var(--stack-scale-to)); } }
+.music-stack-tail { height:55cqh; }
+.music-song-card { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); align-items:center; gap:clamp(16px,3cqw,36px); width:92%; height:78%; margin-inline:auto; padding:clamp(18px,4cqw,44px); border:1px solid #ffffff18; border-radius:24px; background:var(--song-background,#181a1d); box-shadow:0 10px 20px #0006,0 24px 48px -12px #0008; }
+.music-song-copy { min-width:0; min-height:0; max-height:100%; overflow:auto; scrollbar-width:thin; scrollbar-color:#ffffff40 transparent; }
+.music-song-copy h3 { margin:0 0 16px; padding-block:2px; color:#fff; font-family:var(--title-font,Inter),serif; font-size:clamp(22px,4cqw,42px); font-weight:var(--title-weight,700); font-style:var(--title-style,normal); letter-spacing:var(--title-spacing,-.035em); text-transform:var(--title-case,none); line-height:var(--title-leading,1.2); overflow-wrap:break-word; }
+.music-song-copy h3[data-title-style="caslon"] { --title-font:'Libre Caslon Text'; --title-weight:400; --title-spacing:.015em; --title-case:uppercase; }
+.music-song-copy h3[data-title-style="caslon-bold"] { --title-font:'Libre Caslon Text'; --title-weight:700; --title-spacing:-.035em; --title-case:uppercase; }
+.music-song-copy h3[data-title-style="caslon-italic"] { --title-font:'Libre Caslon Text'; --title-weight:400; --title-style:italic; --title-spacing:-.025em; }
+.music-song-copy h3[data-title-style="am"] { --title-font:Inter; --title-weight:400; --title-spacing:.035em; --title-case:uppercase; }
+.music-song-copy h3[data-title-style="handwritten"] { --title-font:Caveat; --title-weight:600; --title-spacing:0em; --title-leading:1.3; }
+.music-song-copy h3[data-title-style="wide"],.music-song-copy h3[data-title-style="wide-lower"] { --title-font:Michroma; --title-weight:400; --title-spacing:-.025em; --title-case:uppercase; }
+.music-song-copy h3[data-title-style="wide-lower"] { --title-case:lowercase; }
+.music-song-copy h3[data-title-style="condensed-lower"] { --title-font:Oswald; --title-weight:500; --title-spacing:.015em; --title-case:lowercase; }
+.music-song-copy h3[data-title-style="engraved"],.music-song-copy h3[data-title-style="engraved-italic"] { --title-font:Cinzel; --title-weight:400; --title-spacing:.045em; --title-case:uppercase; }
+.music-song-copy h3[data-title-style="engraved-italic"] { --title-style:oblique 14deg; --title-weight:700; --title-spacing:0em; }
+.music-song-copy h3[data-title-style="rough"] { --title-font:'Permanent Marker'; --title-weight:400; --title-spacing:.01em; --title-case:uppercase; --title-leading:1.3; }
+.music-song-copy h3[data-title-style="heavy"] { --title-font:Anton; --title-weight:400; --title-spacing:.01em; --title-case:uppercase; }
+.music-song-copy h3[data-title-style="brush"] { --title-font:Yellowtail; --title-weight:400; --title-spacing:0em; --title-leading:1.3; }
+.music-song-copy h3[data-title-style="formal-script"] { --title-font:'Pinyon Script'; --title-weight:400; --title-spacing:0em; --title-leading:1.35; }
+.music-song-copy h3[data-title-style="angular"] { --title-font:'Metal Mania'; --title-weight:400; --title-spacing:.015em; --title-case:uppercase; }
+.music-song-copy h3[data-title-style="spaced-serif"] { --title-font:'Libre Caslon Text'; --title-weight:400; --title-spacing:.12em; --title-case:lowercase; }
+.music-song-copy h3[data-title-style="geometric"] { --title-font:Jost; --title-weight:500; --title-spacing:.065em; --title-case:uppercase; }
+.music-song-copy h3[data-title-style="plain"] { --title-font:Inter; --title-weight:600; --title-spacing:-.04em; }
+.music-song-singer { display:block; margin:0; color:#ffffffe0; font-size:clamp(12px,1.7cqw,16px); line-height:1.5; text-decoration:none; overflow-wrap:break-word; }
+.music-song-lyric { margin:clamp(18px,4cqh,36px) 0 0; font-size:clamp(14px,1.9cqw,19px); line-height:1.5; font-style:italic; color:#ffffffe8; }
+.music-song-lyric-text { display:block; white-space:pre-line; overflow-wrap:break-word; color:inherit; text-decoration:none; }
+.music-song-artwork { display:block; min-width:0; width:min(100%,calc(78cqh - 2 * clamp(18px,4cqw,44px))); justify-self:center; aspect-ratio:1; border-radius:50%; background:#090a0c; box-shadow:0 6px 16px #0006,0 18px 32px -10px #0009; }
+.music-song-record { display:block; position:relative; width:100%; height:100%; isolation:isolate; contain:layout paint; overflow:hidden; border-radius:50%; border:1px solid #ffffff30; background:#090a0c; box-shadow:inset 0 0 0 3px #090a0c,inset 0 0 0 5px #ffffff15; }
+.music-song-record[data-spinning] { will-change:transform; }
+.music-song-record img { position:absolute; inset:1.5%; display:block; width:97%; height:97%; object-fit:cover; border-radius:50%; }
+.music-song-record-grooves { position:absolute; inset:0; border-radius:50%; pointer-events:none; background:repeating-radial-gradient(circle at center,transparent 0 2px,#ffffff10 2.5px 3px,#00000012 3.5px 4px,transparent 4.5px 6px),conic-gradient(from -35deg,transparent 0deg,#ffffff15 35deg,transparent 75deg,#00000018 140deg,#ffffff12 210deg,transparent 250deg,#00000012 320deg,transparent 360deg); box-shadow:inset 0 0 0 2px #ffffff28,inset 0 0 0 5px #080a0c80; }
+.music-song-record-hole { position:absolute; left:50%; top:50%; width:5%; aspect-ratio:1; transform:translate(-50%,-50%); border-radius:50%; background:#0c0d10; border:1px solid #d0d5dc88; box-shadow:0 0 0 2px #0008; }
+@media(max-width:640px) {
+  .music-song-card { grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:14px; padding:18px; border-radius:20px; }
+  .music-song-copy h3 { font-size:clamp(17px,5.2cqw,28px); margin-bottom:12px; }
+  .music-song-singer { font-size:12px; }
+  .music-song-lyric { font-size:13px; }
+  .music-song-artwork { width:min(100%,calc(78cqh - 36px)); }
+}
+@container(max-height:360px) {
+  .music-song-card { height:78%; padding:16px 24px; gap:20px; }
+  .music-song-copy h3 { font-size:clamp(17px,3cqw,28px); margin-bottom:8px; }
+  .music-song-singer { font-size:11px; }
+  .music-song-lyric { margin-top:12px; font-size:12px; }
+  .music-song-artwork { width:min(100%,52cqh); justify-self:center; }
+}
+@media(hover:hover) and (pointer:fine) { :host([data-batman-cursor]) * { cursor:inherit!important; } }
+@media(prefers-reduced-motion:reduce) {
+  .music-native-stack-scale { animation:none; transform:none; }
+  .music-song-record[data-spinning] { will-change:auto; }
+  .music-stack-slot { position:relative; height:auto; padding:18px 0; }
+  .music-stack-slot>div { top:0!important; height:auto; }
+  .music-song-card { height:auto; min-height:min(70cqh,400px); }
+  .music-stack-tail { height:24px; }
+}

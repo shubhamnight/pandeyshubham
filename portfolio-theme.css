@@ -302,14 +302,7 @@ dialog#photography-gallery.photo-carousel-fallback .photography-gallery-grid{dis
 .hobby-gallery-content figure img,.hobby-gallery-content figure video{display:block;width:100%;height:100%;max-width:100%;max-height:100%;aspect-ratio:auto;object-fit:contain;border-radius:0;background:#222426}
 .hobby-gallery-content figcaption{position:absolute;inset:auto 0 0;padding:10px 12px;background:#141516e8;font-size:13px;line-height:1.4}
 .travel-video-player{position:absolute;inset:0;background:#000}
-.travel-video-player:fullscreen{width:100%;height:100%}
-.travel-video-controls{position:absolute;inset:auto 0 0;display:flex;align-items:center;gap:8px;padding:20px 10px 8px;background:linear-gradient(transparent,#000c);color:#fff;transition:opacity .15s}
-.travel-video-controls button{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;padding:0;border:0;border-radius:4px;background:transparent;color:inherit;font-size:15px;cursor:pointer}
-.travel-video-controls button:hover{background:#ffffff20}
-.travel-video-controls button[hidden]{display:none}
-.travel-video-controls input{min-width:0;flex:1;accent-color:#5685c1;cursor:pointer}
-.travel-video-time{font-size:11px;font-variant-numeric:tabular-nums;min-width:3ch}
-@media(hover:hover) and (pointer:fine){.travel-video-player.is-playing:not(:hover):not(:focus-within) .travel-video-controls{opacity:0;pointer-events:none}}
+.travel-video-player video{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
 @media(max-width:700px){dialog.hobby-gallery{width:calc(100vw - 24px);height:90dvh;max-height:90dvh;border-radius:14px}dialog.hobby-gallery header{padding:20px;gap:16px}.hobby-gallery-content{padding:20px}.hobby-gallery-content [class$="-gallery-grid"]{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
 @media(max-width:380px){.hobby-gallery-content [class$="-gallery-grid"]{grid-template-columns:minmax(0,1fr)}}
 
@@ -468,6 +461,19 @@ main>.section,main>dialog,#study-dialog,.hero-skills-transition>#about{--paper:#
 #gaming-gallery .gaming-gallery-grid[hidden]{display:none}
 #gaming-gallery .gaming-tilted-mount{width:100%;height:100%;min-height:0}
 #gaming-gallery .gaming-tilted-mount[hidden]{display:none}
+
+/* Travel photographs and looping videos share the existing dialog strip. */
+dialog#travel-gallery.travel-zoom-active .hobby-gallery-content{padding:0;background:#0c0d10;scrollbar-gutter:auto}
+#travel-gallery .travel-zoom-mount{width:100%;height:100%;min-height:0}
+#travel-gallery .travel-zoom-mount[hidden],#travel-gallery .travel-gallery-grid[hidden]{display:none}
+#travel-gallery.travel-zoom-active .travel-gallery-grid{padding:28px 30px 30px}
+@media(max-width:700px){#travel-gallery.travel-zoom-active .travel-gallery-grid{padding:20px}}
+
+/* The music island owns its scroll container and sticky card stack. */
+dialog#music-gallery.music-stacking-active .hobby-gallery-content{padding:0;overflow:hidden;scrollbar-gutter:auto;background:#0c0d10}
+#music-gallery.music-stacking-active .music-gallery-grid,#music-gallery .music-gallery-grid[hidden]{display:none}
+#music-gallery .music-stacking-mount{width:100%;height:100%;min-height:0}
+#music-gallery .music-stacking-mount[hidden]{display:none}
 
 /* Apply the supplied SocialTooltip interaction to the native orbit holders.
    The inner circle clips the fill; the tooltip stays outside that clipping area.

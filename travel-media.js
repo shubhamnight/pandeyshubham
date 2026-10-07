@@ -1,7 +1,10 @@
 import { createVideoCard } from './hobby-video-card.js';
-import { createTravelVideoPlayer } from './travel-video-player.js';
-import { travelImages } from './travel-data.js';
-import { locationLabel, locationsReady } from './travel-location-label.js';
+import { createTravelVideoPlayer, travelVideoFrameRatio } from './travel-video-player.js';
+import { travelImages as originalTravelImages } from './travel-data.js';
+import { applyMediaEdits } from './media-library.js';
+import { observeTravelFrame } from './overlay-frame-metrics.js';
+const travelImages=applyMediaEdits('travel',originalTravelImages);
+import { locationLabel, locationsReady, travelLocations } from './travel-location-label.js';
 
 function shuffle(items) {
   const result=[...items];
@@ -9,10 +12,16 @@ function shuffle(items) {
   return result;
 }
 const order=shuffle(travelImages);
-let deck=[...order],previous=null;
+const photos=travelImages.filter(item=>item.type==='image'),videos=travelImages.filter(item=>item.type==='video');
+const previewPools=[photos,videos].map(items=>({items,deck:shuffle(items),previous:null}));
+let previewCount=0;
 function nextMedia(){
-  if(!deck.length){deck=shuffle(travelImages);if(deck[0]===previous&&deck.length>1)[deck[0],deck[1]]=[deck[1],deck[0]];}
-  previous=deck.shift();return previous;
+  // Keep a video among each three orbit previews, rather than hiding all four
+  // videos behind a randomly shuffled run of photographs.
+  const videoTurn=previewCount++%3===1;
+  const pool=previewPools[(videoTurn&&videos.length)||!photos.length?1:0];
+  if(!pool.deck.length){pool.deck=shuffle(pool.items);if(pool.deck[0]===pool.previous&&pool.deck.length>1)[pool.deck[0],pool.deck[1]]=[pool.deck[1],pool.deck[0]];}
+  pool.previous=pool.deck.shift();return pool.previous;
 }
 function mediaElement(item,gallery=false){
   if(item.type==='video'){
@@ -59,7 +68,6 @@ async function fill(slot){
   players.get(slot)?.dispose();
   const surface=surfaces.get(slot);surface.replaceChildren(element);
   players.set(slot,element.videoPlayback);element.videoPlayback?.resize();
-  const label=locationLabel(item);if(label)surface.append(label);
   playback();
 }
 let started=false;
@@ -83,22 +91,78 @@ window.addEventListener('pagehide',event=>{
   disposed=true;startup.disconnect();observer.disconnect();playbackObserver.disconnect();visible.clear();
   slots.forEach(slot=>{slot.mediaVersion=(slot.mediaVersion||0)+1;players.get(slot)?.dispose();slot.removeEventListener('hobby-cycle',cycleHandlers.get(slot));});
   document.removeEventListener('visibilitychange',syncPlayback);reduced.removeEventListener('change',syncPlayback);window.removeEventListener('pageshow',playback);
+  galleryVersion++;overlayAbort?.abort();disposeOverlay?.();
 });
 
-let galleryFilled=false;
-export async function fillTravelGallery(gallery){
-  await locationsReady;
-  if(galleryFilled)return;galleryFilled=true;
+let gridMode=null;
+function populateTravelGrid(gallery,videosOnly=false){
+  const mode=videosOnly?'videos':'all';
+  if(gridMode===mode)return;gridMode=mode;
+  const grid=gallery.querySelector('.travel-gallery-grid');
+  grid.querySelectorAll('video').forEach(video=>{video.pause();video.removeAttribute('src');video.load();});
   const fragment=document.createDocumentFragment();
   for(const item of order){
+    if(videosOnly&&item.type!=='video')continue;
     const frame=document.createElement('figure'),element=mediaElement(item,true);
-    if(item.type==='image'){
-      const link=document.createElement('a');link.href=item.original;link.target='_blank';link.rel='noopener';link.setAttribute('aria-label','Open '+item.alt+' at original resolution');link.append(element);frame.append(link);
-    }else frame.append(element);
+    if(item.type==='video')frame.style.aspectRatio=String(travelVideoFrameRatio(item));
+    frame.append(element);
     const label=locationLabel(item);if(label)frame.append(label);
     fragment.append(frame);
   }
-  gallery.querySelector('.travel-gallery-grid').replaceChildren(fragment);
-  gallery.querySelector('p').hidden=true;
-  gallery.addEventListener('close',()=>gallery.querySelectorAll('video').forEach(video=>video.pause()));
+  grid.replaceChildren(fragment);
+}
+
+let overlayModule=null,disposeOverlay=null,galleryVersion=0,galleryConnected=false,overlayAbort=null;
+export async function fillTravelGallery(gallery){
+  const version=++galleryVersion;
+  overlayAbort?.abort();
+  const controller=new AbortController();overlayAbort=controller;
+  disposeOverlay?.();disposeOverlay=null;
+  const content=gallery.querySelector('.hobby-gallery-content');
+  const status=content.querySelector('p'),grid=content.querySelector('.travel-gallery-grid');
+  status.textContent='Opening travel photographs and videos…';status.hidden=false;grid.hidden=true;
+  let mount=content.querySelector('.travel-zoom-mount');
+  if(!mount){
+    mount=document.createElement('div');mount.className='travel-zoom-mount';mount.hidden=true;
+    content.insertBefore(mount,grid);
+  }
+  if(!galleryConnected){
+    galleryConnected=true;
+    gallery.addEventListener('close',()=>{
+      galleryVersion++;overlayAbort?.abort();overlayAbort=null;
+      disposeOverlay?.();disposeOverlay=null;
+      gallery.querySelectorAll('video').forEach(video=>video.pause());
+      content.scrollTop=0;
+    });
+  }
+  try{
+    overlayModule??=import('./assets/ui/travel-overlay.js').catch(error=>{overlayModule=null;throw error;});
+    const [{mountTravelOverlay}]=await Promise.all([overlayModule,locationsReady]);
+    if(disposed||version!==galleryVersion||!gallery.open)return;
+    const media=order.map((item,index)=>({
+      number:String(index+1).padStart(2,'0'),type:item.type,
+      src:item.type==='video'?(item.gallerySrc||item.preview||item.src):item.src,
+      srcSet:item.srcset,original:item.original,alt:item.alt,poster:item.poster,
+      width:item.width,height:item.height,
+      videoFrameRatio:item.type==='video'?travelVideoFrameRatio(item):undefined,
+      title:(travelLocations[decodeURIComponent((item.sourceOriginal||item.original).split('/').pop())]||'').trim(),desc:'',
+    }));
+    if(!media.length){
+      gallery.classList.remove('travel-zoom-active');mount.hidden=true;
+      status.textContent='No travel photographs yet. Add images in the local image studio.';
+      populateTravelGrid(gallery,true);grid.hidden=false;return;
+    }
+    const dispose=await mountTravelOverlay(mount,media,controller.signal);
+    if(disposed||version!==galleryVersion||!gallery.open){dispose();return;}
+    const stopFrameObserver=observeTravelFrame(mount);
+    disposeOverlay=()=>{stopFrameObserver();dispose();};status.hidden=true;
+    // Videos share the navigable strip; no unreachable second grid below it.
+    grid.querySelectorAll('video').forEach(video=>{video.pause();video.removeAttribute('src');video.load();});
+    grid.replaceChildren();gridMode=null;grid.hidden=true;content.scrollTop=0;
+  }catch(error){
+    if(disposed||version!==galleryVersion||!gallery.open)return;
+    gallery.classList.remove('travel-zoom-active');mount.hidden=true;
+    populateTravelGrid(gallery);grid.hidden=false;status.hidden=true;
+    console.error('Travel slider could not load; showing the original media grid.',error);
+  }
 }

@@ -26,7 +26,7 @@ async function fillRecord(slot,index){
 }
 slots.forEach((slot,index)=>{fillRecord(slot,index);slot.addEventListener('hobby-cycle',()=>fillRecord(slot,index));});
 
-export function fillMusicGallery(gallery){
+function fillMusicFallback(gallery){
   if(gallery.dataset.recordsFilled)return;gallery.dataset.recordsFilled='true';
   const fragment=document.createDocumentFragment();
   for(let i=0;i<Math.max(6,musicImages.length);i++){
@@ -40,3 +40,43 @@ export function fillMusicGallery(gallery){
   if(!musicImages.length)description.textContent='Your songs and artists will be added to these records soon.';
   else description.hidden=true;
 }
+
+let overlayModule=null,overlayData=null,disposeOverlay=null,overlayAbort=null;
+let galleryVersion=0,galleryConnected=false,disposed=false;
+export async function fillMusicGallery(gallery){
+  const version=++galleryVersion;
+  overlayAbort?.abort();
+  const controller=new AbortController();overlayAbort=controller;
+  disposeOverlay?.();disposeOverlay=null;
+  const content=gallery.querySelector('.hobby-gallery-content');
+  const status=content.querySelector(':scope>p'),grid=content.querySelector('.music-gallery-grid');
+  status.textContent='Opening music…';status.hidden=false;grid.hidden=true;
+  let mount=content.querySelector('.music-stacking-mount');
+  if(!mount){mount=document.createElement('div');mount.className='music-stacking-mount';mount.hidden=true;content.append(mount);}
+  if(!galleryConnected){
+    galleryConnected=true;
+    gallery.addEventListener('close',()=>{
+      galleryVersion++;overlayAbort?.abort();overlayAbort=null;
+      disposeOverlay?.();disposeOverlay=null;
+    });
+  }
+  try{
+    overlayModule??=import('./assets/ui/music-overlay.js').catch(error=>{overlayModule=null;throw error;});
+    overlayData??=import('./music-overlay-data.js').catch(error=>{overlayData=null;throw error;});
+    const [{mountMusicOverlay},{musicCards}]=await Promise.all([overlayModule,overlayData]);
+    if(disposed||version!==galleryVersion||!gallery.open)return;
+    const dispose=await mountMusicOverlay(mount,musicCards,controller.signal);
+    if(disposed||version!==galleryVersion||!gallery.open){dispose();return;}
+    disposeOverlay=dispose;status.hidden=true;
+    grid.replaceChildren();delete gallery.dataset.recordsFilled;
+  }catch(error){
+    if(disposed||version!==galleryVersion||!gallery.open)return;
+    gallery.classList.remove('music-stacking-active');mount.hidden=true;grid.hidden=false;
+    fillMusicFallback(gallery);status.hidden=true;
+    console.error('Music stacking cards could not load; showing the record grid.',error);
+  }
+}
+window.addEventListener('pagehide',event=>{
+  if(event.persisted)return;
+  disposed=true;galleryVersion++;overlayAbort?.abort();disposeOverlay?.();
+});

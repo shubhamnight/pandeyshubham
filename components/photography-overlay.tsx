@@ -14,6 +14,11 @@ interface PhotographyMedia {
   height: number;
   alt: string;
   label?: string;
+  edited?: boolean;
+  overlayImage?: string;
+  overlaySources?: { src: string; width: number }[];
+  overlayWidth?: number;
+  overlayHeight?: number;
 }
 
 /** A React island: styles and events stay inside the existing native dialog. */
@@ -47,12 +52,15 @@ export async function mountPhotographyCarousel(host: HTMLElement, media: Photogr
     id: item.original ?? item.src,
     title: item.type === 'video' ? 'Moving\nmoments.' : 'Through\nmy lens.',
     image: item.type === 'video' ? item.poster ?? item.src : item.src,
-    fullImage: item.type === 'video' ? item.poster ?? item.src : item.original ?? item.src,
-    fullSources: item.type === 'image' ? heroSources[item.original ?? item.src] : undefined,
+    fullImage: item.type === 'video' ? item.poster ?? item.src : item.overlayImage ?? item.original ?? item.src,
+    fullSources: item.type === 'image' ? item.overlaySources ?? heroSources[item.original ?? item.src] : undefined,
     width: item.width,
     height: item.height,
+    fullWidth: item.overlayWidth ?? item.width,
+    fullHeight: item.overlayHeight ?? item.height,
+    desktopSourceWidth: item.type === 'image' ? 3840 : undefined,
     srcSet: item.type === 'image'
-      ? [item.srcset, `${item.original ?? item.src} ${item.width}w`].filter(Boolean).join(', ')
+      ? [item.srcset, !item.edited && `${item.original ?? item.src} ${item.width}w`].filter(Boolean).join(', ')
       : undefined,
     videoSrc: item.type === 'video' ? item.src : undefined,
     alt: item.alt,

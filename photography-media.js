@@ -1,5 +1,7 @@
 import { createVideoCard } from './hobby-video-card.js';
-import { photographyPhotos } from './photography-data.js';
+import { photographyPhotos as originalPhotos } from './photography-data.js';
+import { applyMediaEdits } from './media-library.js';
+const photographyPhotos=applyMediaEdits('photography',originalPhotos);
 
 function shuffle(items) {
   const result=[...items];
@@ -99,6 +101,7 @@ export async function fillPhotographyGallery(gallery){
   status.hidden=false;status.textContent='Opening photography…';
   gallery.classList.remove('photo-carousel-fallback');
   grid.replaceChildren();
+  if(!order.length){status.textContent='No photographs yet. Add images in the local image studio.';return;}
   if(!galleryConnected){
     galleryConnected=true;
     gallery.addEventListener('close',()=>{

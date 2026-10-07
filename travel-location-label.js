@@ -6,9 +6,15 @@ const whiteTextFiles=new Set([
   'WhatsApp Image 2026-10-01 at 5.05.06 AM.jpeg',
   'WhatsApp Video 2026-10-01 at 5.04.33 AM.mp4',
 ]);
-export const locationsReady=fetch('/api/travel-locations').then(response=>response.ok?response.json():{}).then(data=>{travelLocations=data;}).catch(()=>{});
+async function staticLocations(){
+  const response=await fetch('./travel-locations.json');return response.ok?response.json():{};
+}
+export const locationsReady=fetch('/api/travel-locations')
+  .then(response=>response.ok?response.json():staticLocations()).catch(staticLocations)
+  .then(data=>{if(data&&typeof data==='object'&&!Array.isArray(data))travelLocations=Object.fromEntries(Object.entries(data).filter(([,value])=>typeof value==='string'&&value.trim()));})
+  .catch(()=>{});
 export function locationLabel(item){
-  const name=decodeURIComponent(item.original.split('/').pop());
+  const name=decodeURIComponent((item.sourceOriginal||item.original).split('/').pop());
   const text=travelLocations[name];if(!text)return null;
   const label=document.createElement('span');label.className='travel-location-label';
   if(whiteTextFiles.has(name))label.classList.add('travel-location-light');

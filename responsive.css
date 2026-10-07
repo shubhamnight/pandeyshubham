@@ -74,7 +74,7 @@
 
   dialog.hobby-gallery {
     --gallery-gutter:12px;
-    width:min(1060px,calc(100vw - max(var(--gallery-gutter),env(safe-area-inset-left)) - max(var(--gallery-gutter),env(safe-area-inset-right)));
+    width:min(1060px,calc(100vw - max(var(--gallery-gutter),env(safe-area-inset-left)) - max(var(--gallery-gutter),env(safe-area-inset-right))));
     height:min(780px,calc(100dvh - max(12px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom))));
     max-height:calc(100dvh - max(12px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom)));
   }
@@ -86,9 +86,6 @@
   dialog#photography-gallery>header { top:max(12px,env(safe-area-inset-top)); right:max(12px,env(safe-area-inset-right)); }
   #study-dialog { max-height:calc(100dvh - 24px); }
   #study-dialog h2 { font-size:clamp(28px,6vw,52px); overflow-wrap:break-word; }
-  .travel-video-controls { gap:4px; padding-inline:4px; }
-  .travel-video-controls button { width:32px; height:36px; flex-basis:32px; }
-  .travel-video-controls input { height:36px; }
 }
 
 @media (max-width:700px) {

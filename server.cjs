@@ -7,6 +7,7 @@ const zlib = require('node:zlib');
 const {promisify}=require('node:util');
 const brotli=promisify(zlib.brotliCompress),gzip=promisify(zlib.gzip);
 const compressedFiles=new Map();
+const mediaManager=require('./lib/media-manager.cjs');
 async function compressedFile(file,info,encoding){
   const key=file+'::'+encoding,version=info.mtimeMs+'-'+info.size;
   const cached=compressedFiles.get(key);
@@ -26,6 +27,10 @@ http.createServer((req,res) => {
   // Never serve dotfiles, server code, environment files, or provider secrets.
   pathname=pathname.replaceAll('\\','/');
   const segments=pathname.split('/');
+  if(pathname==='/api/media-manager') {
+    if(process.env.SERVE_DIST==='1'){res.writeHead(404);return res.end('Not found');}
+    mediaManager(req,res).catch(()=>{if(!res.headersSent)res.writeHead(500);res.end();});return;
+  }
   if(segments.some(segment=>segment.startsWith('.')) || /\.cjs$/i.test(pathname) || /^\/(?:lib|tmp|api)(?:\/|$)/i.test(pathname) && pathname!=='/api/travel-locations') {res.writeHead(404);return res.end('Not found');}
   if(pathname === '/index.html'){res.writeHead(308,{Location:'/'});return res.end();}
   if(pathname === '/api/travel-locations' && process.env.SERVE_DIST !== '1') {

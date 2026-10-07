@@ -1,0 +1,18 @@
+/* Local Tailwind island, isolated from the portfolio's existing styles. */
+@import "tailwindcss" source(none);
+@source "../components/ui/zoom-slider.tsx";
+@source "../components/travel-overlay.tsx";
+:host { display:block; width:100%; height:100%; color:#e7ebf0; font-family:Inter,Helvetica,sans-serif; }
+:host([hidden]) { display:none!important; }
+.travel-react-root { width:100%; height:100%; }
+.zoom-slider { background:#0c0d10; cursor:grab; isolation:isolate; }
+.zoom-slider:active { cursor:grabbing; }
+.zoom-slider:focus-visible { outline:2px solid #5685c1; outline-offset:-3px; }
+.zoom-card { will-change:transform; }
+.zoom-image-wrap { background:#18191d; color:inherit; }
+.zoom-image-wrap:focus-visible { outline:2px solid #5685c1; outline-offset:-3px; }
+.travel-video-player { position:absolute; inset:0; background:#000; }
+.travel-video-player video { display:block; width:100%; height:100%; object-fit:cover; pointer-events:none; }
+.zoom-caption { bottom:calc(100% + 10px); left:0; padding-bottom:4px; visibility:hidden; pointer-events:none; }
+.zoom-caption p { margin:0; white-space:nowrap; }
+@media(hover:hover) and (pointer:fine) { :host([data-batman-cursor]) * { cursor:inherit!important; } }
