@@ -1,5 +1,6 @@
 /* Local Tailwind island in the Music dialog; the page styles remain isolated. */
 @import "tailwindcss" source(none);
+@import "../music-title-styles.css";
 @source "../components/ui/stacking-cards.tsx";
 @source "../components/music-overlay.tsx";
 :host { display:block; width:100%; height:100%; color:#e7ebf0; font-family:Inter,Helvetica,sans-serif; }
@@ -15,24 +16,6 @@
 .music-song-card { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); align-items:center; gap:clamp(16px,3cqw,36px); width:92%; height:78%; margin-inline:auto; padding:clamp(18px,4cqw,44px); border:1px solid #ffffff18; border-radius:24px; background:var(--song-background,#181a1d); box-shadow:0 10px 20px #0006,0 24px 48px -12px #0008; }
 .music-song-copy { min-width:0; min-height:0; max-height:100%; overflow:auto; scrollbar-width:thin; scrollbar-color:#ffffff40 transparent; }
 .music-song-copy h3 { margin:0 0 16px; padding-block:2px; color:#fff; font-family:var(--title-font,Inter),serif; font-size:clamp(22px,4cqw,42px); font-weight:var(--title-weight,700); font-style:var(--title-style,normal); letter-spacing:var(--title-spacing,-.035em); text-transform:var(--title-case,none); line-height:var(--title-leading,1.2); overflow-wrap:break-word; }
-.music-song-copy h3[data-title-style="caslon"] { --title-font:'Libre Caslon Text'; --title-weight:400; --title-spacing:.015em; --title-case:uppercase; }
-.music-song-copy h3[data-title-style="caslon-bold"] { --title-font:'Libre Caslon Text'; --title-weight:700; --title-spacing:-.035em; --title-case:uppercase; }
-.music-song-copy h3[data-title-style="caslon-italic"] { --title-font:'Libre Caslon Text'; --title-weight:400; --title-style:italic; --title-spacing:-.025em; }
-.music-song-copy h3[data-title-style="am"] { --title-font:Inter; --title-weight:400; --title-spacing:.035em; --title-case:uppercase; }
-.music-song-copy h3[data-title-style="handwritten"] { --title-font:Caveat; --title-weight:600; --title-spacing:0em; --title-leading:1.3; }
-.music-song-copy h3[data-title-style="wide"],.music-song-copy h3[data-title-style="wide-lower"] { --title-font:Michroma; --title-weight:400; --title-spacing:-.025em; --title-case:uppercase; }
-.music-song-copy h3[data-title-style="wide-lower"] { --title-case:lowercase; }
-.music-song-copy h3[data-title-style="condensed-lower"] { --title-font:Oswald; --title-weight:500; --title-spacing:.015em; --title-case:lowercase; }
-.music-song-copy h3[data-title-style="engraved"],.music-song-copy h3[data-title-style="engraved-italic"] { --title-font:Cinzel; --title-weight:400; --title-spacing:.045em; --title-case:uppercase; }
-.music-song-copy h3[data-title-style="engraved-italic"] { --title-style:oblique 14deg; --title-weight:700; --title-spacing:0em; }
-.music-song-copy h3[data-title-style="rough"] { --title-font:'Permanent Marker'; --title-weight:400; --title-spacing:.01em; --title-case:uppercase; --title-leading:1.3; }
-.music-song-copy h3[data-title-style="heavy"] { --title-font:Anton; --title-weight:400; --title-spacing:.01em; --title-case:uppercase; }
-.music-song-copy h3[data-title-style="brush"] { --title-font:Yellowtail; --title-weight:400; --title-spacing:0em; --title-leading:1.3; }
-.music-song-copy h3[data-title-style="formal-script"] { --title-font:'Pinyon Script'; --title-weight:400; --title-spacing:0em; --title-leading:1.35; }
-.music-song-copy h3[data-title-style="angular"] { --title-font:'Metal Mania'; --title-weight:400; --title-spacing:.015em; --title-case:uppercase; }
-.music-song-copy h3[data-title-style="spaced-serif"] { --title-font:'Libre Caslon Text'; --title-weight:400; --title-spacing:.12em; --title-case:lowercase; }
-.music-song-copy h3[data-title-style="geometric"] { --title-font:Jost; --title-weight:500; --title-spacing:.065em; --title-case:uppercase; }
-.music-song-copy h3[data-title-style="plain"] { --title-font:Inter; --title-weight:600; --title-spacing:-.04em; }
 .music-song-singer { display:block; margin:0; color:#ffffffe0; font-size:clamp(12px,1.7cqw,16px); line-height:1.5; text-decoration:none; overflow-wrap:break-word; }
 .music-song-lyric { margin:clamp(18px,4cqh,36px) 0 0; font-size:clamp(14px,1.9cqw,19px); line-height:1.5; font-style:italic; color:#ffffffe8; }
 .music-song-lyric-text { display:block; white-space:pre-line; overflow-wrap:break-word; color:inherit; text-decoration:none; }

@@ -326,9 +326,11 @@ dialog#photography-gallery.photo-carousel-fallback .photography-gallery-grid{dis
 @media(prefers-reduced-motion:reduce){.music-record{transition:none}.hobby-music .hobby-image-placeholder:hover .music-record,.music-record-frame:hover .music-record{transform:rotate(0deg)}}
 
 .hobby-music .music-record{box-shadow:inset 0 0 0 3px #090a0b,inset 0 0 0 5px #ffffff0c,0 8px 14px #0007,0 20px 32px #0005}
-.music-record-caption{position:absolute;top:calc(100% + 5px);left:-12%;right:-12%;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;font:12px/1.35 system-ui,sans-serif;color:#eee;text-shadow:0 1px 3px #000}
+.music-record-caption{position:absolute;top:calc(100% + 5px);left:-12%;right:-12%;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;font:10.71px/1.35 system-ui,sans-serif;color:#eee;text-shadow:0 1px 3px #000}
 .music-record-caption strong,.music-record-caption>span{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.music-record-caption>span{color:#b8bec8;font-size:10px;margin-top:2px}
+.music-record-caption .music-title{font-family:var(--title-font,Inter),serif;font-weight:var(--title-weight,700);font-style:var(--title-style,normal);letter-spacing:var(--title-spacing,-.035em);text-transform:var(--title-case,none);line-height:var(--title-leading,1.2)}
+.music-record-caption .music-title[data-song-title="Bohemian Rhapsody"]{font-size:110%}
+.music-record-caption>span{color:#b8bec8;font-size:8.925px;margin-top:2px}
 @media(hover:hover) and (pointer:fine){.hobby-music .hobby-image-placeholder:hover .music-record-caption{opacity:1}}
 @media(prefers-reduced-motion:reduce){.music-record-caption{transition:none}}
 

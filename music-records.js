@@ -1,4 +1,17 @@
 import { musicImages } from './music-data.js';
+import { musicTitleStyles } from './music-title-data.js';
+
+// Load the existing local fonts when the music previews initialize. The overlay
+// shares the font link, and both surfaces use the same title treatment rules.
+for(const [id,path] of [
+  ['music-title-fonts','./assets/fonts/music/fonts.css'],
+  ['music-caption-title-styles','./music-title-styles.css'],
+]){
+  if(document.getElementById(id))continue;
+  const link=document.createElement('link');link.id=id;link.rel='stylesheet';
+  link.href=new URL(path,import.meta.url).href;link.onerror=()=>link.remove();
+  document.head.append(link);
+}
 
 export function createRecord(song,index=0,gallery=false){
   const record=document.createElement('div');record.className='music-record';
@@ -22,7 +35,9 @@ async function fillRecord(slot,index){
   if(slot.recordVersion!==version)return;
   const surface=slot.querySelector('.hobby-image-surface');surface.replaceChildren(record);
   if(song){const caption=document.createElement('span');caption.className='music-record-caption';
-    const title=document.createElement('strong'),artist=document.createElement('span');title.textContent=song.title;artist.textContent=song.artist;caption.append(title,artist);surface.append(caption);slot.title=song.title+' — '+song.artist;}
+    const title=document.createElement('strong'),artist=document.createElement('span');
+    title.className='music-title';title.dataset.titleStyle=musicTitleStyles[song.title]||'plain';title.dataset.songTitle=song.title;
+    title.textContent=song.title;artist.textContent=song.artist;caption.append(title,artist);surface.append(caption);slot.title=song.title+' — '+song.artist;}
 }
 slots.forEach((slot,index)=>{fillRecord(slot,index);slot.addEventListener('hobby-cycle',()=>fillRecord(slot,index));});
 

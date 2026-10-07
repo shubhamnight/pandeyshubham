@@ -50,6 +50,9 @@ async function buildMusicOverlay() {
   }));
   fs.writeFileSync(path.join(root, 'music-overlay-data.js'),
     '// Song excerpts and source links: music-highlights.json. Colors sampled from the local album artwork.\nexport const musicCards = ' + JSON.stringify(cards, null, 2) + ';\n');
+  fs.writeFileSync(path.join(root, 'music-title-data.js'),
+    '// Generated from the same typography metadata as the overlay.\nexport const musicTitleStyles = ' +
+    JSON.stringify(Object.fromEntries(cards.map(song => [song.title, song.typography])), null, 2) + ';\n');
   // Keep research links reviewable without duplicating lyric excerpts.
   fs.writeFileSync(path.join(root, 'components', 'music-sources.md'),
     '# Music overlay sources\n\nResearched on 7 October 2026. Brief excerpts are stored in music-highlights.json.\nCard colors are sampled from the existing local album covers; no new stock images are used.\n\n' +

@@ -22,7 +22,7 @@ const SongCard = memo(function SongCard({ song, index }: { song: MusicCard; inde
   return <article className="music-song-card" aria-labelledby={`song-title-${index}`}
     style={{ '--song-background': song.background, '--song-accent': song.accent } as CSSProperties}>
     <div className="music-song-copy">
-      <h3 id={`song-title-${index}`} data-title-style={song.typography}>{song.title}</h3>
+      <h3 id={`song-title-${index}`} className="music-title" data-title-style={song.typography}>{song.title}</h3>
       <p className="music-song-singer">{song.singer}</p>
       <blockquote cite={song.lyricSource} className="music-song-lyric">
         <span className="music-song-lyric-text">{song.lyric}</span>
