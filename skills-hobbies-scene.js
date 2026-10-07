@@ -14,6 +14,10 @@ const hobbiesHoldScale = 1.10 * 1.25 * 1.10 * 1.10;
 // The two latest +10% requests add page-height scroll, rather than multiplying
 // the short existing hold (which added only a few pixels per request).
 const extraHobbiesEndScroll = .10 + .10;
+// Compress the scroll-driven journey by 18% on every viewport. Scale all
+// landmarks together so the handoff, model overlap and resting holds retain
+// their proportions; the viewport size and motion interpolation stay intact.
+const scrollDistanceScale = .82;
 const timeline = {
   skillsHold: .90 * idleScrollScale * skillsHoldScale,
   skillsExit: .90,
@@ -23,6 +27,9 @@ const timeline = {
   modelSpread: .40,
   hobbiesHold: .35 * idleScrollScale * afterSkillsIdleScale * hobbiesHoldScale + extraHobbiesEndScroll
 };
+for(const stage of Object.keys(timeline))timeline[stage]*=scrollDistanceScale;
+// Shorten only the settled Hobbies hold by a further 5%.
+timeline.hobbiesHold*=.95;
 const exitStart = timeline.skillsHold;
 const modelStart = exitStart + timeline.skillsExit - timeline.entryOverlap;
 const spreadStart = modelStart + timeline.modelEntry + timeline.modelOrbitHold;
