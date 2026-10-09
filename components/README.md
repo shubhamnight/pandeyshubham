@@ -255,7 +255,7 @@ cascade. Drag/flick, trackpad gestures, vertical wheels, arrow keys, previous/ne
 buttons, the Songs menu and clicks on adjacent discs navigate the catalogue.
 A selected disc spins at the existing 20-second speed. Clicking it does not
 navigate to an image or song page. Visible serial numbers, movie credits and
-review quotes are hidden; the artist and original two lyric lines remain beside
+review quotes are hidden; the artist and curated two-line lyric excerpt remain beside
 the discs, using the same shared song-title font treatments and text styles.
 Main-page music placeholders are unchanged.
 Music overlay text (including the heading, Songs menu and hint) is 25% smaller

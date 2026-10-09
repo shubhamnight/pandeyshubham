@@ -55,7 +55,7 @@ async function buildMusicOverlay() {
     JSON.stringify(Object.fromEntries(cards.map(song => [song.title, song.typography])), null, 2) + ';\n');
   // Keep research links reviewable without duplicating lyric excerpts.
   fs.writeFileSync(path.join(root, 'components', 'music-sources.md'),
-    '# Music overlay sources\n\nResearched on 7 October 2026. Brief excerpts are stored in music-highlights.json.\nCard colors are sampled from the existing local album covers; no new stock images are used.\n\n' +
+    '# Music overlay sources\n\nResearched on 7 October 2026; excerpts curated on 9 October 2026. Brief excerpts are stored in music-highlights.json.\nSelections favor emotional meaning, poetic imagery, reflection, or a distinctive playful voice. Each stays compact across two display lines; line breaks are editorial, and ellipses mark omissions.\nCard colors are sampled from the existing local album covers; no new stock images are used.\n\n' +
     '| Song | Credits / artwork | Lyric source |\n| --- | --- | --- |\n' +
     cards.map(song => `| ${song.title} | [Credits](${song.creditSource}), [Artwork](${song.sourcePage}) | [Excerpt source](${song.lyricSource}) |`).join('\n') +
     '\n\n## Title typography\n\nTitles interpret their release artwork/campaign lettering using locally hosted open fonts. These are style matches, not claims that the original commercial fonts or custom lettering are installed. Original artwork remains visible on the record.\n\n| Song | Reference and local treatment | Reference |\n| --- | --- | --- |\n' +
