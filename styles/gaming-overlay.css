@@ -7,7 +7,7 @@
 :host([hidden]) { display:none!important; }
 .gaming-react-root { width:100%; height:100%; }
 .gaming-scroll-viewport { position:relative; width:100%; height:100%; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; container-type:size; scrollbar-gutter:stable; scrollbar-color:#5685c1 #0c0d10; touch-action:pan-y; }
-.gaming-scroll-viewport:focus-visible { outline:2px solid #5685c1; outline-offset:-3px; }
+.gaming-scroll-viewport:focus-visible { outline:none; }
 .tilted-grid { padding-block:26cqh; row-gap:clamp(40px,9cqh,72px); }
 .tilted-tile { min-width:0; }
 .tilted-card { background:#18191d; box-shadow:0 6px 12px #0009,0 20px 36px -8px #000b,0 0 0 1px #ffffff0a; }

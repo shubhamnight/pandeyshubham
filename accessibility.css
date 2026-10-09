@@ -3,4 +3,4 @@
 .contact-note p>span>a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 a:focus-visible{outline:2px solid #96b7df;outline-offset:5px}
 main:focus{outline:none}
-.hobby-gallery-content:focus-visible{outline:2px solid #96b7df;outline-offset:-3px}
+.hobby-gallery .hobby-gallery-content:focus-visible{outline:none}

@@ -284,3 +284,22 @@ the component and removes observers, event listeners and its frame loop. Contain
 units preserve the geometry in the existing dialog, with phone and short-height
 rules for keeping the title, singer and lyrics readable. The static record grid
 remains available if the React island cannot load.
+
+## Current typography and overlay delivery
+
+General section headings use Prompt, supporting section copy uses Changa, and
+navbar and skill labels use Ramabhadra. Righteous is used by the hero marquee,
+the contact invitation and music lyrics. Music singer names use Acme in both the
+overlay and orbit previews; song titles retain their individual treatments.
+The ID card uses Archivo Black for SHUBHAM and Batman Forever for BATMAN.
+Active font files are served locally from `assets/fonts/`, with source/license
+notes alongside them. The Batman font uses WOFF2 compression of the same lettering.
+Unused navbar font trials have been removed. Only the visible hero faces are
+preloaded; other faces load when their styled text is needed.
+
+Hobby gallery intent preloads both its JavaScript and stylesheet, without
+mounting the overlay or starting media. Close buttons share corner placement,
+centered crosses and static raised shadows. Dialog frames use layered shadows
+with a translucent blurred backdrop. Viewport outlines are suppressed while
+individual controls retain their keyboard focus indicators. Photography only
+displays explicit captions; generated Photograph-number labels are suppressed.

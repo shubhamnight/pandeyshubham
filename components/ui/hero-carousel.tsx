@@ -503,9 +503,9 @@ export function HeroCarousel({
         </motion.div>
       </div>
 
-      <p className="photo-active-caption" style={{ top: box.h * STRIP_TOP + fullH + 14 }} aria-live="polite" aria-atomic="true">
-        {active.caption ?? active.alt ?? `Photograph ${index + 1}`}
-      </p>
+      {active.caption && <p className="photo-active-caption" style={{ top: box.h * STRIP_TOP + fullH + 14 }} aria-live="polite" aria-atomic="true">
+        {active.caption}
+      </p>}
 
     </div>
   )

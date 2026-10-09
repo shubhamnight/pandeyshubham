@@ -78,7 +78,8 @@
 #home:focus{outline:none}
 .badge-title{display:flex;flex-direction:column;align-items:flex-start;gap:9px}
 .badge-title small{margin:0;line-height:1}
-.badge-heading{display:block;line-height:1}
+.badge-heading{display:block;line-height:1;font-family:'Archivo Black',Inter,Helvetica,sans-serif;font-weight:400}
+.badge-bottom>span{font-family:'Batman Forever',Inter,Helvetica,sans-serif;font-weight:400}
 .badge-name{position:relative;margin-top:0;line-height:1}
 .badge-name span{position:absolute;right:0;top:50%;transform:translateY(-50%);line-height:1}
 

@@ -64,7 +64,7 @@ export async function mountPhotographyCarousel(host: HTMLElement, media: Photogr
       : undefined,
     videoSrc: item.type === 'video' ? item.src : undefined,
     alt: item.alt,
-    caption: item.label,
+    caption: item.label && !/^Photograph\s+\d+$/i.test(item.label.trim()) ? item.label : undefined,
     credit: 'BY SHUBHAM.'
   }));
   const root = createRoot(container);

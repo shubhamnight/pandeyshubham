@@ -5,7 +5,7 @@
 .connect-invitation,.connect-details { position:relative; z-index:1; }
 .connect-invitation { padding:clamp(112px,calc(18.5svh - 8px),172px) 24px 72px; text-align:center; }
 #contact #connect-heading { display:grid; grid-template-columns:max-content max-content; grid-template-rows:auto auto; align-items:baseline; column-gap:clamp(16px,2.5vw,40px); width:fit-content; max-width:100%; margin:0 auto; font-family:Inter,Helvetica,sans-serif; font-size:clamp(44px,7.5vw,110px); font-weight:600; letter-spacing:-.06em; line-height:1.07; color:#e7ebf0; text-align:center; }
-.connect-heading-static { grid-column:1; white-space:nowrap; text-align:center; }
+.connect-heading-static { grid-column:1; white-space:nowrap; text-align:center; font-family:Righteous,Inter,Helvetica,sans-serif; font-weight:400; }
 .connect-heading-static:first-child { grid-row:1; }
 .connect-heading-static:nth-child(2) { grid-row:2; }
 #contact #connect-heading .footer-rotator { grid-column:2; grid-row:2; display:block; width:4.1em; min-width:0; font-family:Caveat,Georgia,serif; font-size:1.35em; font-weight:500; font-style:normal; letter-spacing:-.025em; line-height:1.07; white-space:nowrap; color:#5685c1; text-align:center; }
@@ -17,7 +17,7 @@
 .connect-person { display:flex; align-items:center; gap:20px; }
 .connect-person img { width:64px; height:80px; object-fit:cover; object-position:center; border-radius:8px; filter:url('#connect-portrait-grey-outline'); }
 .connect-person strong { display:block; font-family:Anton,Impact,'Arial Narrow',sans-serif; font-size:30px; font-weight:400; letter-spacing:0; color:#5685c1; }
-.connect-person p { margin:0; font-size:17px; letter-spacing:.025em; color:#a4aab3; }
+.connect-person p { margin:0; font-family:Changa,Inter,Helvetica,sans-serif; font-size:17px; letter-spacing:.025em; color:#a4aab3; }
 .connect-secondary { display:flex; justify-content:center; align-items:center; margin:44px auto 0; font-family:Anton,Impact,'Arial Narrow',sans-serif; }
 #contact .connect-secondary a,.connect-secondary span { font-size:18px; color:#a4aab3; }
 #contact .connect-secondary a:hover { color:#96b7df; }

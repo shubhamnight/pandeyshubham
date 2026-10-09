@@ -12,17 +12,22 @@ export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={
   }[gallery.id];
   const warm=()=>{
     if(!bundle)return;
-    const href=new URL(`./assets/ui/${bundle}.js`,import.meta.url).href;
-    if([...document.querySelectorAll('link[rel="modulepreload"]')].some(link=>link.href===href))return;
-    // Fetch and compile on pointer/keyboard intent, ahead of the modal's first
-    // render. This does not mount a gallery or start its animations/media.
-    const link=document.createElement('link');link.rel='modulepreload';link.href=href;
-    document.head.append(link);
+    // Fetch the stylesheet alongside the bundle so the first render does not
+    // wait for a second request after JavaScript has loaded and compiled.
+    // Preloading does not apply styles, mount a gallery, or start media.
+    for(const [extension,rel] of [['js','modulepreload'],['css','preload']]){
+      const href=new URL(`./assets/ui/${bundle}.${extension}`,import.meta.url).href;
+      if([...document.querySelectorAll('link[rel="modulepreload"],link[rel="preload"]')].some(link=>link.href===href))continue;
+      const link=document.createElement('link');link.rel=rel;link.href=href;
+      if(extension==='css')link.as='style';
+      document.head.append(link);
+    }
   };
   button.addEventListener('pointerenter',warm,{...eventOptions,once:true});
   button.addEventListener('focus',warm,{...eventOptions,once:true});
   button.addEventListener('click',()=>{
     if(gallery.open)return;
+    warm();
     fill?.(gallery);
     saved={overflow:document.body.style.overflow,padding:document.body.style.paddingRight};
     const gutter=window.innerWidth-document.documentElement.clientWidth;

@@ -1,4 +1,53 @@
-/* Same typefaces, self-hosted Latin variable subsets, SIL Open Font License. */
+/* Self-hosted fonts; licenses and source notes accompany each family. */
+@font-face {
+  font-family: 'Ramabhadra';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(ramabhadra-latin.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Batman Forever';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(batman-forever-alternate.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Acme';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(acme-latin.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Changa';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url(changa-latin.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Righteous';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(righteous-latin.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Prompt';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(prompt-regular-latin.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Archivo Black';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(archivo-black-latin.woff2) format('woff2');
+}
 @font-face {
   font-family: 'Lilita One';
   font-style: normal;

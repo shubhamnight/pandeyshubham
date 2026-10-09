@@ -9,8 +9,8 @@
 .music-cascade-viewport { position:relative; width:100%; height:100%; overflow:hidden; overscroll-behavior:contain; container-type:size; background:var(--song-background,#181a1d); --color-background:#0c0d10; --color-foreground:#e7ebf0; --color-primary:#96b7df; }
 .music-song-copy { position:absolute; z-index:4; top:7%; left:clamp(20px,4cqw,44px); width:clamp(160px,29cqw,310px); max-height:70%; overflow:auto; user-select:text; scrollbar-width:thin; scrollbar-color:#ffffff40 transparent; }
 .music-song-copy h3 { margin:0 0 16px; padding-block:2px; color:#fff; font-family:var(--title-font,Inter),serif; font-size:clamp(16.5px,3cqw,31.5px); font-weight:var(--title-weight,700); font-style:var(--title-style,normal); letter-spacing:var(--title-spacing,-.035em); text-transform:var(--title-case,none); line-height:var(--title-leading,1.2); overflow-wrap:break-word; }
-.music-song-singer { display:block; margin:0; color:#ffffffe0; font-size:clamp(9px,1.275cqw,12px); line-height:1.5; text-decoration:none; overflow-wrap:break-word; }
-.music-song-lyric { margin:clamp(18px,4cqh,36px) 0 0; font-size:clamp(10.5px,1.425cqw,14.25px); line-height:1.5; font-style:italic; color:#ffffffe8; }
+.music-song-singer { display:block; margin:0; color:#ffffffe0; font-family:Acme,Inter,Helvetica,sans-serif; font-weight:400; font-size:clamp(9px,1.275cqw,12px); line-height:1.5; text-decoration:none; overflow-wrap:break-word; }
+.music-song-lyric { margin:clamp(18px,4cqh,36px) 0 0; font-family:Righteous,Inter,Helvetica,sans-serif; font-size:clamp(10.5px,1.425cqw,14.25px); font-weight:400; line-height:1.5; font-style:normal; color:#ffffffe8; }
 .music-song-lyric-text { display:block; white-space:pre-line; overflow-wrap:break-word; color:inherit; text-decoration:none; }
 .music-disc-cascade .dcc-stage { left:58%; top:58%; }
 .music-disc-cascade .dcc-nav { left:auto; right:clamp(20px,4cqw,44px); transform:none; }
