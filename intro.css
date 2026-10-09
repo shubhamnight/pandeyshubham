@@ -28,8 +28,7 @@ body.intro-active{overflow:hidden}
 .intro-play{gap:28px;padding:12px 0;overflow:clip}
 .intro-play .flow-play{animation:intro-button-rise 1s cubic-bezier(.87,0,.13,1) .12s backwards}
 .intro-play p{margin:0;font-size:12px;letter-spacing:.24em}
-.intro-play button{display:flex;align-items:center;gap:24px;border:1px solid #5685c180;border-radius:100px;padding:24px 48px;background:#183f73;color:#fff;font:700 clamp(26px,5vw,46px)/1 inherit;letter-spacing:.1em;cursor:pointer;box-shadow:0 16px 45px #0005;transition:transform .25s,background .25s}
-.intro-play button{font-family:inherit;font-weight:700;font-size:clamp(26px,5vw,46px);line-height:1}
+.intro-play button{display:flex;align-items:center;gap:24px;border:1px solid #5685c180;border-radius:100px;padding:24px 48px;background:#183f73;color:#fff;font-family:'Archivo Black',Inter,Helvetica,sans-serif;font-weight:400;font-size:clamp(26px,5vw,46px);line-height:1;letter-spacing:.1em;cursor:pointer;box-shadow:0 16px 45px #0005;transition:transform .25s,background .25s}
 .intro-play button:hover{background:#3867a1;transform:translateY(-3px)}
 .intro-play button:focus-visible{outline:3px solid #e7ebf0;outline-offset:7px}
 .intro-play svg{width:26px;height:26px;fill:currentColor}
