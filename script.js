@@ -11,6 +11,13 @@ for(let depth=1;depth<=5;depth++){
 }
 rig.insertBefore(badgeShell,badge);
 const hero = document.querySelector('.hero');
+const touchBadge=window.matchMedia('(pointer: coarse)').matches ||
+  (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+// Keep phone drag lighting local to the two surfaces that actually paint it.
+// The same values, gradients and transitions remain; other card descendants
+// no longer inherit a changing set of lighting properties every frame.
+const glareSurface=touchBadge?(badge.querySelector('.badge-glare')||badge):badge;
+const patternSurface=touchBadge?(badge.querySelector('.badge-face')||badge):badge;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const restingPose = {x:0, y:0, rx:0, ry:0, rz:0, z:0, light:0, scale:1};
@@ -27,7 +34,7 @@ const ribbonSegments=Array.from({length:8},(_,index)=>{
   strap.append(segment);return segment;
 });
 strap.classList.add('is-flexible');
-let frame = 0, lastTime = 0, dragging = false, pointerId = null;
+let frame = 0, geometryFrame = 0, lastTime = 0, dragging = false, pointerId = null;
 let startX = 0, startY = 0, originX = 0, originY = 0;
 let bounds;
 let badgeBoundsDirty=true;
@@ -42,23 +49,35 @@ function writeBadgeStyle(element,property,value){
 }
 const motionAllowed = () => !document.hidden && !reducedMotion.matches && !hero.classList.contains('hero-idle') && !hero.classList.contains('hero-covered') && !document.body.classList.contains('motion-paused') && !document.body.classList.contains('badge-entering') && !document.body.classList.contains('intro-active');
 function measureBadge() {
+  cancelAnimationFrame(geometryFrame);geometryFrame=0;
   badgeBoundsDirty=false;
   const rect = hero.getBoundingClientRect();
-  bounds = {left:rect.left+rect.width/2-badge.offsetWidth/2, top:rect.top + badge.offsetTop, width:badge.offsetWidth, height:badge.offsetHeight, strapLength:strap.offsetHeight};
-  badgeShell.style.top=badge.offsetTop+'px';
-  badgeShell.style.width=bounds.width+'px';
-  badgeShell.style.height=bounds.height+'px';
+  // Pointer coordinates must use the hero's layout space, rather than its
+  // rotated bounding rectangle during the skills transition. Keep the moving
+  // rig out of this measurement so tilting cannot feed back into the next tilt.
+  const inverse=new DOMMatrix(getComputedStyle(hero).transform).inverse();
+  bounds = {left:rig.offsetLeft-rig.offsetWidth/2+badge.offsetLeft,
+    top:rig.offsetTop+badge.offsetTop,width:badge.offsetWidth,height:badge.offsetHeight,
+    strapLength:strap.offsetHeight,centerX:rect.left+rect.width/2,centerY:rect.top+rect.height/2,
+    heroWidth:hero.offsetWidth,heroHeight:hero.offsetHeight,inverse};
+  writeBadgeStyle(badgeShell,'top',badge.offsetTop+'px');
+  writeBadgeStyle(badgeShell,'width',bounds.width+'px');
+  writeBadgeStyle(badgeShell,'height',bounds.height+'px');
+}
+function badgePointer(x,y){
+  const dx=x-bounds.centerX,dy=y-bounds.centerY,m=bounds.inverse;
+  return {x:m.a*dx+m.c*dy+bounds.heroWidth/2,y:m.b*dx+m.d*dy+bounds.heroHeight/2};
 }
 function paintBadge() {
   // One transform keeps the ribbon, slot, face and rim rigidly attached.
   const suspensionLength=bounds.strapLength+bounds.height*.45;
   const swing=pose.rz-Math.atan2(pose.x,Math.max(1,suspensionLength))*180/Math.PI;
   writeBadgeStyle(rig,'transform',`translateX(-50%) perspective(1000px) rotateX(${pose.rx.toFixed(3)}deg) rotateY(${pose.ry.toFixed(3)}deg) rotateZ(${swing.toFixed(3)}deg) scale3d(${pose.scale.toFixed(4)},${pose.scale.toFixed(4)},${pose.scale.toFixed(4)})`);
-  writeBadgeStyle(badge,'--glare-x',`${(50 + pose.ry * 2.5).toFixed(2)}%`);
-  writeBadgeStyle(badge,'--glare-y',`${(50 - pose.rx * 2.5).toFixed(2)}%`);
-  writeBadgeStyle(badge,'--glare-opacity',pose.light.toFixed(3));
-  writeBadgeStyle(badge,'--ticket-pattern-x',`${(pose.ry * -.7).toFixed(2)}px`);
-  writeBadgeStyle(badge,'--ticket-pattern-y',`${(pose.rx * .7).toFixed(2)}px`);
+  writeBadgeStyle(glareSurface,'--glare-x',`${(50 + pose.ry * 2.5).toFixed(2)}%`);
+  writeBadgeStyle(glareSurface,'--glare-y',`${(50 - pose.rx * 2.5).toFixed(2)}%`);
+  writeBadgeStyle(glareSurface,'--glare-opacity',pose.light.toFixed(3));
+  writeBadgeStyle(patternSurface,'--ticket-pattern-x',`${(pose.ry * -.7).toFixed(2)}px`);
+  writeBadgeStyle(patternSurface,'--ticket-pattern-y',`${(pose.rx * .7).toFixed(2)}px`);
   writeBadgeStyle(badge,'--edge-x',(-pose.ry*.32).toFixed(2)+'px');
   writeBadgeStyle(badge,'--edge-y',(3+pose.rx*.2).toFixed(2)+'px');
   // The supplied tilt card's directional shadow follows the same smoothed pose.
@@ -82,14 +101,15 @@ function animateBadge(time) {
   if(badgeBoundsDirty)measureBadge();
   if(pointerPending){
     pointerPending=false;
+    const pointer=badgePointer(latestPointer.x,latestPointer.y);
     if(dragging){
-      const x=clamp(originX+(latestPointer.x-startX)*.6,-85,85);
-      const y=clamp(originY+(latestPointer.y-startY)*.4,-24,40);
+      const x=clamp(originX+(pointer.x-startX)*.6,-85,85);
+      const y=clamp(originY+(pointer.y-startY)*.4,-24,40);
       Object.assign(targetPose,{x,y,rx:-y*.13,ry:x*.16,rz:0,z:0,light:.16,scale:1.02});
     }else{
-      const nx=(latestPointer.x-bounds.left-bounds.width/2)/(bounds.width/2);
-      const ny=(latestPointer.y-bounds.top-bounds.height/2)/(bounds.height/2);
-      hoveringBadge=Math.abs(nx)<=2.2&&ny<=1.5&&latestPointer.y>=bounds.top-bounds.strapLength;
+      const nx=(pointer.x-bounds.left-bounds.width/2)/(bounds.width/2);
+      const ny=(pointer.y-bounds.top-bounds.height/2)/(bounds.height/2);
+      hoveringBadge=Math.abs(nx)<=2.2&&ny<=1.5&&pointer.y>=bounds.top-bounds.strapLength;
       if(hoveringBadge)Object.assign(targetPose,{x:clamp(nx,-1,1)*7,y:clamp(ny,-1,1)*2,
         rx:-clamp(ny,-1,1)*15,ry:clamp(nx,-1,1)*15,rz:clamp(nx,-1,1)*1.2,
         z:0,light:.12,scale:1.02});
@@ -120,7 +140,8 @@ function animateBadge(time) {
   }
   if(Math.abs(ribbon.bend)>.015||Math.abs(ribbon.velocity)>.015)unsettled=true;
   if (unsettled) { paintBadge(); frame = requestAnimationFrame(animateBadge); }
-  else { Object.assign(pose, targetPose); paintBadge(); frame = 0; lastTime = 0; rig.classList.remove('is-moving'); }
+  else { Object.assign(pose, targetPose); for(const key of poseKeys)velocity[key]=0;
+    ribbon.bend=ribbon.velocity=0;paintBadge(); frame = 0; lastTime = 0; rig.classList.remove('is-moving'); }
 }
 function setPose(next) {
   if(!frame && poseKeys.every(key=>next[key]===undefined || Math.abs(next[key]-pose[key])<.001))return;
@@ -133,9 +154,10 @@ function requestBadgeFrame(){
 }
 function queueBadgePointer(event){
   // No work for pointer movement far from the rig once its spring has settled.
+  const pointer=badgeBoundsDirty?null:badgePointer(event.clientX,event.clientY);
   if(!frame&&!dragging&&!hoveringBadge&&!badgeBoundsDirty&&
-    (event.clientX<bounds.left-bounds.width*.6||event.clientX>bounds.left+bounds.width*1.6||
-      event.clientY<bounds.top-bounds.strapLength||event.clientY>bounds.top+bounds.height*1.25))return;
+    (pointer.x<bounds.left-bounds.width*.6||pointer.x>bounds.left+bounds.width*1.6||
+      pointer.y<bounds.top-bounds.strapLength||pointer.y>bounds.top+bounds.height*1.25))return;
   latestPointer.x=event.clientX;latestPointer.y=event.clientY;pointerPending=true;
   requestBadgeFrame();
 }
@@ -143,12 +165,13 @@ function stopBadge() {
   cancelAnimationFrame(frame); frame = 0; lastTime = 0;
   for (const key of poseKeys){pose[key]=targetPose[key]=restingPose[key];velocity[key]=0;}
   hoveringBadge=false;pointerPending=false;
-  badge.style.transform = ''; badgeShell.style.transform=''; strap.style.transform = ''; badge.style.setProperty('--glare-opacity', 0);
+  badge.style.transform = ''; badgeShell.style.transform=''; strap.style.transform = ''; glareSurface.style.setProperty('--glare-opacity', 0);
   rig.style.transform='';rig.classList.remove('is-moving');
   ribbon.bend=0;ribbon.velocity=0;ribbonSegments.forEach(segment=>{segment.style.transform='';paintedStyles.delete(segment);});
-  ['--edge-x','--edge-y','--tilt-shadow-x','--tilt-shadow-y','--tilt-shadow-blur',
-    '--ticket-pattern-x','--ticket-pattern-y','--glare-x','--glare-y'].forEach(property=>badge.style.removeProperty(property));
-  [rig,badge,strap].forEach(element=>paintedStyles.delete(element));
+  ['--edge-x','--edge-y','--tilt-shadow-x','--tilt-shadow-y','--tilt-shadow-blur'].forEach(property=>badge.style.removeProperty(property));
+  ['--ticket-pattern-x','--ticket-pattern-y'].forEach(property=>patternSurface.style.removeProperty(property));
+  ['--glare-x','--glare-y'].forEach(property=>glareSurface.style.removeProperty(property));
+  [rig,badge,strap,glareSurface,patternSurface].forEach(element=>paintedStyles.delete(element));
   badge.classList.remove('is-moving', 'dragging');
   strap.classList.remove('is-moving');
   strap.style.removeProperty('--strap-light');
@@ -158,7 +181,15 @@ function stopBadge() {
 }
 function settleBadge() { hoveringBadge=false;pointerPending=false;setPose(restingPose); }
 measureBadge();
-function invalidateBadgeBounds(){badgeBoundsDirty=true;if(hoveringBadge){pointerPending=true;requestBadgeFrame();}}
+function invalidateBadgeBounds(){
+  badgeBoundsDirty=true;
+  // Update the backing layers even when the spring is idle or the hero is
+  // covered. Resizing must not leave an old rim visible until the next hover.
+  if(!geometryFrame)geometryFrame=requestAnimationFrame(()=>{
+    geometryFrame=0;if(badgeBoundsDirty)measureBadge();
+    if(hoveringBadge){pointerPending=true;requestBadgeFrame();}
+  });
+}
 const badgeResizeObserver=new ResizeObserver(invalidateBadgeBounds);
 badgeResizeObserver.observe(rig);badgeResizeObserver.observe(badge);badgeResizeObserver.observe(strap);
 rig.addEventListener('badge-entrance-complete', invalidateBadgeBounds);
@@ -170,19 +201,20 @@ hero.addEventListener('pointermove', event => {
 }, {passive:true});
 hero.addEventListener('pointerleave', () => { if (!dragging) settleBadge(); });
 badge.addEventListener('pointerdown', event => {
-  if (!motionAllowed() || event.button !== 0) return;
+  if (!motionAllowed() || event.button !== 0 || dragging || event.isPrimary===false) return;
   if(badgeBoundsDirty)measureBadge();
   pointerPending=false;hoveringBadge=false;
   dragging = true; pointerId = event.pointerId;
-  startX = event.clientX; startY = event.clientY; originX = pose.x; originY = pose.y;
+  const pointer=badgePointer(event.clientX,event.clientY);
+  startX = pointer.x; startY = pointer.y; originX = pose.x; originY = pose.y;
   badge.classList.add('dragging'); badge.setPointerCapture(pointerId);
 });
 badge.addEventListener('pointermove', event => {
   if (!dragging || event.pointerId !== pointerId) return;
   queueBadgePointer(event);
 }, {passive:true});
-function releaseBadge() {
-  if (!dragging) return;
+function releaseBadge(event) {
+  if (!dragging || (event?.pointerId!==undefined && event.pointerId!==pointerId)) return;
   dragging = false; badge.classList.remove('dragging');
   if (pointerId !== null && badge.hasPointerCapture(pointerId)) badge.releasePointerCapture(pointerId);
   pointerId = null; settleBadge();
@@ -208,7 +240,10 @@ new MutationObserver(() => { if (!motionAllowed() && (frame || dragging)) stopBa
 const nameTrack = document.querySelector('.name-track');
 const nameGroups = [...nameTrack.querySelectorAll('.name-group')];
 function sizeNameLoop() {
-  const wordWidth = nameGroups[0].firstElementChild.getBoundingClientRect().width;
+  const word=nameGroups[0].firstElementChild;
+  // The hero scales during scrolling; that visual scale must not change the
+  // number of marquee copies when a phone resizes or finishes loading fonts.
+  const wordWidth = touchBadge ? parseFloat(getComputedStyle(word).width) || word.offsetWidth : word.getBoundingClientRect().width;
   if (!wordWidth) return;
   const count = Math.max(2, Math.ceil(hero.clientWidth / wordWidth) + 1);
   if (nameGroups[0].childElementCount !== count) {

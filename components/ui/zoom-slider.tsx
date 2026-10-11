@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import { createTravelVideoPlayer } from '../../travel-video-player.js';
+import { touchPerformance } from '../../touch-performance.js';
 
 gsap.registerPlugin(SplitText);
 
@@ -61,6 +62,7 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const imageWrapRefs = useRef<(HTMLElement | null)[]>([]);
   const imageRefs = useRef<(HTMLImageElement | null)[]>([]);
+  const paintedCardsRef = useRef(new WeakMap<HTMLElement, { transform: string; width: string; height: string; promoted: boolean }>());
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const videoPlayingRef = useRef(new WeakMap<HTMLVideoElement, { wanted: boolean; failed: boolean }>());
   const viewportVisibleRef = useRef(true);
@@ -126,7 +128,13 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       if (!card || !wrap) continue;
       const visualOffset = (index - fractionalOffset) * cardStep;
       const x = mapVtoX(visualOffset), width = mapVtoX(visualOffset + cardStep) - x;
-      if (x >= box.w + cardStep && wrap.inert) continue;
+      if (x >= box.w + cardStep && wrap.inert) {
+        if (touchPerformance) {
+          const previous=paintedCardsRef.current.get(card);
+          if (previous?.promoted) { card.style.willChange='auto';previous.promoted=false; }
+        }
+        continue;
+      }
       const height = cardHeightMin + width / cardWidthMax * (cardHeightMax - cardHeightMin);
       // Keep the strip's spacing and easing; fit videos to their own frame
       // proportions inside the same virtual card, without stretching footage.
@@ -134,9 +142,23 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       const frameWidth = videoRatio ? Math.min(width, height * videoRatio) : width;
       const frameHeight = videoRatio ? frameWidth / videoRatio : height;
       const frameX = x + (width - frameWidth) / 2;
-      card.style.transform = `translate(${frameX}px, ${box.h - frameHeight}px)`;
-      wrap.style.width = `${frameWidth}px`; wrap.style.height = `${frameHeight}px`;
+      const transform = `translate(${frameX}px, ${box.h - frameHeight}px)`;
+      const frameWidthStyle = `${frameWidth}px`, frameHeightStyle = `${frameHeight}px`;
+      const previous = touchPerformance ? paintedCardsRef.current.get(card) : undefined;
+      if (!previous || previous.transform !== transform) card.style.transform = transform;
+      if (!previous || previous.width !== frameWidthStyle) wrap.style.width = frameWidthStyle;
+      if (!previous || previous.height !== frameHeightStyle) wrap.style.height = frameHeightStyle;
       const shown = frameWidth > 24 && frameX < box.w && frameX + frameWidth > 0;
+      if (touchPerformance) {
+        // Keep only approaching frames promoted. Distant media still retain
+        // their original geometry and can return without rebuilding the strip.
+        const promoted = x < box.w + cardStep;
+        if (!previous || previous.promoted !== promoted) card.style.willChange = promoted ? 'transform' : 'auto';
+        if (previous) {
+          previous.transform=transform;previous.width=frameWidthStyle;previous.height=frameHeightStyle;previous.promoted=promoted;
+        }
+        else paintedCardsRef.current.set(card, {transform, width:frameWidthStyle, height:frameHeightStyle, promoted});
+      }
       if (wrap.tabIndex !== (shown ? 0 : -1)) wrap.tabIndex = shown ? 0 : -1;
       if (wrap.inert === shown) wrap.inert = !shown;
       // Fetch only approaching cards; keep decoded images when they loop around.
@@ -164,12 +186,19 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
     const viewport = viewportRef.current;
     if (!viewport || !images.length || !box.w || !box.h) return;
     const state = stateRef.current, loopWidth = images.length * cardStep;
+    if(touchPerformance)cardRefs.current.forEach(card=>{if(card)card.style.contain='layout style';});
     // Preserve the same image position when an orientation change resizes cards.
     const previousStep = Number(viewport.dataset.cardStep) || cardStep;
     state.current = state.current / previousStep * cardStep;
     state.target = state.target / previousStep * cardStep;
     viewport.dataset.cardStep = String(cardStep);
-    let visible = true, pointerId: number | null = null;
+    let visible = true, pointerId: number | null = null, captureSurface: HTMLElement | null = null;
+    const releaseTouchDrag = () => {
+      if(!touchPerformance)return;
+      const id=pointerId, surface=captureSurface;
+      pointerId=null;captureSurface=null;state.isDragging=false;state.velocity=0;
+      if(id!==null&&surface?.hasPointerCapture(id))surface.releasePointerCapture(id);
+    };
     const tick = () => {
       state.raf = 0;
       if (document.hidden || !visible) return;
@@ -207,13 +236,14 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       wake();
     };
     const onPointerDown = (event: PointerEvent) => {
-      if (!event.isPrimary || event.button !== 0) return;
+      if (!event.isPrimary || event.button !== 0 || (touchPerformance && state.isDragging)) return;
       pointerId = event.pointerId;
       state.isDragging = true; state.dragged = false; state.dragDistance = 0; state.velocity = 0;
       state.lastX = event.clientX; state.lastY = event.clientY;
       state.lastMove = performance.now();
       // Keep dragging attached to the image surface throughout the gesture.
-      (event.target as HTMLElement).setPointerCapture(event.pointerId);
+      captureSurface=event.target as HTMLElement;
+      captureSurface.setPointerCapture(event.pointerId);
       retryVideos();
     };
     const onPointerMove = (event: PointerEvent) => {
@@ -230,7 +260,10 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       if (!state.isDragging || event.pointerId !== pointerId) return;
       // A cancelled gesture or a held, stationary pointer has no fling velocity.
       if (event.type !== 'pointerup' || performance.now() - state.lastMove > 100) state.velocity = 0;
-      state.isDragging = false; pointerId = null; wake();
+      const id=pointerId, surface=captureSurface;
+      state.isDragging = false; pointerId = null; captureSurface=null;
+      if(touchPerformance&&id!==null&&surface?.hasPointerCapture(id))surface.releasePointerCapture(id);
+      wake();
     };
     const select = (index: number) => {
       // Invert the existing strip geometry to place this image in the largest
@@ -270,6 +303,7 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       if (document.hidden) {
         videoRefs.current.forEach(video => { if (video) setVideoPlaying(video, false); });
         cancelAnimationFrame(state.raf); state.raf = 0;
+        releaseTouchDrag();
         state.isDragging = false; pointerId = null; state.velocity = 0;
       } else wake();
     };
@@ -277,6 +311,7 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       visible = entries[0].isIntersecting;
       viewportVisibleRef.current = visible;
       if (visible) wake(); else {
+        releaseTouchDrag();
         videoRefs.current.forEach(video => { if (video) setVideoPlaying(video, false); });
         cancelAnimationFrame(state.raf); state.raf = 0;
       }
@@ -293,6 +328,7 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
     document.addEventListener('visibilitychange', syncVisibility);
     positionCards(state.current); wake();
     return () => {
+      releaseTouchDrag();
       cancelAnimationFrame(state.raf); state.raf = 0; state.isDragging = false;
       observer.disconnect();
       videoRefs.current.forEach(video => { if (video) setVideoPlaying(video, false); });

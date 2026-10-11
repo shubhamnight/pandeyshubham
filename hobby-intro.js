@@ -1,6 +1,7 @@
 // Scroll positioning is shared by the four existing model canvases.
 import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition, advanceProgress, clampMotionProgress as clamp } from './hobby-motion-clock.js';
 import { sceneMotion, observeScene, setModelProgress } from './skills-hobbies-scene.js';
+import { touchPerformance, layoutCenter, watchInputs } from './touch-performance.js';
 const section=document.querySelector('#projects');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const listeners=new Set();
@@ -42,9 +43,16 @@ function draw(dt,paused){
         center.showing=showing;modelStateChanged=true;element.classList.toggle('scene-model-visible',showing);
       }
       const opacity=clamp(arrival*8).toFixed(3);
-      if(center.opacity!==opacity){center.opacity=opacity;element.style.setProperty('--scene-model-opacity',opacity);}
+      if(center.opacity!==opacity){
+        center.opacity=opacity;
+        if(touchPerformance)element.style.opacity=opacity;
+        else element.style.setProperty('--scene-model-opacity',opacity);
+      }
     }else if(center.showing!==true){
       center.showing=true;modelStateChanged=true;element.classList.remove('scene-model-visible');element.style.removeProperty('--scene-model-opacity');
+    }
+    if(touchPerformance&&!sceneMotion.enabled&&center.opacity!==null){
+      center.opacity=null;element.style.removeProperty('opacity');
     }
     const modelVisible=visible&&center.showing;
     if(motion.visible!==modelVisible){motion.visible=modelVisible;modelStateChanged=true;}
@@ -107,20 +115,22 @@ function tick(time){
   const target=sceneMotion.enabled?sceneMotion.spread:clamp((innerHeight*(.05+travelSpan)-top)/(innerHeight*travelSpan));
   if(measure){
     const elements=[...section.querySelectorAll('.hobby-orbit-center')];
-    // Clear all transforms first, then batch the measurements to avoid four
-    // alternating layout writes and reads.
-    elements.forEach(element=>{element.style.translate='none';element.introTranslate=null;});
+    const layoutCenters=touchPerformance?elements.map(element=>layoutCenter(element,section,bounds)):null;
+    const useLayoutCenters=layoutCenters?.every(Boolean);
+    // Touch layouts with an unrotated parent can subtract the live translation
+    // without a write/read layout flush. Keep the original fallback otherwise.
+    if(!useLayoutCenters)elements.forEach(element=>{element.style.translate='none';element.introTranslate=null;});
     const width=section.clientWidth,height=section.clientHeight;
     centerX=width/2;centerY=height/2;
     radius=Math.min(width*.28,height*.28,250);
     centers=elements.map((element,index)=>{
-      const rect=element.getBoundingClientRect();
+      const rect=useLayoutCenters?null:element.getBoundingClientRect();
       const button=element.querySelector('button');
       let motion=hobbyIntro.motion.get(button);
       if(!motion){motion={pitch:0,yaw:0,roll:0,heading:0,speed:0};hobbyIntro.motion.set(button,motion);}
       return {element,button,motion,tracking:false,
-        homeX:(rect.left-bounds.left+rect.width/2)*width/Math.max(1,bounds.width),
-        homeY:(rect.top-bounds.top+rect.height/2)*height/Math.max(1,bounds.height),
+        homeX:useLayoutCenters?layoutCenters[index].x:(rect.left-bounds.left+rect.width/2)*width/Math.max(1,bounds.width),
+        homeY:useLayoutCenters?layoutCenters[index].y:(rect.top-bounds.top+rect.height/2)*height/Math.max(1,bounds.height),
         angle:[-3,-1,3,1][index]*Math.PI/4};
     });
     measure=false;
@@ -173,13 +183,15 @@ if(section){
   const readiness=new MutationObserver(records=>{if(records.some(record=>buttons.has(record.target)))readyChanged();});
   readiness.observe(section,{subtree:true,attributes:true,attributeFilter:['class','data-hobby-compiling','data-hobby-model-failed']});
   readyChanged();
-  const unobserveScene=observeScene(()=>{
+  const sceneChanged=()=>{
     const next=sceneMotion.enabled&&sceneMotion.modelEntry>0;
     // The hero's entry scale/rotation has finished by this point. Measure the
     // resting positions once here, rather than retaining its early visual bounds.
     if(next&&!atHandoff){measure=true;boundsDirty=true;}
     atHandoff=next;wake();
-  });
+  };
+  const unobserveScene=observeScene(touchPerformance?watchInputs(sceneMotion,
+    ['enabled','visible','modelEntry','spread','skillExit','stageHeight','outletX','outletY','top'],sceneChanged):sceneChanged);
   window.addEventListener('scroll',onScroll,{passive:true});
   window.addEventListener('resize',onResize,{passive:true});
   const resize=new ResizeObserver(onResize);resize.observe(section);

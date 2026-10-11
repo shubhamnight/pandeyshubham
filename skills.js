@@ -1,6 +1,7 @@
 // All skill holders share the hobby page's ordered animation clock.
 import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition, advanceProgress } from './hobby-motion-clock.js';
 import { sceneMotion, observeScene, setSkillExit } from './skills-hobbies-scene.js';
+import { touchPerformance, watchInputs } from './touch-performance.js';
 
 const section = document.querySelector('#about');
 const stage = section?.querySelector('.skills-orbit-stage');
@@ -306,11 +307,14 @@ if (slots.length) {
       .catch(error=>console.error('Shiny skill icons could not load; keeping the native icons.',error));
   },{rootMargin:'350px 0px'});
   iconObserver.observe(section);
-  const unobserveScene = observeScene(wake);
+  const unobserveScene = observeScene(touchPerformance ? watchInputs(sceneMotion,
+    ['enabled','visible','exit','modelArrival','stageHeight','top'],wake) : wake);
   const pointerOver = event => {
+    if (touchPerformance && event.pointerType==='touch') return;
     if (event.target.closest('.skills-orbit-disc')) pointerEnter();
   };
   const pointerOut = event => {
+    if (touchPerformance && event.pointerType==='touch') return;
     if (!event.relatedTarget?.closest?.('.skills-orbit-disc')) pointerLeave();
   };
   stage.addEventListener('pointerover', pointerOver);

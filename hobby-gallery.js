@@ -1,3 +1,4 @@
+import { touchPerformance } from './touch-performance.js';
 export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={}) {
   let saved=null;
   const content=gallery.querySelector('.hobby-gallery-content');
@@ -52,6 +53,11 @@ export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={
     return event.target===gallery&&(event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom);
   };
   gallery.addEventListener('pointerdown',event=>{backdropDown=outside(event);},eventOptions);
+  if(touchPerformance)gallery.addEventListener('touchmove',event=>{
+    // A backdrop swipe must not move the document behind its paused dialog.
+    // Events from the gallery's own scrollers keep their native touch behavior.
+    if(event.target===gallery&&event.cancelable)event.preventDefault();
+  },{...eventOptions,passive:false});
   gallery.addEventListener('click',event=>{if(backdropDown&&outside(event))close();backdropDown=false;},eventOptions);
   gallery.addEventListener('close',()=>{
     watchedVideos.forEach(video=>video.pause());

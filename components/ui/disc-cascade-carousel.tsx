@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { ArrowLeft, ArrowRight, ChevronDown } from 'lucide-react'
+import { touchPerformance } from '../../touch-performance.js'
 
 /**
  * Disc Cascade Carousel — a film catalogue told in discs. Each title is a
@@ -600,7 +601,8 @@ const DiscFace = React.memo(function DiscFace({ item, i, uid, brand, display, ea
         <span className="dcc-roll">
           <span className="dcc-idle" style={{ fontFamily: display }}>
             {item.src ? (
-              <img src={item.src} alt={item.alt ?? item.title} draggable={false}
+              <img src={touchPerformance ? undefined : item.src} data-disc-src={touchPerformance ? item.src : undefined}
+                alt={item.alt ?? item.title} draggable={false}
                 loading={eager ? "eager" : "lazy"} decoding="async" width={600} height={600}
                 style={{ maxWidth: "none" }} />
             ) : (
@@ -721,10 +723,24 @@ export default function DiscCascadeCarousel({
     }
   }
 
+  const warmArtwork = (i: number) => {
+    if (!touchPerformance) return
+    const image = slideRefs.current[i]?.querySelector('img')
+    const source = image?.dataset.discSrc
+    if (image && source && !image.hasAttribute('src')) {
+      image.loading = 'eager'
+      image.src = source
+    }
+  }
+
   const paint = () => {
     for (let i = 0; i < slideRefs.current.length; i++) {
       const el = slideRefs.current[i]
       if (!el) continue
+      // Lazy-loading distance is unreliable for hidden, transformed discs:
+      // several mobile engines see all 28 images at the same initial position.
+      // Warm the unchanged covers well before they enter the visible fan.
+      if (touchPerformance && Math.abs(offsetOf(i, E.a, cfg.current.n, cfg.current.loop)) <= 6) warmArtwork(i)
       const t = styleFor(i, E.a, E.b)
       // Replaced nodes need a complete first paint even if their pose matches.
       const last = paintedNodes.current[i] === el ? painted.current[i] : undefined
@@ -807,6 +823,13 @@ export default function DiscCascadeCarousel({
     const c = cfg.current
     if (!c.n) return
     E.target = c.loop ? t : Math.min(Math.max(t, 0), c.n - 1)
+    if (touchPerformance) {
+      const low=Math.min(E.a,E.target)-6, high=Math.max(E.a,E.target)+6
+      for(let i=0;i<c.n;i++){
+        const at=targetFor(i,E.a,c.n,c.loop)
+        if(at>=low&&at<=high)warmArtwork(i)
+      }
+    }
     const i = indexAt(E.target, c.n, c.loop)
     announce(i)
     kick()

@@ -2,6 +2,7 @@
 import { hobbyIntro, observeHobbyIntro } from './hobby-intro.js';
 import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
 import { batchRigidModel } from './hobby-model-batching.js';
+import { touchPerformance } from './touch-performance.js';
 const active = new Set();
 let frame = 0;
 function tick(time) {
@@ -24,6 +25,11 @@ const deferredObservers=new Set();
 let building = false,buildFrame=0,idleBuild=0,buildTimeout=0,buildDisposed=false;
 function scheduleBuild() {
   if (building || buildDisposed || !buildQueue.length || document.hidden) return;
+  // Geometry construction and shader warm-up otherwise compete with the ID
+  // entrance on slower touch devices. Its existing completion event resumes
+  // preparation; scrolling away permits preparation immediately.
+  if(touchPerformance&&document.body.classList.contains('badge-entering')&&
+    !document.querySelector('#home')?.classList.contains('hero-covered'))return;
   building = true;
   buildFrame=requestAnimationFrame(() => {
     buildFrame=0;
@@ -39,6 +45,10 @@ function scheduleBuild() {
   });
 }
 document.addEventListener('visibilitychange',scheduleBuild);
+if(touchPerformance){
+  document.querySelector('.badge-rig')?.addEventListener('badge-entrance-complete',scheduleBuild);
+  window.addEventListener('scroll',scheduleBuild,{passive:true});
+}
 window.addEventListener('pagehide',event=>{
   if(event.persisted)return;
   buildDisposed=true;cancelAnimationFrame(buildFrame);
@@ -46,6 +56,10 @@ window.addEventListener('pagehide',event=>{
   clearTimeout(buildTimeout);buildQueue.length=0;
   deferredObservers.forEach(observer=>observer.disconnect());deferredObservers.clear();
   document.removeEventListener('visibilitychange',scheduleBuild);
+  if(touchPerformance){
+    document.querySelector('.badge-rig')?.removeEventListener('badge-entrance-complete',scheduleBuild);
+    window.removeEventListener('scroll',scheduleBuild);
+  }
 });
 export function deferHobbyModel(button,build) {
   const observer=new IntersectionObserver(entries=>{
