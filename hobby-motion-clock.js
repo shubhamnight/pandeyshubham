@@ -1,18 +1,29 @@
 // One ordered animation frame: scroll, models' positions, arcs, video, WebGL.
+import { touchPerformance } from './touch-performance.js';
 const callbacks=new Map();
+// Reuse mobile callback records without retaining disposed gallery callbacks.
+const reusable=touchPerformance?new WeakMap():null;
 let ordered=[],frame=0,ticking=false,smoothPosition=null,orderDirty=false,activeCount=0;
 const removed=new Set();
 function prune(){
   if(!removed.size)return;
   for(const entry of removed)callbacks.delete(entry.callback);
-  ordered=ordered.filter(entry=>entry.active);
+  if(touchPerformance){
+    let count=0;
+    for(const entry of ordered)if(entry.active)ordered[count++]=entry;
+    ordered.length=count;
+  }else ordered=ordered.filter(entry=>entry.active);
   removed.clear();
 }
 function tick(time){
   frame=0;ticking=true;
   // A callback can cancel and schedule itself without rebuilding the order.
   // New callbacks still join on the next frame, in their requested priority.
-  if(orderDirty){ordered=[...callbacks.values()].sort((a,b)=>a.priority-b.priority);orderDirty=false;}
+  if(orderDirty){
+    if(touchPerformance){ordered.length=0;for(const entry of callbacks.values())ordered.push(entry);ordered.sort((a,b)=>a.priority-b.priority);}
+    else ordered=[...callbacks.values()].sort((a,b)=>a.priority-b.priority);
+    orderDirty=false;
+  }
   const current=ordered;
   try{
     for(const entry of current)if(entry.active){
@@ -24,7 +35,9 @@ function tick(time){
 export function requestHobbyFrame(callback,priority=30){
   let entry=callbacks.get(callback);
   if(!entry){
-    entry={callback,priority,active:true};callbacks.set(callback,entry);activeCount++;orderDirty=true;
+    entry=reusable?.get(callback)||{callback,priority,active:true};
+    entry.priority=priority;entry.active=true;
+    reusable?.set(callback,entry);callbacks.set(callback,entry);activeCount++;orderDirty=true;
   }else if(!entry.active){
     entry.active=true;activeCount++;removed.delete(entry);
     if(entry.priority!==priority){entry.priority=priority;orderDirty=true;}

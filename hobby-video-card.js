@@ -1,6 +1,7 @@
 // Composite decoded frames into the card itself. Native video overlays can
 // round their position separately from a card moving at fractional pixels.
 import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
+import { touchPerformance } from './touch-performance.js';
 const liveCards=new Set();
 const pendingPaints=new Set();
 let paintFrame=0;
@@ -22,7 +23,13 @@ function cardResolution(canvas){
     (innerWidth<=900?Math.max(79.2,Math.min(132,innerWidth*.228)):Math.max(132,Math.min(211.2,innerWidth*.156)));
   return Math.ceil(Math.min(536,width*1.265*Math.min(devicePixelRatio||1,2))/4)*4;
 }
-window.addEventListener('resize',()=>{for(const player of liveCards)player.resize();},{passive:true});
+window.addEventListener('resize',()=>{
+  if(touchPerformance){
+    // Read every placeholder size before resizing any canvas backing store.
+    const sizes=[...liveCards].map(player=>[player,player.measure()]);
+    for(const [player,size] of sizes)player.resize(size);
+  }else for(const player of liveCards)player.resize();
+},{passive:true});
 window.addEventListener('pagehide',event=>{
   for(const player of [...liveCards])if(event.persisted)player.pause();else player.dispose();
 });
@@ -74,9 +81,10 @@ export function createVideoCard(item) {
     callback=null;
   }
   canvas.videoPlayback={
-    resize(){
+    measure(){return cardResolution(canvas);},
+    resize(measuredSize){
       if(disposed)return;
-      const size=cardResolution(canvas);if(canvas.width===size)return;
+      const size=measuredSize??cardResolution(canvas);if(canvas.width===size)return;
       canvas.width=size;canvas.height=size*3/4;context.imageSmoothingQuality='high';
       if(video.readyState>=2)paint(video,video.videoWidth,video.videoHeight);
       else if(poster.complete)paint(poster,poster.naturalWidth,poster.naturalHeight);

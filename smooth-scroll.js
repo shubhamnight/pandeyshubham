@@ -1,6 +1,7 @@
 import Lenis from './node_modules/lenis/dist/lenis.mjs';
 import { requestHobbyFrame, cancelHobbyFrame, setSmoothPosition, getSmoothPosition } from './hobby-motion-clock.js';
 import { sceneAnchorPosition, sceneMotion } from './skills-hobbies-scene.js';
+import { touchPerformance } from './touch-performance.js';
 
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const navigation=document.querySelector('.floating-nav');
@@ -12,6 +13,33 @@ let lenis=null,frame=0,locked=false,disposed=false;
 let navigationFrame=0,geometryDirty=true,destinations=[],currentLink=null;
 let activeNavigation=null,navigationSequence=0,deferredHash=location.hash||null;
 let introHomePending=document.body.classList.contains('intro-active');
+let viewportWidth=innerWidth,rotationFrame=0,rotationAdvance=null;
+
+function restoreScenePosition(){
+  cancelHobbyFrame(restoreScenePosition);rotationFrame=0;
+  const advance=rotationAdvance;rotationAdvance=null;
+  if(advance===null||disposed||locked||activeNavigation||document.hidden||!sceneMotion.enabled)return;
+  // Preserve the current timeline position through phone/tablet rotation.
+  // Read the new layout before the scene and holders draw their next frame.
+  const top=sceneMotion.element.getBoundingClientRect().top+window.scrollY;
+  const height=Math.max(1,sceneMotion.viewport.offsetHeight);
+  const target=top+advance*height;
+  if(lenis){lenis.resize();lenis.scrollTo(target,{immediate:true});setSmoothPosition(lenis.animatedScroll);}
+  else{window.scrollTo({top:target,behavior:'instant'});setSmoothPosition(window.scrollY);}
+  queueNavigation();
+}
+function viewportResized(){
+  const width=innerWidth,changedWidth=Math.abs(width-viewportWidth)>2;
+  viewportWidth=width;
+  if(touchPerformance&&changedWidth&&!locked&&!activeNavigation&&sceneMotion.enabled&&sceneMotion.visible){
+    const local=getSmoothPosition()-sceneMotion.top;
+    if(local>=0&&local<sceneMotion.height){
+      rotationAdvance??=local/Math.max(1,sceneMotion.stageHeight);
+      if(!rotationFrame)rotationFrame=requestHobbyFrame(restoreScenePosition,13);
+    }
+  }
+  geometryChanged();
+}
 
 function cancel(){cancelHobbyFrame(tick);frame=0;}
 function tick(time){
@@ -172,13 +200,14 @@ document.addEventListener('pointerdown',cancelNavigation,{passive:true});
 document.addEventListener('keydown',keyboardInput);
 window.addEventListener('hashchange',hashChanged);
 window.addEventListener('scroll',queueNavigation,{passive:true});
-window.addEventListener('resize',geometryChanged,{passive:true});
+window.addEventListener('resize',viewportResized,{passive:true});
 window.addEventListener('load',geometryChanged,{once:true});
 reduced.addEventListener('change',setup);
 document.fonts?.ready.then(geometryChanged);
 function pageShow(event){if(event.persisted){geometryChanged();sync();wake();}}
 window.addEventListener('pageshow',pageShow);
 window.addEventListener('pagehide',event=>{
+  cancelHobbyFrame(restoreScenePosition);rotationFrame=0;rotationAdvance=null;
   cancelNavigation();cancel();cancelHobbyFrame(updateNavigation);navigationFrame=0;
   if(event.persisted)return;
   disposed=true;bodyObserver.disconnect();dialogObserver.disconnect();resizeObserver.disconnect();
@@ -188,7 +217,7 @@ window.addEventListener('pagehide',event=>{
   document.removeEventListener('pointerdown',cancelNavigation);
   document.removeEventListener('keydown',keyboardInput);
   window.removeEventListener('hashchange',hashChanged);
-  window.removeEventListener('scroll',queueNavigation);window.removeEventListener('resize',geometryChanged);
+  window.removeEventListener('scroll',queueNavigation);window.removeEventListener('resize',viewportResized);
   window.removeEventListener('load',geometryChanged);window.removeEventListener('pageshow',pageShow);
   reduced.removeEventListener('change',setup);
 });

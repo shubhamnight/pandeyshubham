@@ -154,7 +154,9 @@ function requestBadgeFrame(){
 }
 function queueBadgePointer(event){
   // No work for pointer movement far from the rig once its spring has settled.
-  const pointer=badgeBoundsDirty?null:badgePointer(event.clientX,event.clientY);
+  // A captured touch drag is mapped once by the next animation frame. It
+  // does not need a second coordinate conversion for the hover bounds guard.
+  const pointer=badgeBoundsDirty||(touchBadge&&(frame||dragging||hoveringBadge))?null:badgePointer(event.clientX,event.clientY);
   if(!frame&&!dragging&&!hoveringBadge&&!badgeBoundsDirty&&
     (pointer.x<bounds.left-bounds.width*.6||pointer.x>bounds.left+bounds.width*1.6||
       pointer.y<bounds.top-bounds.strapLength||pointer.y>bounds.top+bounds.height*1.25))return;

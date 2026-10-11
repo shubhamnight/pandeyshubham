@@ -1,4 +1,5 @@
 import { requestHobbyFrame, cancelHobbyFrame, advanceProgress } from './hobby-motion-clock.js';
+import { touchPerformance } from './touch-performance.js';
 (() => {
   const section=document.querySelector('#projects');
   if(!section)return;
@@ -59,6 +60,12 @@ import { requestHobbyFrame, cancelHobbyFrame, advanceProgress } from './hobby-mo
         // once on exit so intersection observers can pause the hidden video.
         const pad=64;
         const outside=raw<0||x+tileWidth*1.133+pad<0||x-tileWidth*.133-pad>pageWidth||y+tileHeight*1.133+pad<0||y-tileHeight*.133-pad>pageHeight;
+        if(touchPerformance){
+          // Keep the same offscreen margin, but do not reserve mobile GPU
+          // layers for cards that have already left the visible path.
+          const promotion=running&&!outside?'transform':'auto';
+          if(slot.arcPromotion!==promotion){slot.arcPromotion=promotion;slot.style.willChange=promotion;}
+        }
         if(!outside||!slot.arcOutside){
           const transform=`translate3d(${x.toFixed(3)}px,${y.toFixed(3)}px,0)`;
           if(slot.arcTransform!==transform){slot.arcTransform=transform;slot.style.transform=transform;}
@@ -114,6 +121,10 @@ import { requestHobbyFrame, cancelHobbyFrame, advanceProgress } from './hobby-mo
     if(section.classList.contains('orbits-running')!==shouldRun)section.classList.toggle('orbits-running',shouldRun);
     if(shouldRun===running)return;
     running=shouldRun;lastTime=null;
+    if(touchPerformance)for(const {slots} of streams)for(const slot of slots){
+      const promotion=running&&!slot.arcOutside?'transform':'auto';
+      if(slot.arcPromotion!==promotion){slot.arcPromotion=promotion;slot.style.willChange=promotion;}
+    }
     if(running)frame=requestHobbyFrame(tick,30);
     else {cancelHobbyFrame(tick);frame=0;}
   }

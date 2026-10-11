@@ -1,6 +1,8 @@
 import { createRoot } from 'react-dom/client';
-import type { CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
+import { useLayoutEffect, type CSSProperties, type ReactNode } from 'react';
 import FancyButton from '@/components/ui/shiny-button';
+import { touchPerformance } from '../touch-performance.js';
 
 // Match the colors in the local SVGs, including both hues for multicolor logos.
 const glowColors: Record<string, readonly [string, string]> = {
@@ -20,6 +22,13 @@ const glowColors: Record<string, readonly [string, string]> = {
   'Problem solving': ['167, 139, 250', '167, 139, 250'],
 };
 
+function MobileSkillMount({image,children}:{image:HTMLImageElement;children:ReactNode}){
+  // Portals preserve unrelated DOM. Remove the native fallback in the same
+  // commit that installs its button, retaining it until that commit.
+  useLayoutEffect(()=>{image.remove();},[image]);
+  return children;
+}
+
 /** Keep the native orbit holders and tooltip nodes; replace only their icon contents. */
 export async function mountSkillsIcons(section: HTMLElement) {
   const stylesheet = document.createElement('link');
@@ -33,6 +42,7 @@ export async function mountSkillsIcons(section: HTMLElement) {
     document.head.append(stylesheet);
   });
   const roots: ReturnType<typeof createRoot>[] = [];
+  const portals: ReturnType<typeof createPortal>[] = [];
   section.querySelectorAll<HTMLElement>('.skills-orbit-disc').forEach(disc => {
     const mount = disc.querySelector<HTMLElement>('.skills-orbit-symbol');
     const image = mount?.querySelector('img');
@@ -43,16 +53,24 @@ export async function mountSkillsIcons(section: HTMLElement) {
     const [glow, secondaryGlow] = glowColors[name] ?? ['231, 235, 240', '231, 235, 240'];
     mount.removeAttribute('aria-hidden');
     disc.removeAttribute('role'); disc.removeAttribute('tabindex');
-    const root = createRoot(mount);
-    root.render(<FancyButton className="skill-shiny-button" ariaLabel={name}
+    const button = <FancyButton className="skill-shiny-button" ariaLabel={name}
       autoFocus={autoFocus} style={{
         '--skill-glow': glow,
         '--skill-glow-secondary': secondaryGlow,
       } as CSSProperties} icon={
         <img className="skill-logo" src={src} width={28} height={28} alt="" aria-hidden="true"
           decoding="async" draggable={false} />
-      } />);
-    roots.push(root);
+      } />;
+    if(touchPerformance)portals.push(createPortal(<MobileSkillMount image={image}>{button}</MobileSkillMount>,mount,name));
+    else{
+      const root=createRoot(mount);root.render(button);roots.push(root);
+    }
   });
+  if(portals.length){
+    // One mobile commit mounts the same buttons in their existing holders.
+    // The fragment creates no additional element or layout in the website.
+    const root=createRoot(document.createDocumentFragment());
+    root.render(<>{portals}</>);roots.push(root);
+  }
   return () => { roots.forEach(root => root.unmount()); stylesheet.remove(); };
 }
