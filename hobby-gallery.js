@@ -29,7 +29,12 @@ export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={
     if(gallery.open)return;
     warm();
     fill?.(gallery);
-    saved={overflow:document.body.style.overflow,padding:document.body.style.paddingRight};
+    const scene=button.closest('.skills-hobbies-scene.scene-pinned');
+    const viewport=scene?.querySelector('.skills-hobbies-viewport');
+    const top=scene?scene.getBoundingClientRect().top+window.scrollY:0;
+    const height=viewport?.offsetHeight||0;
+    saved={overflow:document.body.style.overflow,padding:document.body.style.paddingRight,
+      scene,viewport,top,height,advance:height?(window.scrollY-top)/height:0};
     const gutter=window.innerWidth-document.documentElement.clientWidth;
     const padding=parseFloat(getComputedStyle(document.body).paddingRight)||0;
     gallery.showModal();
@@ -50,7 +55,19 @@ export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={
   gallery.addEventListener('click',event=>{if(backdropDown&&outside(event))close();backdropDown=false;},eventOptions);
   gallery.addEventListener('close',()=>{
     watchedVideos.forEach(video=>video.pause());
-    if(saved){document.body.style.overflow=saved.overflow;document.body.style.paddingRight=saved.padding;saved=null;}
+    if(saved){
+      document.body.style.overflow=saved.overflow;document.body.style.paddingRight=saved.padding;
+      // A phone rotation or window resize can change the pinned timeline while
+      // its dialog is open. Restore the same point, rather than an old pixel Y.
+      if(saved.scene?.classList.contains('scene-pinned')&&saved.height&&saved.advance>=0){
+        const top=saved.scene.getBoundingClientRect().top+window.scrollY;
+        const height=saved.viewport.offsetHeight;
+        if(Math.abs(top-saved.top)>.5||Math.abs(height-saved.height)>.5){
+          window.scrollTo({top:top+saved.advance*height,behavior:'instant'});
+        }
+      }
+      saved=null;
+    }
     document.body.classList.remove('photography-gallery-open');
     button.focus({preventScroll:true});
   },eventOptions);

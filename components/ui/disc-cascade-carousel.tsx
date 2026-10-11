@@ -269,6 +269,7 @@ export function textWidth(chars: number, fs: number): number {
 // #endregion
 
 const PATTERNS: DiscPattern[] = ["horizon", "mosaic", "eclipse", "sunburst", "halftone", "rings", "stripes"]
+const HIDDEN_POSE = { transform: '', roll: '', glint: '', zIndex: 0, opacity: 0, hidden: true }
 const PALETTES: [string, string, string][] = [
   ["#1b1d1f", "#3f6b3a", "#c9d6c4"],
   ["#f2e3c6", "#d2452b", "#2a5d8f"],
@@ -672,6 +673,7 @@ export default function DiscCascadeCarousel({
   const stageRef = React.useRef(null as HTMLDivElement | null)
   const menuRef = React.useRef(null as HTMLDivElement | null)
   const slideRefs = React.useRef([] as (HTMLButtonElement | null)[])
+  const paintedNodes = React.useRef([] as (HTMLButtonElement | null)[])
   const painted = React.useRef([] as ({ transform: string; roll: string; glint: string; zIndex: number; opacity: number; hidden: boolean } | undefined)[])
   const spring = React.useMemo(() => springOf(bounce, duration), [bounce, duration])
 
@@ -704,7 +706,7 @@ export default function DiscCascadeCarousel({
     const d = offsetOf(i, b, c.n, c.loop)
     // Cull before constructing transforms or allocating strings for invisible discs.
     if (dx < -4 || dx > 2.8 || d <= -3.7) {
-      return { transform: "", roll: "", glint: "", zIndex: 0, opacity: 0, hidden: true }
+      return HIDDEN_POSE
     }
     const p = poseOf(dx, d, c)
     return {
@@ -724,7 +726,9 @@ export default function DiscCascadeCarousel({
       const el = slideRefs.current[i]
       if (!el) continue
       const t = styleFor(i, E.a, E.b)
-      const last = painted.current[i]
+      // Replaced nodes need a complete first paint even if their pose matches.
+      const last = paintedNodes.current[i] === el ? painted.current[i] : undefined
+      paintedNodes.current[i] = el
       if (t.hidden) {
         if (el.dataset.hidden !== 'true') {
           el.style.visibility = 'hidden'
@@ -813,7 +817,6 @@ export default function DiscCascadeCarousel({
 
   // React updates active semantics; the frame engine owns transforms between renders.
   React.useLayoutEffect(() => {
-    painted.current = []
     paint()
   })
 
@@ -1202,7 +1205,6 @@ export default function DiscCascadeCarousel({
 
       <div ref={stageRef} className="dcc-stage">
         {items.map((item, i) => {
-          const t = styleFor(i, E.a, E.b)
           const isActive = i === active
           const id = uid + "d" + i
           return (
@@ -1214,23 +1216,14 @@ export default function DiscCascadeCarousel({
               type="button"
               className="dcc-slide"
               data-active={isActive ? "" : undefined}
-              data-hidden={t.hidden ? 'true' : 'false'}
               tabIndex={isActive ? 0 : -1}
               aria-roledescription="slide"
               aria-label={i + 1 + " of " + n + ": " + item.title}
               aria-current={isActive ? "true" : undefined}
               onClick={() => onSlideClick(i)}
-              style={
-                {
-                  transform: t.transform,
-                  zIndex: t.zIndex,
-                  opacity: t.opacity < 1 ? t.opacity : undefined,
-                  visibility: t.hidden ? "hidden" : undefined,
-                  willChange: t.hidden ? 'auto' : 'transform',
-                  ["--dcc-roll" as string]: t.roll,
-                  ["--dcc-glint" as string]: t.glint,
-                } as React.CSSProperties
-              }
+              // The layout effect paints before display. React keeps only the
+              // initial hidden pose; the frame engine exclusively owns motion.
+              style={{ visibility: 'hidden', willChange: 'auto' }}
             >
               <DiscFace item={item} i={i} uid={id} brand={brand} display={display}
                 eager={Math.abs(offsetOf(i, start, n, loop)) <= 3} />

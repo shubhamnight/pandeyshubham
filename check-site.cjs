@@ -38,6 +38,27 @@ for (const folder of ['.', 'dist']) {
   check(sitemap.includes('<loc>' + config.siteUrl + '</loc>') && (sitemap.match(/<loc>/g) || []).length === 1, folder + ': only canonical document in sitemap');
   check(fs.readFileSync(path.join(__dirname, folder, 'robots.txt'), 'utf8').includes(config.siteUrl + 'sitemap.xml'), folder + ': sitemap discoverable');
   check(fs.readFileSync(path.join(__dirname, folder, '404.html'), 'utf8').includes('noindex, follow'), folder + ': error page not indexable');
+  const uiRoot = path.join(__dirname, folder, 'assets/ui');
+  const inspectModule = (file, seen = new Set()) => {
+    if (seen.has(file)) return seen;
+    check(fs.existsSync(file), folder + ': lazy UI dependency exists: ' + path.relative(uiRoot, file));
+    seen.add(file);
+    const code = fs.readFileSync(file, 'utf8');
+    check(transformSync(code, { loader: 'js', logLevel: 'silent' }).warnings.length === 0,
+      folder + ': lazy UI module parses: ' + path.relative(uiRoot, file));
+    for (const match of code.matchAll(/(?:from|import)\s*["'](\.[^"']+\.js)["']/g)) {
+      inspectModule(path.resolve(path.dirname(file), match[1]), seen);
+    }
+    return seen;
+  };
+  const uiEntries = ['photography-carousel', 'connect-page', 'gaming-overlay', 'travel-overlay', 'music-overlay', 'skills-icons'];
+  const graphs = uiEntries.map(name => inspectModule(path.join(uiRoot, name + '.js')));
+  check([...graphs[0]].some(file => file.includes(path.sep + 'chunks' + path.sep) && graphs.every(graph => graph.has(file))),
+    folder + ': all six UI entries reuse the same runtime chunk');
+  for (const name of ['offline-page', 'offline-batman']) {
+    check(inspectModule(path.join(uiRoot, name + '.js')).size === 1,
+      folder + ': offline module remains self-contained: ' + name);
+  }
 }
 check(metadata({ preview: true }).includes('noindex, follow'), 'Preview output excluded from indexing');
 check(metadata({ preview: true }).includes(config.siteUrl), 'Preview canonical still points to production');

@@ -6,7 +6,11 @@ const active = new Set();
 let frame = 0;
 function tick(time) {
   frame = 0;
-  for (const update of active) update(time);
+  for (const update of active) {
+    // One renderer failure must not cancel the shared clock for every model.
+    try { update(time); }
+    catch (error) { deactivate(update); console.error('Hobby model frame failed',error); }
+  }
   if (active.size) frame = requestHobbyFrame(tick,50);else cancelHobbyFrame(tick);
 }
 function activate(update) { active.add(update); if (!frame) frame=requestHobbyFrame(tick,50); }

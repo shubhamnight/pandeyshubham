@@ -8,7 +8,7 @@ window.startIntroCrowd = function(host) {
   if(!ctx) return ()=>{};
   const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   const img=new Image();
-  let frame=0,last=0,w=0,h=0,people=[],sprites=[],dead=false,loaded=false;
+  let frame=0,last=0,w=0,h=0,people=[],sprites=[],spriteBounds=[],dead=false,loaded=false;
   // The existing alpha repair is baked once by build-intro-crowd.cjs.
   const spriteRequest=new AbortController();
   const spriteManifest=fetch('assets/intro-crowd-sprites.json',{signal:spriteRequest.signal}).then(response=>{
@@ -18,12 +18,16 @@ window.startIntroCrowd = function(host) {
   async function prepareSprites() {
     const manifest=await spriteManifest;
     if(!manifest||dead)return;
-    for(const bounds of manifest.sprites){
-      const sprite=document.createElement('canvas');
-      sprite.width=bounds.width;sprite.height=bounds.height;
-      sprite.getContext('2d').drawImage(img,bounds.x,bounds.y,bounds.width,bounds.height,0,0,bounds.width,bounds.height);
-      sprites.push(sprite);
-    }
+    spriteBounds=manifest.sprites;
+    sprites.length=spriteBounds.length;
+  }
+  function spriteAt(index) {
+    if(sprites[index])return sprites[index];
+    const bounds=spriteBounds[index],sprite=document.createElement('canvas');
+    sprite.width=bounds.width;sprite.height=bounds.height;
+    sprite.getContext('2d').drawImage(img,bounds.x,bounds.y,bounds.width,bounds.height,0,0,bounds.width,bounds.height);
+    sprites[index]=sprite;
+    return sprite;
   }
   function size() {
     if(!loaded||dead) return;
@@ -36,7 +40,9 @@ window.startIntroCrowd = function(host) {
     const scale=Math.min(1,Math.max(.48,w/1400))*1.2;
     const count=Math.min(54,Math.max(20,Math.round(w/25)));
     people=Array.from({length:count},(_,index)=>{
-      const sprite=sprites[Math.floor(Math.random()*sprites.length)];
+      // Preserve the full selection pool and random sequence, but only retain
+      // decoded surfaces for the figures used by this crowd.
+      const sprite=spriteAt(Math.floor(Math.random()*sprites.length));
       const depth=index/count,height=sprite.height*scale*(.86+depth*.14);
       return {sprite,width:sprite.width*height/sprite.height,height,x:(index+.5)/count*w,y:h-height+24+depth*32,direction:Math.random()>.5?1:-1,speed:20+Math.random()*35,phase:Math.random()*Math.PI*2};
     });
@@ -67,7 +73,7 @@ window.startIntroCrowd = function(host) {
     dead=true;cancelAnimationFrame(frame);observer.disconnect();hostObserver.disconnect();spriteRequest.abort();
     document.removeEventListener('visibilitychange',visibility);reduce.removeEventListener('change',visibility);img.onload=null;
     // The crowd has finished; release its decoded sprite surfaces immediately.
-    people.length=0;for(const sprite of sprites)sprite.width=sprite.height=1;sprites.length=0;
+    people.length=0;for(const sprite of sprites)if(sprite)sprite.width=sprite.height=1;sprites.length=0;spriteBounds=[];
     // Keep the last painted crowd frame for the existing 400ms exit fade.
     img.removeAttribute('src');
   };

@@ -36,7 +36,13 @@ http.createServer((req,res) => {
   if(pathname === '/api/travel-locations' && process.env.SERVE_DIST !== '1') {
     const locationFile=path.join(root,'travel-locations.json');
     const reply=(status,value)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
-    if(req.method==='GET') {fs.readFile(locationFile,'utf8',(error,data)=>reply(200,error?{}:JSON.parse(data)));return;}
+    if(req.method==='GET') {
+      fs.readFile(locationFile,'utf8',(error,data)=>{
+        if(error){reply(200,{});return;}
+        try{reply(200,JSON.parse(data));}
+        catch{reply(500,{error:'Could not read saved travel locations'});}
+      });return;
+    }
     if(req.method!=='POST'){reply(405,{error:'Method not allowed'});return;}
     if(req.headers.origin && req.headers.origin!==`http://${req.headers.host}`){reply(403,{error:'Invalid origin'});return;}
     let body='';

@@ -32,7 +32,7 @@ if (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(locatio
   if ('BroadcastChannel' in window) {
     const channel = new BroadcastChannel('shub-media-library');
     channel.onmessage = event => update(event.data?.revision);
-    window.addEventListener('pagehide', event => { if (!event.persisted) channel.close(); }, { once: true });
+    window.addEventListener('pagehide', event => { if (!event.persisted) channel.close(); });
   }
   window.addEventListener('storage', event => { if (event.key === 'shub-media-revision') update(event.newValue); });
   window.addEventListener('pageshow', event => {

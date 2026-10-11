@@ -82,7 +82,7 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
   const [activeIndex, setActiveIndex] = useState(0);
   const announcedIndexRef = useRef(0);
   const stateRef = useRef({ current: 0, target: 0, raf: 0, isDragging: false,
-    lastX: 0, lastY: 0, velocity: 0, dragged: false, dragDistance: 0 });
+    lastX: 0, lastY: 0, lastMove: 0, velocity: 0, dragged: false, dragDistance: 0 });
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -179,11 +179,13 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       state.current = lerp(state.current, state.target,
         reduceMotion ? 1 : state.isDragging ? DRAG_LERP_FACTOR : LERP_FACTOR);
       const settled = Math.abs(state.current - state.target) < .01 &&
-        Math.abs(state.velocity) <= MIN_MOMENTUM && !state.isDragging;
+        (state.isDragging || Math.abs(state.velocity) <= MIN_MOMENTUM);
       if (settled) {
         state.current = state.target;
-        const shift = Math.round(state.current / loopWidth) * loopWidth;
-        state.current -= shift; state.target -= shift;
+        if (!state.isDragging) {
+          const shift = Math.round(state.current / loopWidth) * loopWidth;
+          state.current -= shift; state.target -= shift;
+        }
       }
       positionCards(state.current);
       if (!settled) state.raf = requestAnimationFrame(tick);
@@ -209,6 +211,7 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       pointerId = event.pointerId;
       state.isDragging = true; state.dragged = false; state.dragDistance = 0; state.velocity = 0;
       state.lastX = event.clientX; state.lastY = event.clientY;
+      state.lastMove = performance.now();
       // Keep dragging attached to the image surface throughout the gesture.
       (event.target as HTMLElement).setPointerCapture(event.pointerId);
       retryVideos();
@@ -220,9 +223,15 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       state.dragDistance += Math.abs(dx) + Math.abs(dy);
       if (state.dragDistance > 6) state.dragged = true;
       state.target += delta; state.velocity = lerp(state.velocity, delta, .5);
+      state.lastMove = performance.now();
       state.lastX = event.clientX; state.lastY = event.clientY; wake();
     };
-    const endDrag = () => { state.isDragging = false; pointerId = null; wake(); };
+    const endDrag = (event: PointerEvent) => {
+      if (!state.isDragging || event.pointerId !== pointerId) return;
+      // A cancelled gesture or a held, stationary pointer has no fling velocity.
+      if (event.type !== 'pointerup' || performance.now() - state.lastMove > 100) state.velocity = 0;
+      state.isDragging = false; pointerId = null; wake();
+    };
     const select = (index: number) => {
       // Invert the existing strip geometry to place this image in the largest
       // fully visible frame. Move within the nearest loop, preserving order.
