@@ -10,6 +10,7 @@
     "check": "node check-site.cjs",
     "check:media": "node check-media.cjs",
     "check:models": "node check-model-batching.mjs",
+    "check:animation-performance": "node check-animation-performance.mjs",
     "build:photography": "node build-photography-carousel.cjs && node build-shared-ui.cjs",
     "build:connect": "node build-connect.cjs && node build-shared-ui.cjs",
     "build:gaming": "node build-gaming-overlay.cjs && node build-shared-ui.cjs",

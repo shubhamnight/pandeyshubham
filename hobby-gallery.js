@@ -68,9 +68,13 @@ export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={
       if(saved.scene?.classList.contains('scene-pinned')&&saved.height&&saved.advance>=0){
         const top=saved.scene.getBoundingClientRect().top+window.scrollY;
         const height=saved.viewport.offsetHeight;
-        if(Math.abs(top-saved.top)>.5||Math.abs(height-saved.height)>.5){
-          window.scrollTo({top:top+saved.advance*height,behavior:'instant'});
-        }
+        const target=top+saved.advance*height;
+        if(Math.abs(window.scrollY-target)>.5)window.scrollTo({top:target,behavior:'instant'});
+        // The close event can arrive before or after a rapid second rotation.
+        // Publish the timeline point even if the layout already matches again.
+        window.dispatchEvent(new CustomEvent('portfolio-scroll-restored',{
+          detail:{target,advance:saved.advance},
+        }));
       }
       saved=null;
     }

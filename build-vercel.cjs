@@ -60,7 +60,10 @@ for (const name of [
   const content = fs.readFileSync(path.join(root, 'node_modules', name), 'utf8');
   fs.writeFileSync(target, transformSync(content, {
     loader: name.endsWith('.css') ? 'css' : 'js', target: 'es2020',
-    minifyWhitespace: true, minifySyntax: true, minifyIdentifiers: false, legalComments: 'eof',
+    // Vendor files are ES modules: their private identifiers do not share
+    // the classic scripts' global scope. Keep exported API/function names
+    // while reducing download, parse, and compile work for the same runtime.
+    minify: true, keepNames: true, legalComments: 'eof',
   }).code);
 }
 console.log('Vercel portfolio build ready: ' + dist);

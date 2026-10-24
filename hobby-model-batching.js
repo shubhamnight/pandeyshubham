@@ -28,8 +28,12 @@ export function batchRigidModel(model) {
   let after=before;
   for(const pieces of buckets.values()){
     if(pieces.length<2)continue;
+    // The merger can remap compatible index buffers itself. Expanding an
+    // entirely indexed bucket duplicates every shared vertex before upload.
+    // Mixed buckets retain the existing non-indexed path and draw grouping.
+    const indexed=pieces.every(({node})=>node.geometry.index!==null);
     const geometries=pieces.map(({node,matrix})=>{
-      const geometry=node.geometry.index?node.geometry.toNonIndexed():node.geometry.clone();
+      const geometry=!indexed&&node.geometry.index?node.geometry.toNonIndexed():node.geometry.clone();
       return geometry.applyMatrix4(matrix);
     });
     const geometry=mergeGeometries(geometries,false);

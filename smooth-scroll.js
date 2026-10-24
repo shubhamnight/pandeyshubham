@@ -14,6 +14,7 @@ let navigationFrame=0,geometryDirty=true,destinations=[],currentLink=null;
 let activeNavigation=null,navigationSequence=0,deferredHash=location.hash||null;
 let introHomePending=document.body.classList.contains('intro-active');
 let viewportWidth=innerWidth,rotationFrame=0,rotationAdvance=null;
+let restoredSceneAdvance=null;
 
 function restoreScenePosition(){
   cancelHobbyFrame(restoreScenePosition);rotationFrame=0;
@@ -34,7 +35,8 @@ function viewportResized(){
   if(touchPerformance&&changedWidth&&!locked&&!activeNavigation&&sceneMotion.enabled&&sceneMotion.visible){
     const local=getSmoothPosition()-sceneMotion.top;
     if(local>=0&&local<sceneMotion.height){
-      rotationAdvance??=local/Math.max(1,sceneMotion.stageHeight);
+      rotationAdvance??=restoredSceneAdvance??local/Math.max(1,sceneMotion.stageHeight);
+      restoredSceneAdvance=null;
       if(!rotationFrame)rotationFrame=requestHobbyFrame(restoreScenePosition,13);
     }
   }
@@ -97,7 +99,23 @@ function queueNavigation(){
   if(!navigationFrame&&!disposed&&!document.hidden)navigationFrame=requestHobbyFrame(updateNavigation,11);
 }
 function geometryChanged(){geometryDirty=true;queueNavigation();}
+function restoredPosition(event){
+  const {target,advance}=event.detail||{};
+  if(disposed||!Number.isFinite(target)||!Number.isFinite(advance))return;
+  // A dialog may restore native scroll while Lenis is stopped. Synchronize
+  // both coordinates now instead of waiting for a later native scroll event.
+  if(lenis){
+    lenis.resize();lenis.scrollTo(target,{immediate:true,force:true});
+    setSmoothPosition(lenis.animatedScroll);
+  }else setSmoothPosition(window.scrollY);
+  // Keep the dialog's authoritative timeline point for an immediately
+  // following rotation. Cached scene geometry may still be from the old size.
+  restoredSceneAdvance=advance;
+  if(rotationFrame)rotationAdvance=advance;
+  geometryChanged();
+}
 function cancelNavigation(){
+  restoredSceneAdvance=null;
   if(!activeNavigation)return;
   if(activeNavigation&&lenis?.isScrolling==='smooth'){
     lenis.stop();if(!locked)lenis.start();
@@ -116,6 +134,7 @@ function focusDestination(hash){
 function goTo(hash,{immediate=false,link=null,focus=false}={}){
   const target=boundedPosition(hash);
   if(target===null)return false;
+  restoredSceneAdvance=null;
   const sequence=++navigationSequence;
   activeNavigation={hash,link};queueNavigation();
   const complete=()=>{
@@ -201,6 +220,7 @@ document.addEventListener('keydown',keyboardInput);
 window.addEventListener('hashchange',hashChanged);
 window.addEventListener('scroll',queueNavigation,{passive:true});
 window.addEventListener('resize',viewportResized,{passive:true});
+window.addEventListener('portfolio-scroll-restored',restoredPosition);
 window.addEventListener('load',geometryChanged,{once:true});
 reduced.addEventListener('change',setup);
 document.fonts?.ready.then(geometryChanged);
@@ -218,6 +238,7 @@ window.addEventListener('pagehide',event=>{
   document.removeEventListener('keydown',keyboardInput);
   window.removeEventListener('hashchange',hashChanged);
   window.removeEventListener('scroll',queueNavigation);window.removeEventListener('resize',viewportResized);
+  window.removeEventListener('portfolio-scroll-restored',restoredPosition);
   window.removeEventListener('load',geometryChanged);window.removeEventListener('pageshow',pageShow);
   reduced.removeEventListener('change',setup);
 });

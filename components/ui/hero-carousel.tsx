@@ -260,13 +260,24 @@ export function HeroCarousel({
   React.useEffect(() => {
     const video = stageRef.current?.querySelector('video')
     if (!video) return
-    const pauseHidden = () => { if (document.hidden) video.pause() }
-    const pause = () => video.pause()
-    document.addEventListener('visibilitychange', pauseHidden)
-    window.addEventListener('pagehide', pause)
+    let resumePlayback = false
+    const suspend = () => {
+      resumePlayback = resumePlayback || (!video.paused && !video.ended)
+      video.pause()
+    }
+    const resume = () => {
+      if (document.hidden || !resumePlayback) return
+      resumePlayback = false
+      void video.play().catch(() => {})
+    }
+    const visibility = () => { if (document.hidden) suspend(); else resume() }
+    document.addEventListener('visibilitychange', visibility)
+    window.addEventListener('pagehide', suspend)
+    window.addEventListener('pageshow', resume)
     return () => {
-      document.removeEventListener('visibilitychange', pauseHidden)
-      window.removeEventListener('pagehide', pause)
+      document.removeEventListener('visibilitychange', visibility)
+      window.removeEventListener('pagehide', suspend)
+      window.removeEventListener('pageshow', resume)
       video.pause()
       // A replaced slide no longer needs its decoder or pending media request.
       video.removeAttribute('src')

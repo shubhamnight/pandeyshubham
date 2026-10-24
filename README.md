@@ -26,6 +26,20 @@ npm run typecheck
 npm run check
 ```
 
+Animation and model regression checks (no additional dependencies):
+
+```sh
+npm run check:models
+npm run check:animation-performance
+```
+
+Optional browser regression checks use an externally installed `playwright-core`
+and Chrome (or `BROWSER_CHANNEL=msedge`). Set `PLAYWRIGHT_MODULE` to that module's
+absolute path, start the local server, then run `node checks/browser-regression.cjs`.
+`AUDIT_URL` selects a local production preview; `BROWSER_PROFILE` can select
+`phone`, `tablet`, or `desktop`. Screenshots and results are written under ignored
+`output/performance/`. The checks do not edit gallery content or submit contact links.
+
 The build generates responsive portraits, prepared crowd sprites, social icons,
 metadata, JSON-LD, robots.txt, sitemap.xml, a manifest and a custom 404 page.
 It then compiles the lazy photography island and minifies the static deployment.

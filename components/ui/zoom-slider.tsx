@@ -5,11 +5,11 @@ import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import { createTravelVideoPlayer } from '../../travel-video-player.js';
 import { touchPerformance } from '../../touch-performance.js';
+import { advanceTravelMotion } from '@/lib/travel-motion';
 
 gsap.registerPlugin(SplitText);
 
-const LERP_FACTOR = .08, DRAG_LERP_FACTOR = .22;
-const MOMENTUM_FRICTION = .92, MIN_MOMENTUM = .1;
+const MIN_MOMENTUM = .1;
 const lerp = (a: number, b: number, n: number) => a + (b - a) * n;
 
 export interface ZoomSliderItem {
@@ -199,14 +199,13 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       pointerId=null;captureSurface=null;state.isDragging=false;state.velocity=0;
       if(id!==null&&surface?.hasPointerCapture(id))surface.releasePointerCapture(id);
     };
-    const tick = () => {
+    let lastFrame = 0;
+    const tick = (now: number) => {
       state.raf = 0;
-      if (document.hidden || !visible) return;
-      if (!reduceMotion && !state.isDragging && Math.abs(state.velocity) > MIN_MOMENTUM) {
-        state.target += state.velocity; state.velocity *= MOMENTUM_FRICTION;
-      } else if (!state.isDragging) state.velocity = 0;
-      state.current = lerp(state.current, state.target,
-        reduceMotion ? 1 : state.isDragging ? DRAG_LERP_FACTOR : LERP_FACTOR);
+      if (document.hidden || !visible) { lastFrame = 0; return; }
+      const frames = lastFrame ? Math.min(50, Math.max(0, now - lastFrame)) / (1000 / 60) : 1;
+      lastFrame = now;
+      advanceTravelMotion(state, frames, state.isDragging, reduceMotion);
       const settled = Math.abs(state.current - state.target) < .01 &&
         (state.isDragging || Math.abs(state.velocity) <= MIN_MOMENTUM);
       if (settled) {
@@ -218,9 +217,10 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       }
       positionCards(state.current);
       if (!settled) state.raf = requestAnimationFrame(tick);
+      else lastFrame = 0;
     };
     const wake = () => {
-      if (!state.raf && visible && !document.hidden) state.raf = requestAnimationFrame(tick);
+      if (!state.raf && visible && !document.hidden) { lastFrame = 0; state.raf = requestAnimationFrame(tick); }
     };
     const retryVideos = () => {
       videoRefs.current.forEach(video => {

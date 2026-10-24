@@ -676,6 +676,7 @@ export default function DiscCascadeCarousel({
   const menuRef = React.useRef(null as HTMLDivElement | null)
   const slideRefs = React.useRef([] as (HTMLButtonElement | null)[])
   const paintedNodes = React.useRef([] as (HTMLButtonElement | null)[])
+  const surfaces = React.useRef([] as ({ node: HTMLButtonElement; roll: HTMLElement | null; sheen: HTMLElement | null } | undefined)[])
   const painted = React.useRef([] as ({ transform: string; roll: string; glint: string; zIndex: number; opacity: number; hidden: boolean } | undefined)[])
   const spring = React.useMemo(() => springOf(bounce, duration), [bounce, duration])
 
@@ -737,6 +738,11 @@ export default function DiscCascadeCarousel({
     for (let i = 0; i < slideRefs.current.length; i++) {
       const el = slideRefs.current[i]
       if (!el) continue
+      let surface = surfaces.current[i]
+      if (surface?.node !== el) {
+        surface = { node: el, roll: el.querySelector('.dcc-roll'), sheen: el.querySelector('.dcc-sheen') }
+        surfaces.current[i] = surface
+      }
       // Lazy-loading distance is unreliable for hidden, transformed discs:
       // several mobile engines see all 28 images at the same initial position.
       // Warm the unchanged covers well before they enter the visible fan.
@@ -764,8 +770,13 @@ export default function DiscCascadeCarousel({
       if (!last || last.hidden || last.zIndex !== t.zIndex) el.style.zIndex = "" + t.zIndex
       if (!last || last.hidden || last.opacity !== t.opacity) el.style.opacity = t.opacity < 1 ? t.opacity.toFixed(3) : ""
       if (!last || last.hidden) el.style.visibility = ""
-      if (!last || last.hidden || last.roll !== t.roll) el.style.setProperty("--dcc-roll", t.roll)
-      if (!last || last.hidden || last.glint !== t.glint) el.style.setProperty("--dcc-glint", t.glint)
+      // These values belong to two surfaces, not the entire SVG/artwork tree.
+      // Keep the identical rotation and sheen without inherited invalidation
+      // across every hub, label, and artwork descendant on each spring frame.
+      if (!last || last.hidden || last.roll !== t.roll) {
+        if (surface.roll) surface.roll.style.transform = 'rotate(' + t.roll + ')'
+      }
+      if (!last || last.hidden || last.glint !== t.glint) surface.sheen?.style.setProperty("--dcc-glint", t.glint)
       painted.current[i] = t
     }
   }

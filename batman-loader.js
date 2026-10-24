@@ -1,5 +1,6 @@
 import * as THREE from './node_modules/three/build/three.module.js';
 import { batmanOutline } from './batman-emblem.js';
+import { createContourSearch } from './contour-nearest.js';
 
 const clamp=value=>Math.max(0,Math.min(1,value));
 const smooth=value=>value*value*value*(value*(value*6-15)+10);
@@ -102,19 +103,15 @@ function bakeMorphCorrespondence(contour,position,bounds){
   }
   const upperLength=distances[right],lowerLength=length-upperLength;
   const samples=new Float64Array(position.count*3),mapped=new Map(),source=position.array;
+  const nearest=createContourSearch(segments),projection={index:0,fraction:0,squared:0};
   const depth=bounds.max.z-bounds.min.z;
   for(let index=0;index<position.count;index++){
     const offset=index*3,key=`${source[offset]},${source[offset+1]}`;
     let point=mapped.get(key);
     if(!point){
-      let along=0,best=Infinity;
-      for(let segment=0;segment<segments.length;segment++){
-        const {from,dx,dy,squared,length:segmentLength}=segments[segment];
-        const fraction=clamp(((source[offset]-from.x)*dx+(source[offset+1]-from.y)*dy)/Math.max(squared,1e-12));
-        const ex=source[offset]-from.x-dx*fraction,ey=source[offset+1]-from.y-dy*fraction;
-        const distance=ex*ex+ey*ey;
-        if(distance<best){best=distance;along=distances[segment]+segmentLength*fraction;}
-      }
+      nearest(source[offset],source[offset+1],projection);
+      const along=distances[projection.index]+segments[projection.index].length*projection.fraction;
+      const best=projection.squared;
       const phase=along<=upperLength?along/upperLength*.5:.5+(along-upperLength)/lowerLength*.5;
       point=[phase,clamp(Math.sqrt(best)/.045)];mapped.set(key,point);
     }

@@ -33,9 +33,19 @@ const custom=new Mesh(shared,material);custom.onBeforeRender=()=>{};root.add(cus
 const hidden=new Mesh(shared,material);hidden.visible=false;root.add(hidden);
 const original=vertices(root),stats=batchRigidModel(root);
 assert.deepEqual(stats,{before:7,after:4});
+const combined=root.children.find(node=>node.isMesh&&node!==transparent&&node!==mirrored&&node!==custom&&node!==hidden);
+assert.ok(combined.geometry.index,'compatible indexed pieces keep their index buffer');
+assert.equal(combined.geometry.attributes.position.count,shared.attributes.position.count*4,
+  'shared vertices are not expanded into one vertex per triangle corner');
 assert.deepEqual(vertices(root),original,'world-space vertices, normals and texture coordinates are unchanged');
 assert.equal(transparent.parent,root);assert.equal(mirrored.parent,root);assert.equal(custom.parent,root);
 assert.equal(hidden.visible,false);assert.equal(disposed,0,'shared geometry remains available');
 root.rotation.y+=.7;
 assert.equal(vertices(root).length,original.length,'all geometry follows root motion');
+// Mixed buckets still merge into exactly one draw with identical triangle data.
+const mixed=new Group();
+mixed.add(new Mesh(new BoxGeometry(),material),new Mesh(new BoxGeometry().toNonIndexed(),material));
+const mixedOriginal=vertices(mixed);
+assert.deepEqual(batchRigidModel(mixed),{before:2,after:1});
+assert.deepEqual(vertices(mixed),mixedOriginal);
 console.log('Rigid model batching: geometry, transforms, transparency, exclusions and shared resources passed.');
