@@ -34,6 +34,7 @@ npm run check:animation-performance
 npm run check:rounded-box
 npm run check:loading-recovery
 npm run check:renderer
+npm run check:scroll-intent
 ```
 
 Optional browser regression checks use an externally installed `playwright-core`
@@ -54,6 +55,12 @@ longer collected-heap/RAF check. Results go under ignored
 `node checks/media-decoding.cjs` uses the same external browser module to decode
 the referenced gallery images and load each video to a playable state for
 phone, tablet and desktop delivery. It reads assets without editing the library.
+
+`node checks/touch-skills-regression.cjs` checks touch scrolling and persistent
+focus halfway through the hero transition, including one-pixel scroll settling,
+real reversal, keyboard pausing, and actual painted icon pixels. It uses the
+same browser environment variables and runs at 4× CPU throttling. Its diagnostic
+reads are injected by the test route and are not part of the website.
 
 Normal galleries retain the shared runtime. Standalone `*-recovery.js` bundles
 are built from the same components and loaded only if a lazy import's shared

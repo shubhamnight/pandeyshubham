@@ -14,6 +14,7 @@
     "check:rounded-box": "node check-rounded-box.mjs",
     "check:loading-recovery": "node check-loading-recovery.mjs",
     "check:renderer": "node check-renderer-initialization.mjs",
+    "check:scroll-intent": "node check-scroll-intent.mjs",
     "check:animation-performance": "node check-animation-performance.mjs",
     "build:photography": "node build-photography-carousel.cjs && node build-shared-ui.cjs",
     "build:connect": "node build-connect.cjs && node build-shared-ui.cjs",

@@ -3,11 +3,14 @@ import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition, advanceProgress
 import { sceneMotion, observeScene, setSkillExit } from './skills-hobbies-scene.js';
 import { touchPerformance, watchInputs } from './touch-performance.js';
 import { importPortfolioModule } from './module-loader.js';
+import { createScrollReversalGuard } from './scroll-intent.js';
 
 const section = document.querySelector('#about');
 const stage = section?.querySelector('.skills-orbit-stage');
 const slots = [...(stage?.querySelectorAll('.skills-orbit-slot') || [])];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const hover = matchMedia('(any-hover: hover)');
+const reverseScroll = touchPerformance ? createScrollReversalGuard(4) : null;
 const TAU = Math.PI * 2, joinAngle = -Math.PI * .75;
 const entranceSpeed = 1.2;
 const fastTime = 4 / entranceSpeed, blendTime = 1.8 / entranceSpeed, entranceDuration = fastTime + blendTime;
@@ -215,7 +218,8 @@ function tick(time) {
   if (document.hidden) { stop(); return; }
   if (measure) layout();
   const scroll = getSmoothPosition(), top = sectionTop - scroll;
-  const scrollingBack = previousScroll !== null && scroll < previousScroll - .1;
+  const scrollingBack = reverseScroll ? reverseScroll.update(scroll) :
+    previousScroll !== null && scroll < previousScroll - .1;
   previousScroll = scroll;
   visible = top < innerHeight && scroll < sectionTop + sectionHeight;
   const dt = lastTime === null ? 0 : Math.min((time - lastTime) / 1000, .05);
@@ -291,12 +295,28 @@ function tick(time) {
 function wake() {
   if (!scheduled && !document.hidden) scheduled = requestHobbyFrame(tick, 15);
 }
-function resize() { measure = true; wake(); }
-function visibilityChanged() { if (document.hidden) stop(); else wake(); }
+function resize() {
+  measure = true;
+  // Browser chrome and orientation can re-anchor native Y. That layout change
+  // is not a reverse gesture; measure the next movement from its new position.
+  if(reverseScroll){reverseScroll.reset();previousScroll=null;}
+  wake();
+}
+function visibilityChanged() {
+  if(document.hidden)stop();
+  else{if(reverseScroll){reverseScroll.reset();previousScroll=null;}wake();}
+}
 function pointerEnter() { pointerInside = true; wake(); }
 function pointerLeave() { pointerInside = false; wake(); }
-function focusIn() { focusInside = true; wake(); }
-function focusOut(event) { focusInside = stage.contains(event.relatedTarget); wake(); }
+function focusIn(event) {
+  // Touch focus persists after the finger leaves. Preserve keyboard pausing,
+  // but a tap must not strand the remaining entrance icons offscreen.
+  focusInside = !touchPerformance || event.target.matches(':focus-visible');wake();
+}
+function focusOut(event) {
+  focusInside = stage.contains(event.relatedTarget) &&
+    (!touchPerformance || !!event.relatedTarget?.matches?.(':focus-visible'));wake();
+}
 if (slots.length) {
   // The existing logos remain usable until the small React island and its scoped styles are ready.
   let disposeIcons=null,disposed=false,iconsReady=false,iconsLoading=false,iconsApproaching=false;
@@ -321,7 +341,7 @@ if (slots.length) {
   const unobserveScene = observeScene(touchPerformance ? watchInputs(sceneMotion,
     ['enabled','visible','exit','modelArrival','stageHeight','top'],wake) : wake);
   const pointerOver = event => {
-    if (touchPerformance && event.pointerType==='touch') return;
+    if (touchPerformance && (event.pointerType==='touch'||!hover.matches)) return;
     if (event.target.closest('.skills-orbit-disc')) pointerEnter();
   };
   const pointerOut = event => {
@@ -332,6 +352,8 @@ if (slots.length) {
   stage.addEventListener('pointerout', pointerOut);
   stage.addEventListener('focusin', focusIn);
   stage.addEventListener('focusout', focusOut);
+  const hoverChanged=()=>{if(!hover.matches)pointerLeave();};
+  if(touchPerformance)hover.addEventListener('change',hoverChanged);
   window.addEventListener('scroll', wake, { passive: true });
   window.addEventListener('resize', resize, { passive: true });
   window.addEventListener('load', resize, { once: true });
@@ -361,6 +383,7 @@ if (slots.length) {
     stage.removeEventListener('pointerout', pointerOut);
     stage.removeEventListener('focusin', focusIn);
     stage.removeEventListener('focusout', focusOut);
+    if(touchPerformance)hover.removeEventListener('change',hoverChanged);
     reduced.removeEventListener('change', wake);
     document.removeEventListener('visibilitychange', visibilityChanged);
   });
