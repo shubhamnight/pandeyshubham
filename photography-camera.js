@@ -1,21 +1,17 @@
-import { connectHobbyGallery } from './hobby-gallery.js';
 import { deferHobbyModel, connectHobbyMotion } from './hobby-model-runtime.js';
 import * as THREE from './node_modules/three/build/three.module.js';
-import { RoundedBoxGeometry } from './node_modules/three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { fillPhotographyGallery } from './photography-media.js';
+import { FastRoundedBoxGeometry as RoundedBoxGeometry } from './rounded-box-geometry.js';
+import { createHobbyRenderer } from './hobby-renderer.js';
 
 const button = document.querySelector('#photography-camera');
-const gallery = document.querySelector('#photography-gallery');
-connectHobbyGallery(button, gallery, fillPhotographyGallery);
 
 // Initialize once near the viewport, staggered across idle frames.
 deferHobbyModel(button, buildCamera);
 
 function buildCamera() {
   let renderer;
-  try { renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' }); }
+  try { renderer = createHobbyRenderer(THREE.WebGLRenderer,button,Math.min(devicePixelRatio,1.5)); }
   catch { button.dataset.hobbyModelFailed='true'; return; } // The existing icon remains a clickable gallery fallback.
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.setClearColor(0, 0);
   button.append(renderer.domElement);
   button.classList.add('camera-ready');

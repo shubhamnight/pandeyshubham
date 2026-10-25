@@ -68,6 +68,12 @@ async function scenePoint(page){return page.evaluate(()=>{const s=document.query
     }
    }else{await dialog.locator('header button').click();}
    await dialog.waitFor({state:'hidden'});assert.equal(await page.locator('dialog[open]').count(),0);
+   // close() hides the dialog synchronously; its native close event (which
+   // releases scrolling) is queued. Await that lifecycle condition, not just
+   // the disappearance of the open attribute.
+   const cleanupPending=await page.evaluate(()=>document.body.style.overflow==='hidden');
+   await page.waitForFunction(()=>document.body.style.overflow===''&&!document.body.classList.contains('photography-gallery-open'),undefined,{timeout:3000});
+   if(cleanupPending)console.log(`${name} ${id}: native close cleanup completed after dialog became hidden`);
    assert.equal(await page.evaluate(()=>document.body.style.overflow),'');checks.push(id+' controls, keyboard, fitting and close');
   }
   await nav(page,'Projects');
@@ -82,6 +88,7 @@ async function scenePoint(page){return page.evaluate(()=>{const s=document.query
   for(let i=0;i<6;i++){await open(page,'music-walkman');await page.locator('#music-gallery .dcc-root').waitFor({state:'visible'});await sleep(150);await page.locator('#music-gallery header button').click();await sleep(100);await cdp.send('HeapProfiler.collectGarbage');counts.push(await cdp.send('Memory.getDOMCounters'));}
   assert.ok(counts.at(-1).nodes-counts[1].nodes<150,'no growing detached gallery trees');checks.push('six gallery mount/unmount cycles');
   await page.evaluate(()=>window.scrollTo(0,0));await sleep(900);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  assert.equal(await page.evaluate(()=>performance.getEntriesByType('resource').filter(e=>e.name.includes('-recovery.js')).length),0,'normal browsing does not download recovery bundles');
   assert.deepEqual(errors,[]);results.push({name,viewport:[width,height],checks,errors,domCounts:counts});console.log(name,checks.join('; '));await context.close();
  }
  await fs.writeFile(path.join(output,'results.json'),JSON.stringify(results,null,2));

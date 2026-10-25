@@ -3,6 +3,7 @@ import { hobbyIntro, observeHobbyIntro } from './hobby-intro.js';
 import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
 import { batchRigidModel } from './hobby-model-batching.js';
 import { touchPerformance } from './touch-performance.js';
+import { Vector2 } from './node_modules/three/build/three.module.js';
 const active = new Set();
 let frame = 0;
 function tick(time) {
@@ -80,7 +81,9 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
   model.traverse(node=>{if(node!==model){node.updateMatrix();node.matrixAutoUpdate=false;}});
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   let visible=false, targetX=0, targetY=0, last=0, dirty=true;
-  let pointerPending=false, pointerX=0, pointerY=0, rect=null, width=0, height=0, contextLost=false,compiling=true,disposed=false;
+  const initialSize=renderer.getSize(new Vector2());
+  let pointerPending=false, pointerX=0, pointerY=0, rect=null, width=initialSize.x, height=initialSize.y, contextLost=false,compiling=true,disposed=false;
+  view.aspect=width/height;view.updateProjectionMatrix();
   const bodyIsPaused=()=>document.body.classList.contains('photography-gallery-open') ||
     document.body.classList.contains('motion-paused') || document.body.classList.contains('intro-active');
   let bodyPaused=bodyIsPaused();
@@ -175,7 +178,7 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
   // uses parallel shader compilation when the browser supports it.
   renderer.compileAsync(scene,view).catch(error=>console.warn('Model shader warm-up failed',error)).finally(()=>{
     if(disposed)return;
-    compiling=false;button.dataset.hobbyCompiling='false';dirty=true;wake();
+    compiling=false;button.dataset.hobbyCompiling='false';delete button.dataset.hobbyModelFailed;dirty=true;wake();
   });
   window.addEventListener('pageshow',wake);
   window.addEventListener('pagehide',e=>{
@@ -198,6 +201,6 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
         for(const value of Object.values(mat))if(value?.isTexture)resources.add(value);
       }
     });
-    resources.forEach(resource=>resource.dispose());renderer.dispose();
+    resources.forEach(resource=>resource.dispose());renderer.dispose();renderer.forceContextLoss();
   });
 }

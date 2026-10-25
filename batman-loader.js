@@ -440,7 +440,7 @@ export function createBatmanLoader(intro){
     reduced.removeEventListener('change',onReduced);window.removeEventListener('pagehide',onPageHide);
     geometry.dispose();face.dispose();side.dispose();
     shadowGeometry.dispose();shadowMaterial.dispose();shadowTexture.dispose();
-    renderer.dispose();
+    renderer.dispose();renderer.forceContextLoss();
     renderer.domElement.remove();stage.classList.remove('batman-model-ready');
     intro.classList.remove('play-webgl','play-preparing');
   }

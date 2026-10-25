@@ -2,6 +2,7 @@
 import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition, advanceProgress } from './hobby-motion-clock.js';
 import { sceneMotion, observeScene, setSkillExit } from './skills-hobbies-scene.js';
 import { touchPerformance, watchInputs } from './touch-performance.js';
+import { importPortfolioModule } from './module-loader.js';
 
 const section = document.querySelector('#about');
 const stage = section?.querySelector('.skills-orbit-stage');
@@ -298,15 +299,25 @@ function focusIn() { focusInside = true; wake(); }
 function focusOut(event) { focusInside = stage.contains(event.relatedTarget); wake(); }
 if (slots.length) {
   // The existing logos remain usable until the small React island and its scoped styles are ready.
-  let disposeIcons=null,disposed=false;
+  let disposeIcons=null,disposed=false,iconsReady=false,iconsLoading=false,iconsApproaching=false;
+  function loadIcons(){
+    if(disposed||iconsReady||iconsLoading||!iconsApproaching)return;
+    iconsLoading=true;
+    importPortfolioModule('./assets/ui/skills-icons.js').then(({mountSkillsIcons})=>disposed?null:mountSkillsIcons(section))
+      .then(dispose=>{
+        if(disposed)dispose?.();
+        else if(dispose){disposeIcons=dispose;iconsReady=true;iconObserver.disconnect();}
+      })
+      .catch(error=>console.error('Shiny skill icons could not load; keeping the native icons.',error))
+      .finally(()=>{iconsLoading=false;});
+  }
   const iconObserver=new IntersectionObserver(entries=>{
-    if(!entries.some(entry=>entry.isIntersecting))return;
-    iconObserver.disconnect();
-    import('./assets/ui/skills-icons.js').then(({mountSkillsIcons})=>disposed?null:mountSkillsIcons(section))
-      .then(dispose=>{if(disposed)dispose?.();else disposeIcons=dispose;})
-      .catch(error=>console.error('Shiny skill icons could not load; keeping the native icons.',error));
+    iconsApproaching=entries.some(entry=>entry.isIntersecting);
+    if(iconsApproaching)loadIcons();
   },{rootMargin:'350px 0px'});
   iconObserver.observe(section);
+  window.addEventListener('online',loadIcons);
+  stage.addEventListener('pointerdown',loadIcons,{passive:true});
   const unobserveScene = observeScene(touchPerformance ? watchInputs(sceneMotion,
     ['enabled','visible','exit','modelArrival','stageHeight','top'],wake) : wake);
   const pointerOver = event => {
@@ -340,6 +351,7 @@ if (slots.length) {
     if (event.persisted) return;
     disposed=true;
     iconObserver.disconnect();disposeIcons?.();
+    window.removeEventListener('online',loadIcons);stage.removeEventListener('pointerdown',loadIcons);
     observer.disconnect(); bodyObserver.disconnect(); unobserveScene();
     window.removeEventListener('scroll', wake);
     window.removeEventListener('resize', resize);

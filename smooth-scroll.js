@@ -32,10 +32,14 @@ function restoreScenePosition(){
 function viewportResized(){
   const width=innerWidth,changedWidth=Math.abs(width-viewportWidth)>2;
   viewportWidth=width;
-  if(touchPerformance&&changedWidth&&!locked&&!activeNavigation&&sceneMotion.enabled&&sceneMotion.visible){
-    const local=getSmoothPosition()-sceneMotion.top;
-    if(local>=0&&local<sceneMotion.height){
-      rotationAdvance??=restoredSceneAdvance??local/Math.max(1,sceneMotion.stageHeight);
+  if(touchPerformance&&changedWidth&&!locked&&!activeNavigation&&sceneMotion.enabled&&
+    (sceneMotion.visible||restoredSceneAdvance!==null)){
+    // Native scroll anchoring may already have changed Y for the new layout.
+    // Preserve the last rendered point, not a mix of new Y and old geometry.
+    // The Skills anchor can also round a fraction below the scene's exact top.
+    const local=sceneMotion.local;
+    if(restoredSceneAdvance!==null||(local>=-1&&local<sceneMotion.height)){
+      rotationAdvance??=restoredSceneAdvance??sceneMotion.advance;
       restoredSceneAdvance=null;
       if(!rotationFrame)rotationFrame=requestHobbyFrame(restoreScenePosition,13);
     }

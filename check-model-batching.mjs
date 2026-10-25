@@ -48,4 +48,12 @@ mixed.add(new Mesh(new BoxGeometry(),material),new Mesh(new BoxGeometry().toNonI
 const mixedOriginal=vertices(mixed);
 assert.deepEqual(batchRigidModel(mixed),{before:2,after:1});
 assert.deepEqual(vertices(mixed),mixedOriginal);
+let constructions=0;
+class CountedBox extends BoxGeometry{constructor(...args){super(...args);constructions++;}}
+const procedural=new Group();
+procedural.add(new Mesh(new CountedBox(2,3,4),material),new Mesh(new CountedBox(3,2,1),material));
+const proceduralOriginal=vertices(procedural);
+batchRigidModel(procedural);
+assert.equal(constructions,2,'batch copies do not rebuild procedural geometry');
+assert.deepEqual(vertices(procedural),proceduralOriginal);
 console.log('Rigid model batching: geometry, transforms, transparency, exclusions and shared resources passed.');

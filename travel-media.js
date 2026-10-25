@@ -2,10 +2,11 @@ import { createVideoCard } from './hobby-video-card.js';
 import { createTravelVideoPlayer, travelVideoFrameRatio } from './travel-video-player.js';
 import { travelImages as originalTravelImages } from './travel-data.js';
 import { applyMediaEdits } from './media-library.js';
-import { mobileMediaReady, mobileMediaSource, mobileMediaSrcset } from './mobile-media.js';
+import { mobileMediaSource, mobileMediaSrcset } from './mobile-media.js';
+import { importPortfolioModule } from './module-loader.js';
 import { observeTravelFrame } from './overlay-frame-metrics.js';
 const travelImages=applyMediaEdits('travel',originalTravelImages);
-import { locationLabel, locationsReady, travelLocations } from './travel-location-label.js';
+import { locationLabel, travelLocations } from './travel-location-label.js';
 
 function shuffle(items) {
   const result=[...items];
@@ -59,7 +60,6 @@ function playback(){
 }
 function syncPlayback(){const next=playbackAllowed();if(next!==previousAllowed){previousAllowed=next;playback();}}
 async function fill(slot){
-  await Promise.all([locationsReady,mobileMediaReady]);
   if(disposed)return;
   const item=nextMedia();if(!item)return;
   const version=(slot.mediaVersion||0)+1;slot.mediaVersion=version;
@@ -137,8 +137,8 @@ export async function fillTravelGallery(gallery){
     });
   }
   try{
-    overlayModule??=import('./assets/ui/travel-overlay.js').catch(error=>{overlayModule=null;throw error;});
-    const [{mountTravelOverlay}]=await Promise.all([overlayModule,locationsReady,mobileMediaReady]);
+    overlayModule??=importPortfolioModule('./assets/ui/travel-overlay.js').catch(error=>{overlayModule=null;throw error;});
+    const {mountTravelOverlay}=await overlayModule;
     if(disposed||version!==galleryVersion||!gallery.open)return;
     const media=order.map((item,index)=>({
       number:String(index+1).padStart(2,'0'),type:item.type,

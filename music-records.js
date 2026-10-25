@@ -1,6 +1,7 @@
 import { musicImages } from './music-data.js';
 import { musicTitleStyles } from './music-title-data.js';
-import { mobileMediaReady, mobileMediaSource } from './mobile-media.js';
+import { mobileMediaSource } from './mobile-media.js';
+import { importPortfolioModule } from './module-loader.js';
 
 // Load the existing local fonts when the music previews initialize. The overlay
 // shares the font link, and both surfaces use the same title treatment rules.
@@ -30,7 +31,6 @@ let deck=shuffle(musicImages),previous=null;
 function nextSong(){if(!deck.length){deck=shuffle(musicImages);if(deck[0]===previous&&deck.length>1)[deck[0],deck[1]]=[deck[1],deck[0]];}previous=deck.shift();return previous;}
 const slots=[...document.querySelectorAll('.hobby-music .hobby-image-placeholder')].slice(0,3);
 async function fillRecord(slot,index){
-  await mobileMediaReady;
   const song=nextSong(),version=(slot.recordVersion||0)+1;slot.recordVersion=version;
   const record=createRecord(song,index),image=record.querySelector('img');
   if(image){try{await image.decode();}catch{}}
@@ -78,9 +78,9 @@ export async function fillMusicGallery(gallery){
     });
   }
   try{
-    overlayModule??=import('./assets/ui/music-overlay.js').catch(error=>{overlayModule=null;throw error;});
-    overlayData??=import('./music-overlay-data.js').catch(error=>{overlayData=null;throw error;});
-    const [{mountMusicOverlay},{musicCards}]=await Promise.all([overlayModule,overlayData,mobileMediaReady]);
+    overlayModule??=importPortfolioModule('./assets/ui/music-overlay.js').catch(error=>{overlayModule=null;throw error;});
+    overlayData??=importPortfolioModule('./music-overlay-data.js').catch(error=>{overlayData=null;throw error;});
+    const [{mountMusicOverlay},{musicCards}]=await Promise.all([overlayModule,overlayData]);
     if(disposed||version!==galleryVersion||!gallery.open)return;
     const songs=musicCards.map(song=>({...song,src:mobileMediaSource(song.src),fullSrc:mobileMediaSource(song.fullSrc)}));
     const dispose=await mountMusicOverlay(mount,songs,controller.signal);

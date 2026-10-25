@@ -40,7 +40,7 @@ const modelsAtHome = spreadStart + timeline.modelSpread;
 const scrollLength = 1 + modelsAtHome + timeline.hobbiesHold;
 export const sceneMotion = {
   element: null, viewport: null, enabled: false, visible: false,
-  top: 0, height: 1, stageHeight: 1, advance: 0, exit: 0,
+  top: 0, height: 1, stageHeight: 1, local: -Infinity, advance: 0, exit: 0,
   modelEntry: 0, spread: 0, skillExit: 0, modelArrival: 0, modelSpread: 0, outletX: 0, outletY: 0
 };
 export function observeScene(callback) { listeners.add(callback); return () => listeners.delete(callback); }
@@ -82,6 +82,7 @@ function update() {
     element.style.setProperty('--scene-sticky-top', Math.min(0, innerHeight - sceneMotion.stageHeight) + 'px');
   }
   const local = getSmoothPosition() - sceneMotion.top;
+  sceneMotion.local = local;
   sceneMotion.advance = Math.max(0, local / sceneMotion.stageHeight);
   sceneMotion.visible = local > -innerHeight && local < sceneMotion.height;
   // Leave room to see the circle before releasing the skills, then the model orbit.

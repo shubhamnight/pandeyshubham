@@ -1,7 +1,8 @@
 import { createVideoCard } from './hobby-video-card.js';
 import { photographyPhotos as originalPhotos } from './photography-data.js';
 import { applyMediaEdits } from './media-library.js';
-import { mobileMediaReady, mobileMediaSource, mobileMediaSrcset } from './mobile-media.js';
+import { mobileMediaSource, mobileMediaSrcset } from './mobile-media.js';
+import { importPortfolioModule } from './module-loader.js';
 const photographyPhotos=applyMediaEdits('photography',originalPhotos);
 
 function shuffle(items) {
@@ -54,7 +55,6 @@ function playback(){
 }
 function syncPlayback(){const next=playbackAllowed();if(next!==previousAllowed){previousAllowed=next;playback();}}
 async function fill(slot){
-  await mobileMediaReady;
   if(disposed)return;
   const item=nextMedia();if(!item)return;
   const version=(slot.mediaVersion||0)+1;slot.mediaVersion=version;
@@ -115,8 +115,8 @@ export async function fillPhotographyGallery(gallery){
   }
   try{
     // Load React and Motion only when the camera gallery is actually opened.
-    carouselModule??=import('./assets/ui/photography-carousel.js').catch(error=>{carouselModule=null;throw error;});
-    const [{mountPhotographyCarousel}]=await Promise.all([carouselModule,mobileMediaReady]);
+    carouselModule??=importPortfolioModule('./assets/ui/photography-carousel.js').catch(error=>{carouselModule=null;throw error;});
+    const {mountPhotographyCarousel}=await carouselModule;
     if(version!==galleryVersion||!gallery.open)return;
     const dispose=await mountPhotographyCarousel(mount,order,controller.signal);
     if(version!==galleryVersion||!gallery.open){dispose();return;}

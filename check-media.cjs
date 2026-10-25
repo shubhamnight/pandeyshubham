@@ -43,23 +43,34 @@ async function run() {
     }
   }
   const document = { createElement(tag) { return { tag, children: [], attributes: {}, setAttribute(key, value) { this.attributes[key] = value; }, addEventListener() {}, append(...nodes) { this.children.push(...nodes); } }; } };
-  const player = moduleFrom('travel-video-player.js', { document });
+  const mobile=JSON.parse(fs.readFileSync(path.join(root,'mobile-media-data.json'),'utf8')).files;
+  for(const [source,target]of Object.entries(mobile)){asset(source);asset(target);}
+  for(const resolve of [source=>source,source=>mobile[source]||source]){
+  const player = moduleFrom('travel-video-player.js', { document,require:name=>{
+    assert.equal(name,'./mobile-media.js');return {mobileMediaSource:resolve};
+  } });
   for (const item of travel.filter(item => item.type === 'video')) {
     const ratio = player.travelVideoFrameRatio(item);
     check(ratio === (item.poster === 'assets/travel/15-poster.webp' ? 4 / 3 : 9 / 16), 'Correct Travel video frame ratio');
     const native = player.createTravelVideoPlayer(item);
     check(native.children.length === 1 && native.children[0].tag === 'video', 'No playback control elements');
     const video = native.children[0];
+    check(video.src===resolve(item.gallerySrc||item.preview||item.src),'Correct platform playback source');
     check(video.loop && video.muted && video.playsInline && !video.controls, 'Silent inline looping playback');
     check(!player.createTravelVideoPlayer(item, { deferSource: true }).children[0].src, 'Distant video sources stay deferred');
   }
+  }
   const calls = [];
-  const labels = moduleFrom('travel-location-label.js', { fetch: async url => {
+  const locationDefaults=moduleFrom('travel-location-data.js');
+  const locationRequire=name=>{assert.equal(name,'./travel-location-data.js');return locationDefaults;};
+  const labels = moduleFrom('travel-location-label.js', { require:locationRequire,fetch: async url => {
     calls.push(url); return { ok: url !== '/api/travel-locations', json: async () => ({ named: 'New Delhi', unnamed: '', invalid: 12 }) };
   } });
   await labels.locationsReady;
   check(calls.includes('./travel-locations.json') && labels.travelLocations.named === 'New Delhi', 'Location labels recover from an unavailable API');
   check(!Object.hasOwn(labels.travelLocations, 'unnamed') && !Object.hasOwn(labels.travelLocations, 'invalid'), 'Only explicit valid location names are retained');
+  const delayedLabels=moduleFrom('travel-location-label.js',{require:locationRequire,fetch:()=>new Promise(()=>{})});
+  check(JSON.stringify(delayedLabels.travelLocations)===JSON.stringify(locationDefaults.travelLocationDefaults),'Saved names remain available while metadata is pending');
   // Invalid requests must not alter the user's image library.
   const before = fs.readFileSync(path.join(root, 'media-library.json'), 'utf8');
   const req = Readable.from([JSON.stringify({ category: 'travel', id: travel[0].original, action: 'save', alt: 'Test', crop: { x: 0, y: 0, width: 2, height: 1 } })]);

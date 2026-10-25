@@ -1,4 +1,5 @@
-export let travelLocations={};
+import { travelLocationDefaults } from './travel-location-data.js';
+export let travelLocations={...travelLocationDefaults};
 // Filename keys keep the chosen colours stable when the media order changes.
 const whiteTextFiles=new Set([
   'WhatsApp Image 2026-10-01 at 5.05.05 AM (1).jpeg',
@@ -7,7 +8,7 @@ const whiteTextFiles=new Set([
   'WhatsApp Video 2026-10-01 at 5.04.33 AM.mp4',
 ]);
 async function staticLocations(){
-  const response=await fetch('./travel-locations.json');return response.ok?response.json():{};
+  const response=await fetch('./travel-locations.json');return response.ok?response.json():null;
 }
 export const locationsReady=fetch('/api/travel-locations')
   .then(response=>response.ok?response.json():staticLocations()).catch(staticLocations)

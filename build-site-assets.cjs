@@ -9,6 +9,10 @@ async function buildSiteAssets() {
   const brand = path.join(root, 'assets/brand');
   await fs.mkdir(profile, { recursive: true });
   await fs.mkdir(brand, { recursive: true });
+  // Keep saved travel captions available without blocking media on an API.
+  const locations=JSON.parse(await fs.readFile(path.join(root,'travel-locations.json'),'utf8'));
+  await fs.writeFile(path.join(root,'travel-location-data.js'),
+    '// Generated from the user-saved travel-locations.json.\nexport const travelLocationDefaults = '+JSON.stringify(locations,null,2)+';\n');
   for (const size of [64, 480, 640, 960]) {
     await sharp(path.join(root, 'shub ka photo.png')).resize({ width: size }).webp({ lossless: true, effort: 6 })
       .toFile(path.join(profile, `shubham-pandey-portrait-${size}.webp`));

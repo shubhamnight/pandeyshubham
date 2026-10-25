@@ -1,6 +1,7 @@
 import { createVideoCard } from './hobby-video-card.js';
 import { gamingImages } from './gaming-data.js';
-import { mobileMediaReady, mobileMediaSource, mobileMediaSrcset } from './mobile-media.js';
+import { mobileMediaSource, mobileMediaSrcset } from './mobile-media.js';
+import { importPortfolioModule } from './module-loader.js';
 
 function shuffle(items) {
   const result=[...items];
@@ -52,7 +53,6 @@ function playback(){
 }
 function syncPlayback(){const next=playbackAllowed();if(next!==previousAllowed){previousAllowed=next;playback();}}
 async function fill(slot){
-  await mobileMediaReady;
   if(disposed)return;
   const item=nextMedia();if(!item)return;
   const version=(slot.mediaVersion||0)+1;slot.mediaVersion=version;
@@ -127,8 +127,8 @@ export async function fillGamingGallery(gallery){
     });
   }
   try{
-    overlayModule??=import('./assets/ui/gaming-overlay.js').catch(error=>{overlayModule=null;throw error;});
-    const [{mountGamingOverlay}]=await Promise.all([overlayModule,mobileMediaReady]);
+    overlayModule??=importPortfolioModule('./assets/ui/gaming-overlay.js').catch(error=>{overlayModule=null;throw error;});
+    const {mountGamingOverlay}=await overlayModule;
     if(version!==galleryVersion||!gallery.open)return;
     const media=order.filter(item=>item.type==='image').map(item=>({
       ...item,src:mobileMediaSource(item.src),srcset:mobileMediaSrcset(item.srcset),

@@ -31,6 +31,9 @@ Animation and model regression checks (no additional dependencies):
 ```sh
 npm run check:models
 npm run check:animation-performance
+npm run check:rounded-box
+npm run check:loading-recovery
+npm run check:renderer
 ```
 
 Optional browser regression checks use an externally installed `playwright-core`
@@ -39,6 +42,26 @@ absolute path, start the local server, then run `node checks/browser-regression.
 `AUDIT_URL` selects a local production preview; `BROWSER_PROFILE` can select
 `phone`, `tablet`, or `desktop`. Screenshots and results are written under ignored
 `output/performance/`. The checks do not edit gallery content or submit contact links.
+
+The additional `node checks/rendering-reliability.cjs` suite checks repeated
+Skills/Hobbies navigation, fast reversals, orientation changes at both anchors,
+direct refresh, back/forward, collected DOM/listener counts, and interrupted
+module/metadata requests. Set `REPAIR_WIDTH` for one viewport,
+`REPAIR_FAULTS_ONLY=1` for the recovery cases, or `REPAIR_MEMORY_CYCLES=20` for a
+longer collected-heap/RAF check. Results go under ignored
+`output/render-repair-2026-10-25/` unless `REPAIR_OUTPUT` is provided.
+
+`node checks/media-decoding.cjs` uses the same external browser module to decode
+the referenced gallery images and load each video to a playable state for
+phone, tablet and desktop delivery. It reads assets without editing the library.
+
+Normal galleries retain the shared runtime. Standalone `*-recovery.js` bundles
+are built from the same components and loaded only if a lazy import's shared
+dependency has failed and become stuck in the browser module map. They are not
+preloaded during normal browsing. Native fallback icons and media access remain
+independent of a model module's availability. Saved travel captions are also
+generated from `travel-locations.json` so a delayed metadata API cannot block
+Travel previews or its overlay.
 
 The build generates responsive portraits, prepared crowd sprites, social icons,
 metadata, JSON-LD, robots.txt, sitemap.xml, a manifest and a custom 404 page.

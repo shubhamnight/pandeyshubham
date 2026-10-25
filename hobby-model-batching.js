@@ -1,4 +1,4 @@
-import { Matrix4, Mesh } from './node_modules/three/build/three.module.js';
+import { BufferGeometry, Matrix4, Mesh } from './node_modules/three/build/three.module.js';
 import { mergeGeometries } from './node_modules/three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // These models move as rigid units. Submit their opaque pieces together,
@@ -33,7 +33,10 @@ export function batchRigidModel(model) {
     // Mixed buckets retain the existing non-indexed path and draw grouping.
     const indexed=pieces.every(({node})=>node.geometry.index!==null);
     const geometries=pieces.map(({node,matrix})=>{
-      const geometry=!indexed&&node.geometry.index?node.geometry.toNonIndexed():node.geometry.clone();
+      // Geometry.clone() invokes the procedural subclass constructor before
+      // copying its buffers (including Tube/Lathe/Sphere defaults). Copy into
+      // a plain buffer instead; all attributes/groups/transforms are retained.
+      const geometry=!indexed&&node.geometry.index?node.geometry.toNonIndexed():new BufferGeometry().copy(node.geometry);
       return geometry.applyMatrix4(matrix);
     });
     const geometry=mergeGeometries(geometries,false);

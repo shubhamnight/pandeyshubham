@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import { HeroCarousel, type HeroCarouselItem } from '@/components/ui/hero-carousel';
 import { photographyHeroSources } from '@/photography-hero-data.js';
 import { touchPerformance } from '@/touch-performance.js';
-import { mobileMediaReady, mobileMediaSource, mobileMediaSrcset, mobileMediaSources } from '@/mobile-media.js';
+import { mobileMediaSource, mobileMediaSrcset, mobileMediaSources } from '@/mobile-media.js';
 
 const heroSources: Record<string, { src: string; width: number }[]> = photographyHeroSources;
 
@@ -47,7 +47,7 @@ export async function mountPhotographyCarousel(host: HTMLElement, media: Photogr
   const container = document.createElement('div');
   container.className = 'photography-react-root';
   shadow.append(stylesheet, container);
-  await Promise.all([ready, mobileMediaReady]);
+  await ready;
   // The camera dialog may have closed while its first bundle was loading.
   if (signal?.aborted || !host.closest('dialog')?.open) return () => {};
   const items: HeroCarouselItem[] = media.map(item => ({

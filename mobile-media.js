@@ -5,6 +5,7 @@ const key = Symbol.for('portfolio.mobile-media');
 const state = globalThis[key] || (globalThis[key] = { files: null, ready: null });
 // Fine-pointer desktop clients do not request the mobile manifest or copies.
 // A missing manifest preserves the existing media, including new editor uploads.
+// This optional optimization must never gate a gallery mount or preview image.
 export const mobileMediaReady = state.ready || (state.ready = touchPerformance
   ? fetch(new URL('/mobile-media-data.json', location.href), { cache: 'no-cache' })
     .then(response => response.ok ? response.json() : null)
