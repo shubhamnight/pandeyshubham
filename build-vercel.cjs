@@ -20,7 +20,7 @@ for (const name of fs.readdirSync(root)) {
   if (name === 'travel-locations-editor.js' || name.startsWith('image-manager')) continue;
   if (!/\.(?:js|css)$/.test(name) && ![
     'index.html', '404.html', 'offline.html', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest', 'favicon.ico',
-    'image-shub-2.jpeg', 'shub ka photo.png', 'travel-locations.json', 'social-links.json', 'media-library.json'
+    'image-shub-2.jpeg', 'shub ka photo.png', 'travel-locations.json', 'social-links.json', 'media-library.json', 'mobile-media-data.json'
   ].includes(name)) continue;
   const source = path.join(root, name);
   if (!fs.statSync(source).isFile()) continue;

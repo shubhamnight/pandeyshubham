@@ -1,5 +1,6 @@
 import { musicImages } from './music-data.js';
 import { musicTitleStyles } from './music-title-data.js';
+import { mobileMediaReady, mobileMediaSource } from './mobile-media.js';
 
 // Load the existing local fonts when the music previews initialize. The overlay
 // shares the font link, and both surfaces use the same title treatment rules.
@@ -18,7 +19,7 @@ export function createRecord(song,index=0,gallery=false){
   record.style.setProperty('--record-label', ['#183f73','#102b52','#4577b5'][index%3]);
   record.setAttribute('role','img');record.setAttribute('aria-label',song?.title?`${song.title}${song.artist?' — '+song.artist:''}`:'Vinyl record, awaiting song artwork');
   const label=document.createElement('div');label.className='music-record-label';
-  if(song?.src){const image=document.createElement('img');image.src=gallery?song.fullSrc||song.src:song.src;image.alt='';image.loading=gallery?'lazy':'eager';image.decoding='async';label.append(image);}
+  if(song?.src){const image=document.createElement('img');image.src=mobileMediaSource(gallery?song.fullSrc||song.src:song.src);image.alt='';image.loading=gallery?'lazy':'eager';image.decoding='async';label.append(image);}
   const hole=document.createElement('span');hole.className='music-record-hole';
   record.append(label,hole);
   return record;
@@ -29,6 +30,7 @@ let deck=shuffle(musicImages),previous=null;
 function nextSong(){if(!deck.length){deck=shuffle(musicImages);if(deck[0]===previous&&deck.length>1)[deck[0],deck[1]]=[deck[1],deck[0]];}previous=deck.shift();return previous;}
 const slots=[...document.querySelectorAll('.hobby-music .hobby-image-placeholder')].slice(0,3);
 async function fillRecord(slot,index){
+  await mobileMediaReady;
   const song=nextSong(),version=(slot.recordVersion||0)+1;slot.recordVersion=version;
   const record=createRecord(song,index),image=record.querySelector('img');
   if(image){try{await image.decode();}catch{}}
@@ -78,9 +80,10 @@ export async function fillMusicGallery(gallery){
   try{
     overlayModule??=import('./assets/ui/music-overlay.js').catch(error=>{overlayModule=null;throw error;});
     overlayData??=import('./music-overlay-data.js').catch(error=>{overlayData=null;throw error;});
-    const [{mountMusicOverlay},{musicCards}]=await Promise.all([overlayModule,overlayData]);
+    const [{mountMusicOverlay},{musicCards}]=await Promise.all([overlayModule,overlayData,mobileMediaReady]);
     if(disposed||version!==galleryVersion||!gallery.open)return;
-    const dispose=await mountMusicOverlay(mount,musicCards,controller.signal);
+    const songs=musicCards.map(song=>({...song,src:mobileMediaSource(song.src),fullSrc:mobileMediaSource(song.fullSrc)}));
+    const dispose=await mountMusicOverlay(mount,songs,controller.signal);
     if(disposed||version!==galleryVersion||!gallery.open){dispose();return;}
     disposeOverlay=dispose;status.hidden=true;
     grid.replaceChildren();delete gallery.dataset.recordsFilled;

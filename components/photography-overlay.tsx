@@ -1,6 +1,8 @@
 import { createRoot } from 'react-dom/client';
 import { HeroCarousel, type HeroCarouselItem } from '@/components/ui/hero-carousel';
 import { photographyHeroSources } from '@/photography-hero-data.js';
+import { touchPerformance } from '@/touch-performance.js';
+import { mobileMediaReady, mobileMediaSource, mobileMediaSrcset, mobileMediaSources } from '@/mobile-media.js';
 
 const heroSources: Record<string, { src: string; width: number }[]> = photographyHeroSources;
 
@@ -45,24 +47,24 @@ export async function mountPhotographyCarousel(host: HTMLElement, media: Photogr
   const container = document.createElement('div');
   container.className = 'photography-react-root';
   shadow.append(stylesheet, container);
-  await ready;
+  await Promise.all([ready, mobileMediaReady]);
   // The camera dialog may have closed while its first bundle was loading.
   if (signal?.aborted || !host.closest('dialog')?.open) return () => {};
   const items: HeroCarouselItem[] = media.map(item => ({
     id: item.original ?? item.src,
     title: item.type === 'video' ? 'Moving\nmoments.' : 'Through\nmy lens.',
-    image: item.type === 'video' ? item.poster ?? item.src : item.src,
-    fullImage: item.type === 'video' ? item.poster ?? item.src : item.overlayImage ?? item.original ?? item.src,
-    fullSources: item.type === 'image' ? item.overlaySources ?? heroSources[item.original ?? item.src] : undefined,
+    image: mobileMediaSource(item.type === 'video' ? item.poster ?? item.src : item.src),
+    fullImage: mobileMediaSource(item.type === 'video' ? item.poster ?? item.src : item.overlayImage ?? item.original ?? item.src),
+    fullSources: item.type === 'image' ? mobileMediaSources(item.overlaySources ?? heroSources[item.original ?? item.src]) : undefined,
     width: item.width,
     height: item.height,
     fullWidth: item.overlayWidth ?? item.width,
     fullHeight: item.overlayHeight ?? item.height,
-    desktopSourceWidth: item.type === 'image' ? 3840 : undefined,
+    desktopSourceWidth: item.type === 'image' && !touchPerformance ? 3840 : undefined,
     srcSet: item.type === 'image'
-      ? [item.srcset, !item.edited && `${item.original ?? item.src} ${item.width}w`].filter(Boolean).join(', ')
+      ? mobileMediaSrcset([item.srcset, !item.edited && `${item.original ?? item.src} ${item.width}w`].filter(Boolean).join(', '))
       : undefined,
-    videoSrc: item.type === 'video' ? item.src : undefined,
+    videoSrc: item.type === 'video' ? mobileMediaSource(item.src) : undefined,
     alt: item.alt,
     caption: item.label && !/^Photograph\s+\d+$/i.test(item.label.trim()) ? item.label : undefined,
     credit: 'BY SHUBHAM.'

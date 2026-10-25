@@ -1,6 +1,7 @@
 import { createVideoCard } from './hobby-video-card.js';
 import { photographyPhotos as originalPhotos } from './photography-data.js';
 import { applyMediaEdits } from './media-library.js';
+import { mobileMediaReady, mobileMediaSource, mobileMediaSrcset } from './mobile-media.js';
 const photographyPhotos=applyMediaEdits('photography',originalPhotos);
 
 function shuffle(items) {
@@ -18,7 +19,7 @@ function mediaElement(item,gallery=false){
   if(item.type==='video'){
     if(!gallery)return createVideoCard(item);
     const video=document.createElement('video');
-    video.src=item.src;video.poster=item.poster;video.preload='none';video.playsInline=true;
+    video.src=mobileMediaSource(item.src);video.poster=mobileMediaSource(item.poster);video.preload='none';video.playsInline=true;
     video.controls=gallery;video.muted=!gallery;video.loop=!gallery;
     video.width=item.width;video.height=item.height;video.setAttribute('aria-label',item.alt);
     return video;
@@ -30,11 +31,11 @@ function mediaElement(item,gallery=false){
   if(gallery){
     // Use the untouched source at full resolution, previews at smaller sizes.
     const previews=item.srcset.split(', ').filter(source=>Number(source.split(' ').at(-1).slice(0,-1))<item.width);
-    image.srcset=[...previews,item.original+' '+item.width+'w'].join(', ');
+    image.srcset=mobileMediaSrcset([...previews,item.original+' '+item.width+'w'].join(', '));
     image.sizes='(max-width:600px) 42vw, (max-width:1100px) 28vw, 300px';
     image.loading='lazy';
   }
-  image.src=gallery?item.original:item.src;
+  image.src=mobileMediaSource(gallery?item.original:item.src);
   return image;
 }
 
@@ -53,6 +54,7 @@ function playback(){
 }
 function syncPlayback(){const next=playbackAllowed();if(next!==previousAllowed){previousAllowed=next;playback();}}
 async function fill(slot){
+  await mobileMediaReady;
   if(disposed)return;
   const item=nextMedia();if(!item)return;
   const version=(slot.mediaVersion||0)+1;slot.mediaVersion=version;
@@ -114,7 +116,7 @@ export async function fillPhotographyGallery(gallery){
   try{
     // Load React and Motion only when the camera gallery is actually opened.
     carouselModule??=import('./assets/ui/photography-carousel.js').catch(error=>{carouselModule=null;throw error;});
-    const {mountPhotographyCarousel}=await carouselModule;
+    const [{mountPhotographyCarousel}]=await Promise.all([carouselModule,mobileMediaReady]);
     if(version!==galleryVersion||!gallery.open)return;
     const dispose=await mountPhotographyCarousel(mount,order,controller.signal);
     if(version!==galleryVersion||!gallery.open){dispose();return;}

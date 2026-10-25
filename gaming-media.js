@@ -1,5 +1,6 @@
 import { createVideoCard } from './hobby-video-card.js';
 import { gamingImages } from './gaming-data.js';
+import { mobileMediaReady, mobileMediaSource, mobileMediaSrcset } from './mobile-media.js';
 
 function shuffle(items) {
   const result=[...items];
@@ -16,7 +17,7 @@ function mediaElement(item,gallery=false){
   if(item.type==='video'){
     if(!gallery)return createVideoCard(item);
     const video=document.createElement('video');
-    video.src=item.src;video.poster=item.poster;video.preload='none';video.playsInline=true;
+    video.src=mobileMediaSource(item.src);video.poster=mobileMediaSource(item.poster);video.preload='none';video.playsInline=true;
     video.controls=gallery;video.muted=!gallery;video.loop=!gallery;
     video.width=item.width;video.height=item.height;video.setAttribute('aria-label',item.alt);
     return video;
@@ -28,11 +29,11 @@ function mediaElement(item,gallery=false){
   if(gallery){
     // Use responsive 4:3 artwork cards in the gallery.
     const previews=item.srcset.split(', ').filter(source=>Number(source.split(' ').at(-1).slice(0,-1))<item.width);
-    image.srcset=[...previews,item.original+' '+item.width+'w'].join(', ');
+    image.srcset=mobileMediaSrcset([...previews,item.original+' '+item.width+'w'].join(', '));
     image.sizes='(max-width:600px) 42vw, (max-width:1100px) 28vw, 300px';
     image.loading='lazy';
   }
-  image.src=gallery?item.original:item.src;
+  image.src=mobileMediaSource(gallery?item.original:item.src);
   return image;
 }
 
@@ -51,6 +52,7 @@ function playback(){
 }
 function syncPlayback(){const next=playbackAllowed();if(next!==previousAllowed){previousAllowed=next;playback();}}
 async function fill(slot){
+  await mobileMediaReady;
   if(disposed)return;
   const item=nextMedia();if(!item)return;
   const version=(slot.mediaVersion||0)+1;slot.mediaVersion=version;
@@ -126,9 +128,12 @@ export async function fillGamingGallery(gallery){
   }
   try{
     overlayModule??=import('./assets/ui/gaming-overlay.js').catch(error=>{overlayModule=null;throw error;});
-    const {mountGamingOverlay}=await overlayModule;
+    const [{mountGamingOverlay}]=await Promise.all([overlayModule,mobileMediaReady]);
     if(version!==galleryVersion||!gallery.open)return;
-    const dispose=await mountGamingOverlay(mount,order.filter(item=>item.type==='image'),controller.signal);
+    const media=order.filter(item=>item.type==='image').map(item=>({
+      ...item,src:mobileMediaSource(item.src),srcset:mobileMediaSrcset(item.srcset),
+    }));
+    const dispose=await mountGamingOverlay(mount,media,controller.signal);
     if(version!==galleryVersion||!gallery.open){dispose();return;}
     disposeOverlay=dispose;
     status.hidden=true;

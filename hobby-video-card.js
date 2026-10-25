@@ -2,6 +2,7 @@
 // round their position separately from a card moving at fractional pixels.
 import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
 import { touchPerformance } from './touch-performance.js';
+import { mobileMediaSource } from './mobile-media.js';
 const liveCards=new Set();
 const pendingPaints=new Set();
 let paintFrame=0;
@@ -40,7 +41,7 @@ export function createVideoCard(item) {
   const context=canvas.getContext('2d',{alpha:false});
   context.imageSmoothingQuality='high';
   const video=document.createElement('video');
-  video.src=item.preview||item.src;video.preload='metadata';
+  video.src=mobileMediaSource(item.preview||item.src);video.preload='metadata';
   video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;
   let playing=false,disposed=false,callback=null,lastFrame=-1,playVersion=0;
   let lastDecodedFrame=-1;
@@ -53,7 +54,7 @@ export function createVideoCard(item) {
     const cropWidth=Math.min(w,h*ratio),cropHeight=cropWidth/ratio;
     context.drawImage(source,(w-cropWidth)/2,(h-cropHeight)/2,cropWidth,cropHeight,0,0,canvas.width,canvas.height);
   }
-  const poster=new Image();poster.onload=()=>{if(lastFrame<0)paint(poster,poster.naturalWidth,poster.naturalHeight);};poster.src=item.poster;
+  const poster=new Image();poster.onload=()=>{if(lastFrame<0)paint(poster,poster.naturalWidth,poster.naturalHeight);};poster.src=mobileMediaSource(item.poster);
   function drawFrame(){
     if(!playing||disposed||video.readyState<2||video.currentTime===lastFrame)return;
     const decoded=decodedFrameCount?video.getVideoPlaybackQuality().totalVideoFrames:-1;

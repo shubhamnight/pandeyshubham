@@ -2,6 +2,7 @@ import { createVideoCard } from './hobby-video-card.js';
 import { createTravelVideoPlayer, travelVideoFrameRatio } from './travel-video-player.js';
 import { travelImages as originalTravelImages } from './travel-data.js';
 import { applyMediaEdits } from './media-library.js';
+import { mobileMediaReady, mobileMediaSource, mobileMediaSrcset } from './mobile-media.js';
 import { observeTravelFrame } from './overlay-frame-metrics.js';
 const travelImages=applyMediaEdits('travel',originalTravelImages);
 import { locationLabel, locationsReady, travelLocations } from './travel-location-label.js';
@@ -35,11 +36,11 @@ function mediaElement(item,gallery=false){
   if(gallery){
     // Use the untouched source at full resolution, previews at smaller sizes.
     const previews=item.srcset.split(', ').filter(source=>Number(source.split(' ').at(-1).slice(0,-1))<item.width);
-    image.srcset=[...previews,item.original+' '+item.width+'w'].join(', ');
+    image.srcset=mobileMediaSrcset([...previews,item.original+' '+item.width+'w'].join(', '));
     image.sizes='(max-width:600px) 42vw, (max-width:1100px) 28vw, 300px';
     image.loading='lazy';
   }
-  image.src=gallery?item.original:item.src;
+  image.src=mobileMediaSource(gallery?item.original:item.src);
   return image;
 }
 
@@ -58,7 +59,7 @@ function playback(){
 }
 function syncPlayback(){const next=playbackAllowed();if(next!==previousAllowed){previousAllowed=next;playback();}}
 async function fill(slot){
-  await locationsReady;
+  await Promise.all([locationsReady,mobileMediaReady]);
   if(disposed)return;
   const item=nextMedia();if(!item)return;
   const version=(slot.mediaVersion||0)+1;slot.mediaVersion=version;
@@ -137,12 +138,12 @@ export async function fillTravelGallery(gallery){
   }
   try{
     overlayModule??=import('./assets/ui/travel-overlay.js').catch(error=>{overlayModule=null;throw error;});
-    const [{mountTravelOverlay}]=await Promise.all([overlayModule,locationsReady]);
+    const [{mountTravelOverlay}]=await Promise.all([overlayModule,locationsReady,mobileMediaReady]);
     if(disposed||version!==galleryVersion||!gallery.open)return;
     const media=order.map((item,index)=>({
       number:String(index+1).padStart(2,'0'),type:item.type,
-      src:item.type==='video'?(item.gallerySrc||item.preview||item.src):item.src,
-      srcSet:item.srcset,original:item.original,alt:item.alt,poster:item.poster,
+      src:mobileMediaSource(item.type==='video'?(item.gallerySrc||item.preview||item.src):item.src),
+      srcSet:mobileMediaSrcset(item.srcset),original:item.original,alt:item.alt,poster:mobileMediaSource(item.poster),
       width:item.width,height:item.height,
       videoFrameRatio:item.type==='video'?travelVideoFrameRatio(item):undefined,
       title:(travelLocations[decodeURIComponent((item.sourceOriginal||item.original).split('/').pop())]||'').trim(),desc:'',

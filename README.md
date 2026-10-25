@@ -46,6 +46,25 @@ It then compiles the lazy photography island and minifies the static deployment.
 Original media is retained. Vercel preview HTML receives `noindex`; its canonical
 continues to point to production. Production HTML is indexable.
 
+### Phone and tablet media delivery
+
+Touch devices use separate, high-quality compressed media under `assets/mobile/`.
+Desktop clients keep the original delivery URLs. The photographs retain their
+dimensions and aspect ratios; travel videos retain their dimensions, frame
+count and source cadence. Two preview-container durations round by less than
+one millisecond. Compression is lossy, not a claim of pixel-identical encoding.
+Tablet photography uses the existing responsive selection instead of the
+desktop-only minimum 3840px source. No animation or layout is simplified.
+
+After updating media, run `npm run build:mobile-media` locally, then `npm run build`.
+The media command uses the installed Sharp package and an `ffmpeg` executable
+on PATH; it caches unchanged encodings. Commit the generated mobile assets and
+`mobile-media-data.json` with the source changes. Regular deployment builds use
+those prepared files and do not require FFmpeg or re-encode the media.
+Missing manifest entries (including new image-studio uploads) use the existing
+sources until copies are regenerated. An unavailable manifest also falls back
+to the existing sources. Native `<picture>` sources handle profile images.
+
 Submit https://www.pandeyshubham.in/sitemap.xml after deployment. Read
 `SEO-AUDIT.md` for measurements, remaining accessibility issues, Search Console
 steps and future analytics setup. No analytics tracking is installed.
