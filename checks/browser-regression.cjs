@@ -77,7 +77,12 @@ async function scenePoint(page){return page.evaluate(()=>{const s=document.query
     await dialog.getByRole('button',{name:'Songs',exact:true}).click();assert.equal(await dialog.locator('.dcc-opt').count(),28);await dialog.locator('.dcc-opt').nth(4).click();
     await dialog.locator(root).press('ArrowLeft');
    }
-   if(id==='gaming'){await dialog.locator(root).evaluate(e=>{e.scrollTop=600;});await sleep(500);assert.ok(await dialog.locator('.tilted-tile').count());}
+   if(id==='gaming'){
+    const column=dialog.locator('.gaming-marquee-column').first();
+    await column.press('ArrowDown');
+    assert.equal(await dialog.locator('.marquee-track:not([aria-hidden]) .gaming-marquee-card').count(),
+      Number(await dialog.locator(root).getAttribute('data-game-count')));
+   }
    const box=await dialog.boundingBox();assert.ok(box.x>=-.5&&box.x+box.width<=width+1,'dialog fits viewport');
    if(touch&&id==='travel'){
     for(let cycle=0;cycle<3;cycle++){

@@ -156,8 +156,8 @@ async function faults(browser){
      await nav(page,'Hobbies');await settled(page,'Hobbies',{fallback:unavailable});
      const galleries=fault==='shared-once'?[
        ['photography-camera','photography','.photo-full-image'],['travel-plane','travel','.zoom-slider'],
-       ['music-walkman','music','.dcc-root'],['gaming-controller','gaming','.tilted-artwork'],
-     ]:fault==='locations-stall'?[['travel-plane','travel','.zoom-slider']]:[['gaming-controller','gaming','.tilted-artwork']];
+       ['music-walkman','music','.dcc-root'],['gaming-controller','gaming','.gaming-marquee-column'],
+     ]:fault==='locations-stall'?[['travel-plane','travel','.zoom-slider']]:[['gaming-controller','gaming','.gaming-marquee-column']];
      for(const [button,id,root]of galleries){
        // A pinned control can move during locator.click()'s implicit scrolling.
        // Use a real pointer on its visible intersection, without moving the

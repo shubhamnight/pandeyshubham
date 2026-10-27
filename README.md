@@ -78,6 +78,16 @@ real reversal, keyboard pausing, and actual painted icon pixels. It uses the
 same browser environment variables and runs at 4× CPU throttling. Its diagnostic
 reads are injected by the test route and are not part of the website.
 
+The Gaming overlay uses `components/ui/3d-testimonails.tsx`, adapted from the
+supplied vertical marquee, with the existing local game artwork. Columns alternate
+direction and fit desktop, tablet and phone viewports. Hover/hold pauses motion;
+wheel, swipe and arrow keys browse, and Space toggles keyboard playback. Reduced
+motion shows a scrollable static gallery. Decorative repeats are inert and hidden
+from assistive technology. No testimonial/avatar assets or dependencies are needed.
+`node checks/gaming-marquee-regression.cjs` checks these interactions, all 33 games,
+five viewport sizes and repeated native-dialog cleanup using the same external
+Playwright variables. `AUDIT_OUTPUT` selects its screenshots/results directory.
+
 Normal galleries retain the shared runtime. Standalone `*-recovery.js` bundles
 are built from the same components and loaded only if a lazy import's shared
 dependency has failed and become stuck in the browser module map. They are not
