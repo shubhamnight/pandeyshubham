@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="24" viewBox="0 0 160 80" fill="none">
+  <defs>
+    <path id="bat" d="M5 14H52C53 27 64 32 72 25L76 10L80 20L84 10L88 25C96 32 107 27 108 14H155C141 20 134 30 131 43C120 39 111 42 104 49C94 48 87 55 80 67C73 55 66 48 56 49C49 42 40 39 29 43C26 30 19 20 5 14Z"/>
+    <linearGradient id="edge" x1="80" y1="14" x2="80" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#18324f"/><stop offset=".55" stop-color="#08111d"/><stop offset="1" stop-color="#02070d"/>
+    </linearGradient>
+    <linearGradient id="face" x1="62" y1="9" x2="94" y2="70" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#55799b"/><stop offset=".24" stop-color="#284c70"/>
+      <stop offset=".52" stop-color="#132c48"/><stop offset=".76" stop-color="#1f3e5d"/><stop offset="1" stop-color="#0a1829"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="59" y1="10" x2="95" y2="69" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#c4d9e9"/><stop offset=".34" stop-color="#7ca3c9"/><stop offset=".65" stop-color="#365c83"/><stop offset="1" stop-color="#7899b8"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="47" y1="12" x2="92" y2="59" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#edf7ff" stop-opacity=".2"/><stop offset=".46" stop-color="#bed9ef" stop-opacity=".03"/><stop offset="1" stop-color="#06101c" stop-opacity=".14"/>
+    </linearGradient>
+  </defs>
+  <use href="#bat" transform="translate(0 4)" fill="url(#edge)" stroke="#020710" stroke-width="2" stroke-linejoin="round"/>
+  <use href="#bat" transform="translate(0 2)" fill="url(#edge)" stroke="#284461" stroke-width="1.6" stroke-linejoin="round"/>
+  <use href="#bat" fill="url(#face)" stroke="url(#rim)" stroke-width="1.8" stroke-linejoin="round"/>
+  <use href="#bat" transform="translate(80 38) scale(.96 .91) translate(-80 -38)" fill="url(#sheen)" stroke="#adc8df" stroke-opacity=".16" stroke-width=".8"/>
+</svg>

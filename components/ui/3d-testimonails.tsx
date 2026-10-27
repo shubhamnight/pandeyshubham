@@ -9,13 +9,15 @@ interface MarqueeProps extends ComponentPropsWithoutRef<'div'> {
   vertical?: boolean;
   repeat?: number;
   autoFill?: boolean;
+  /** Keep generic interactive repeats unfocusable; artwork-only copies can receive hover. */
+  inertCopies?: boolean;
   ariaLabel?: string;
   ariaLive?: 'off' | 'polite' | 'assertive';
 }
 
 /** The supplied repeating marquee, with inert copies and direct input seeking. */
 export function Marquee({ className, reverse = false, pauseOnHover = false,
-  children, vertical = false, repeat = 2, autoFill = false,
+  children, vertical = false, repeat = 2, autoFill = false, inertCopies = true,
   ariaLabel, ariaLive = 'off', ...props }: MarqueeProps) {
   const root = useRef<HTMLDivElement>(null);
   const span = useRef(1);
@@ -92,7 +94,7 @@ export function Marquee({ className, reverse = false, pauseOnHover = false,
     onPointerCancel={event => { props.onPointerCancel?.(event); release(); }}
     onLostPointerCapture={event => { props.onLostPointerCapture?.(event); release(); }}>
     {Array.from({ length: copies }, (_, index) => <div key={index} className="marquee-track"
-      aria-hidden={index > 0 || undefined} inert={index > 0 || undefined}>
+      aria-hidden={index > 0 || undefined} inert={index > 0 && inertCopies || undefined}>
       {Children.toArray(children)}
     </div>)}
   </div>;

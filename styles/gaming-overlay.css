@@ -25,7 +25,6 @@
 .marquee:focus-visible { outline:2px solid #96b7df; outline-offset:-4px; border-radius:12px; }
 @media(hover:hover) and (pointer:fine) {
   .marquee[data-pause-hover]:hover>.marquee-track { animation-play-state:paused; }
-  :host([data-batman-cursor]) * { cursor:inherit!important; }
 }
 @keyframes marquee { from { transform:translateX(0); } to { transform:translateX(calc(-100% - var(--gap))); } }
 @keyframes marquee-vertical { from { transform:translateY(0); } to { transform:translateY(calc(-100% - var(--gap))); } }

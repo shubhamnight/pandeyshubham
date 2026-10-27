@@ -52,7 +52,6 @@ export async function mountMusicOverlay(host: HTMLElement, songs: MusicCard[], s
     fonts.onerror = () => fonts.remove();
     document.head.append(fonts);
   }
-  host.toggleAttribute('data-batman-cursor', document.body.classList.contains('batman-cursor-active'));
   const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
   shadow.replaceChildren();
   const stylesheet = document.createElement('link');

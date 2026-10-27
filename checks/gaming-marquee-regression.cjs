@@ -23,7 +23,7 @@ try{for(const [width,height,touch]of [[1440,900,false],[320,568,true],[390,844,t
   const gallery=page.locator('#gaming-gallery'),viewport=gallery.locator('.gaming-scroll-viewport'),columns=gallery.locator('.gaming-marquee-column'),column=columns.first(),box=await viewport.boundingBox(),expectedColumns=box.width<600?2:box.width<900?3:4;
   assert.equal(await columns.count(),expectedColumns);
   const titles=await gallery.locator('.marquee-track:not([aria-hidden]) .gaming-marquee-card').evaluateAll(es=>es.map(e=>e.dataset.gameTitle));assert.equal(titles.length,33);assert.equal(new Set(titles).size,33);
-  assert.ok(await gallery.locator('.marquee-track[aria-hidden]').evaluateAll(es=>es.every(e=>e.inert)));
+  assert.ok(await gallery.locator('.marquee-track[aria-hidden]').evaluateAll(es=>es.every(e=>e.inert||!e.querySelector('a,button,input,select,textarea,[tabindex]'))),'artwork copies have no focusable controls');
   assert.equal(await gallery.locator('a').count(),0);
   assert.ok(await gallery.locator('.gaming-marquee-artwork').evaluateAll(es=>es.every(e=>e.width&&e.height&&e.getAttribute('alt')&&e.getAttribute('srcset'))));
   assert.ok((await gallery.locator('.gaming-marquee-artwork').evaluateAll(es=>es.filter(e=>e.complete&&e.naturalWidth).length))>=4,'visible artwork decodes');

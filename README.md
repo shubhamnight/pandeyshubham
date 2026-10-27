@@ -82,11 +82,34 @@ The Gaming overlay uses `components/ui/3d-testimonails.tsx`, adapted from the
 supplied vertical marquee, with the existing local game artwork. Columns alternate
 direction and fit desktop, tablet and phone viewports. Hover/hold pauses motion;
 wheel, swipe and arrow keys browse, and Space toggles keyboard playback. Reduced
-motion shows a scrollable static gallery. Decorative repeats are inert and hidden
-from assistive technology. No testimonial/avatar assets or dependencies are needed.
+motion shows a scrollable static gallery. Decorative repeats are hidden from
+assistive technology; artwork-only copies remain hoverable and contain no
+focusable controls. Generic interactive repeats remain inert by default.
+No testimonial/avatar assets or dependencies are needed.
 `node checks/gaming-marquee-regression.cjs` checks these interactions, all 33 games,
 five viewport sizes and repeated native-dialog cleanup using the same external
 Playwright variables. `AUDIT_OUTPUT` selects its screenshots/results directory.
+
+The native pointer is retained. `cursor-follower.js` draws a dedicated beveled
+Batman model (`assets/batman/follower.svg`) beside a mouse pointer after PLAY
+becomes available. The supplied magnetic-cursor behavior adds restrained
+velocity-based stretch/turning, attraction and elastic release on icons
+and artwork. `cursor-magnetism.js` discovers targets across open shadow roots
+and applies additive transforms, retaining existing CSS/Motion/GSAP poses.
+The follower has no hover outline. `cursor-physics.js` uses elapsed-time,
+critically damped springs to preserve momentum through capture and release;
+banking and stretch are bounded to keep the Batman silhouette readable.
+These effects share the motion
+clock, stop when settled, follow native dialogs into the top layer, and never
+receive pointer input. Touch-only devices create no follower; reduced motion
+uses immediate positioning. `node checks/cursor-follower-regression.cjs` checks
+native cursors, all overlays, click-through, idle suspension and bfcache cleanup
+with the same external Playwright variables.
+`node checks/cursor-physics.cjs` checks the spring solution and reversal across
+60/75/120/144/165/240 Hz and irregular frames.
+`node checks/cursor-magnetic-regression.cjs` covers outline-free attraction, transform
+ownership, elastic cleanup, live placeholders, repeated shadow-root artwork,
+pointer presses, velocity stretch and the text response.
 
 Normal galleries retain the shared runtime. Standalone `*-recovery.js` bundles
 are built from the same components and loaded only if a lazy import's shared

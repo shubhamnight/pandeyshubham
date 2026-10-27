@@ -15,4 +15,3 @@
 .travel-video-player video { display:block; width:100%; height:100%; object-fit:cover; pointer-events:none; }
 .zoom-caption { bottom:calc(100% + 10px); left:0; padding-bottom:4px; visibility:hidden; pointer-events:none; }
 .zoom-caption p { margin:0; white-space:nowrap; }
-@media(hover:hover) and (pointer:fine) { :host([data-batman-cursor]) * { cursor:inherit!important; } }

@@ -4,7 +4,6 @@ import { ZoomSliderComp, type ZoomSliderItem } from '@/components/ui/zoom-slider
 /** Mount only while the native traveling dialog is open. */
 export async function mountTravelOverlay(host: HTMLElement, images: ZoomSliderItem[], signal?: AbortSignal) {
   if (signal?.aborted) return () => {};
-  host.toggleAttribute('data-batman-cursor', document.body.classList.contains('batman-cursor-active'));
   const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
   shadow.replaceChildren();
   const stylesheet = document.createElement('link');

@@ -88,16 +88,11 @@ export async function mountSocialIcons(host: HTMLElement, links: SocialLinks) {
   shadow.replaceChildren(stylesheet, container);
   await ready;
   const fallback = host.parentElement?.querySelector<HTMLElement>('.footer-socials-fallback');
-  const syncCursor = () => host.toggleAttribute('data-batman-cursor', document.body.classList.contains('batman-cursor-active'));
-  const cursorObserver = new MutationObserver(syncCursor);
-  cursorObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-  syncCursor();
   const root = createRoot(container);
   root.render(<SocialIcons links={links} />);
   host.hidden = false;
   if (fallback) fallback.hidden = true;
   return () => {
-    cursorObserver.disconnect();
     root.unmount();
     host.hidden = true;
     if (fallback) fallback.hidden = false;

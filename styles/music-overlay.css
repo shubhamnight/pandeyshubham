@@ -40,5 +40,5 @@
   .music-disc-cascade .dcc-nav { top:12px; }
   .music-disc-cascade .dcc-hint { display:none; }
 }
-@media(hover:hover) and (pointer:fine) { :host([data-batman-cursor]) * { cursor:inherit!important; } }
+
 @media(prefers-reduced-motion:reduce) { .music-disc-cascade.dcc-root .dcc-idle { animation:none!important; } }

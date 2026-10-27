@@ -142,6 +142,6 @@ body.badge-entering #home .badge-rig{will-change:transform,opacity;transform-ori
 .portfolio-intro.crowd-ready .intro-crowd{opacity:1;translate:0 0}
 @media(prefers-reduced-motion:reduce){.intro-crowd{transition:none;translate:0 0}}
 @media(prefers-reduced-motion:reduce){.portfolio-intro.play-webgl .batman-loader-stage>canvas,.portfolio-intro.show-play.play-webgl .flow-play,.portfolio-intro.play-webgl .intro-play .flow-label,.portfolio-intro.play-webgl .intro-play .flow-arrow{transition:none}}
-@media(hover:hover) and (pointer:fine){
-  body.batman-cursor-active,body.batman-cursor-active *{cursor:url('assets/batman/cursor.svg') 20 12,auto!important}
-}
+.batman-follower{position:fixed;top:0;left:0;width:40px;height:24px;z-index:2147483647;pointer-events:none!important;user-select:none;contain:layout style;will-change:transform;line-height:0;perspective:220px;filter:drop-shadow(0 2px 3px #0007)}
+.batman-follower[hidden]{display:none!important}
+.batman-follower img{display:block;width:40px;height:24px;max-width:none;pointer-events:none!important;user-select:none;transform-origin:50% 50%;backface-visibility:hidden}

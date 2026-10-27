@@ -33,7 +33,7 @@ function GamingOverlay({ images }: { images: GameArtwork[] }) {
     role="group" aria-label="Game artwork" data-game-count={images.length}>
     <div className="gaming-marquee-scene">
       <div className="gaming-marquee-plane" style={{ '--columns': columnCount } as CSSProperties}>
-        {columns.map((column, index) => <Marquee key={index} vertical pauseOnHover reverse={index % 2 === 1}
+        {columns.map((column, index) => <Marquee key={index} vertical pauseOnHover inertCopies={false} reverse={index % 2 === 1}
           className="gaming-marquee-column" ariaLabel={`Game artwork column ${index + 1}. Scroll or swipe to browse; hold to pause. Arrow keys browse; Space toggles pause.`}
           style={{ '--duration': `${Math.max(40, column.length * 5)}s` } as CSSProperties}>
           {column.map(image => <figure key={image.src} className="gaming-marquee-card" data-game-title={image.title}>
@@ -51,7 +51,6 @@ function GamingOverlay({ images }: { images: GameArtwork[] }) {
 
 /** Load styles and React only when the native games dialog opens. */
 export async function mountGamingOverlay(host: HTMLElement, media: GameArtwork[], signal?: AbortSignal) {
-  host.toggleAttribute('data-batman-cursor', document.body.classList.contains('batman-cursor-active'));
   const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
   shadow.replaceChildren();
   const stylesheet = document.createElement('link');

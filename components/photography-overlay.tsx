@@ -25,7 +25,6 @@ interface PhotographyMedia {
 
 /** A React island: styles and events stay inside the existing native dialog. */
 export async function mountPhotographyCarousel(host: HTMLElement, media: PhotographyMedia[], signal?: AbortSignal) {
-  host.toggleAttribute('data-batman-cursor', document.body.classList.contains('batman-cursor-active'));
   const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
   shadow.replaceChildren();
   const stylesheet = document.createElement('link');
