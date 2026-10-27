@@ -7,11 +7,21 @@ const output=path.resolve(process.env.AUDIT_OUTPUT||'output/performance/2026-10-
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function settled(page){try{await page.waitForFunction(()=>!document.querySelector('#projects').inert&&[...document.querySelectorAll('.hobby-orbit-center')].every(e=>e.style.translate.split(' ').every(v=>Math.abs(parseFloat(v))<.01)),undefined,{timeout:25000});}catch(e){console.log(await page.evaluate(()=>({y:scrollY,body:document.body.className,inert:document.querySelector('#projects').inert,models:[...document.querySelectorAll('.hobby-orbit-center')].map(e=>({translate:e.style.translate,visible:e.className,ready:e.querySelector('button').dataset}))})));await page.screenshot({path:path.join(output,'failure.png')});throw e;}}
 async function nav(page,name){await page.getByRole('link',{name,exact:true}).click();await sleep(1800);}
-async function open(page,id){await nav(page,'Hobbies');await settled(page);const b=await page.locator('#'+id).boundingBox();await page.mouse.click(b.x+b.width/2,b.y+b.height/2);}
+async function open(page,id){
+ await nav(page,'Hobbies');await settled(page);
+ const b=await page.locator('#'+id).boundingBox(),v=page.viewportSize();
+ // On a short desktop viewport the existing pinned artwork can extend beyond
+ // the screen. Click its visible portion rather than an offscreen box centre.
+ const left=Math.max(0,b.x),right=Math.min(v.width,b.x+b.width);
+ const top=Math.max(0,b.y),bottom=Math.min(v.height,b.y+b.height);
+ assert.ok(right>left&&bottom>top,'gallery control intersects viewport');
+ await page.mouse.click((left+right)/2,(top+bottom)/2);
+}
 async function scenePoint(page){return page.evaluate(()=>{const s=document.querySelector('.skills-hobbies-scene'),v=s.querySelector('.skills-hobbies-viewport');return (scrollY-s.getBoundingClientRect().top-scrollY)/v.offsetHeight;});}
 (async()=>{
- await fs.mkdir(output,{recursive:true});const browser=await chromium.launch({channel:process.env.BROWSER_CHANNEL||'chrome',headless:true}),results=[];
- try{for(const [name,width,height,touch]of [['phone',390,844,true],['tablet',768,1024,true],['desktop',1440,900,false]]){
+ await fs.mkdir(output,{recursive:true});const browser=await chromium.launch({...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{channel:process.env.BROWSER_CHANNEL||'chrome'}),headless:true}),results=[];
+ const profiles=[['phone',390,844,true],['tablet',768,1024,true],['desktop',Number(process.env.DESKTOP_WIDTH||1440),Number(process.env.DESKTOP_HEIGHT||900),false]];
+ try{for(const [name,width,height,touch]of profiles){
   if(process.env.BROWSER_PROFILE&&process.env.BROWSER_PROFILE!==name)continue;
   const context=await browser.newContext({viewport:{width,height},isMobile:touch,hasTouch:touch,deviceScaleFactor:touch?2:1});
   const page=await context.newPage(),errors=[],checks=[];page.on('pageerror',e=>errors.push(e.message));
@@ -41,7 +51,18 @@ async function scenePoint(page){return page.evaluate(()=>{const s=document.query
   if(touch){await page.setViewportSize({width:height,height:width});await sleep(700);const after=await scenePoint(page);assert.ok(Math.abs(before-after)<.01);await page.setViewportSize({width,height});await sleep(700);}
   checks.push('hobby model handoff and rotation');
   for(const [button,id,root]of [['photography-camera','photography','.photo-carousel'],['travel-plane','travel','.zoom-slider'],['music-walkman','music','.dcc-root'],['gaming-controller','gaming','.gaming-scroll-viewport']]){
-   await open(page,button);const dialog=page.locator('#'+id+'-gallery');await dialog.locator(root).waitFor({state:'visible',timeout:30000});await sleep(900);
+   await open(page,button);const dialog=page.locator('#'+id+'-gallery');
+   try { await dialog.locator(root).waitFor({state:'visible',timeout:30000}); }
+   catch(error){
+    await page.screenshot({path:path.join(output,id+'-open-failure.png')});
+    await fs.writeFile(path.join(output,id+'-open-failure.json'),JSON.stringify(await page.evaluate(({button,id})=>({
+      y:scrollY,errors:[],button:document.getElementById(button)?.outerHTML,
+      dialogs:[...document.querySelectorAll('dialog')].map(d=>({id:d.id,open:d.open,html:d.id===id+'-gallery'?d.innerHTML:null})),
+      body:document.body.className,active:document.activeElement?.tagName,
+    }),{button,id}),null,2));
+    throw error;
+   }
+   await sleep(900);
    if(id==='photography'){await dialog.locator(root).press('Home');await dialog.locator(root).press('ArrowRight');await dialog.locator(root).press('End');await sleep(800);assert.ok(await dialog.locator('.photo-full-image').count());}
    if(id==='travel'){
     const first=await dialog.locator('.sr-only').innerText();await dialog.locator(root).press('ArrowRight');await sleep(3000);const next=await dialog.locator('.sr-only').innerText();assert.notEqual(next,first);

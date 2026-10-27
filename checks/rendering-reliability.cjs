@@ -3,7 +3,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=r
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const origin=process.env.AUDIT_URL||'http://localhost:3000';
 const output=path.resolve(process.env.REPAIR_OUTPUT||'output/render-repair-2026-10-25/regression');
-const profiles=[[320,568],[360,800],[390,844],[430,932],[768,1024],[820,1180],[1024,1366],[1440,900]];
+const desktop=process.env.REPAIR_DESKTOP==='1';
+const profiles=desktop?[[1280,720],[1366,768],[1440,900],[1920,1080],[2560,1440]]:[[320,568],[360,800],[390,844],[430,932],[768,1024],[820,1180],[1024,1366],[1440,900]];
 async function state(page){return page.evaluate(async()=>{
  const {sceneMotion:s}=await import('/skills-hobbies-scene.js');
  const shown=e=>{const c=getComputedStyle(e),r=e.getBoundingClientRect();return c.visibility!=='hidden'&&+c.opacity>.99&&r.width>0&&r.height>0&&r.right>0&&r.left<innerWidth&&r.bottom>0&&r.top<innerHeight;};
@@ -61,14 +62,15 @@ async function settled(page,name,{fallback=false}={}){
  return state(page);
 }
 async function normal(browser,w,h){
- const context=await browser.newContext({viewport:{width:w,height:h},hasTouch:w!==1440,isMobile:w!==1440,deviceScaleFactor:w===1440?1:2});
+ const touch=!desktop&&w!==1440;
+ const context=await browser.newContext({viewport:{width:w,height:h},hasTouch:touch,isMobile:touch,deviceScaleFactor:touch?2:1});
  const page=await context.newPage(),errors=[],requests=[];page.on('pageerror',e=>errors.push(e.stack));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});page.on('response',r=>{if(r.status()>=400)requests.push({url:r.url(),status:r.status()});});
  await page.addInitScript(()=>{
    const request=requestAnimationFrame,cancel=cancelAnimationFrame,pending=new Set();window.qaRAF={pending};
    window.requestAnimationFrame=callback=>{const id=request(time=>{pending.delete(id);callback(time);});pending.add(id);return id;};
    window.cancelAnimationFrame=id=>{pending.delete(id);cancel(id);};
  });
- const cdp=await context.newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:w===390||w===768?4:1});
+ const cdp=await context.newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:Number(process.env.REPAIR_CPU||(w===390||w===768?4:1))});
  const checks=[],counts=[];await enter(page,'#projects');
  const thorough=[390,768,1440].includes(w);
  // Each final destination is tested after rapid reversal as well as normal travel.
@@ -80,7 +82,7 @@ async function normal(browser,w,h){
  checks.push('rapid switching recovers both sections');
  console.log(JSON.stringify({viewport:[w,h],stage:'navigation passed'}));
  await page.evaluate(()=>history.back());await page.waitForTimeout(500);await page.evaluate(()=>history.forward());await settled(page,'Skills');checks.push('back/forward');
- if(w!==1440){
+ if(touch){
   await page.setViewportSize({width:h,height:w});await settled(page,'Skills');
   await nav(page,'Hobbies');await settled(page,'Hobbies');
   await page.setViewportSize({width:w,height:h});await settled(page,'Hobbies');checks.push('portrait/landscape');
@@ -117,8 +119,9 @@ async function normal(browser,w,h){
 async function faults(browser){
  const rows=[];
  for(const fault of ['model-once','skills-once','shared-once','manifest-stall','locations-stall','model-unavailable','context-loss']){
+  if(desktop&&fault==='manifest-stall')continue; // Desktop never fetches the touch-only compression manifest.
   if(process.env.REPAIR_FAULT&&process.env.REPAIR_FAULT!==fault)continue;
-  const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});let failures=0,release,unavailable=fault==='model-unavailable';const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const page=await browser.newPage({viewport:desktop?{width:1440,height:900}:{width:390,height:844},hasTouch:!desktop,isMobile:!desktop});let failures=0,release,unavailable=fault==='model-unavailable';const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{
     window.qaContexts=[];const get=HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext=function(...args){const c=get.apply(this,args);if(c&&/webgl/.test(args[0])&&!window.qaContexts.includes(c))window.qaContexts.push(c);return c;};
@@ -155,7 +158,21 @@ async function faults(browser){
        ['photography-camera','photography','.photo-full-image'],['travel-plane','travel','.zoom-slider'],
        ['music-walkman','music','.dcc-root'],['gaming-controller','gaming','.tilted-artwork'],
      ]:fault==='locations-stall'?[['travel-plane','travel','.zoom-slider']]:[['gaming-controller','gaming','.tilted-artwork']];
-     for(const [button,id,root]of galleries){await page.locator('#'+button).click();const dialog=page.locator('#'+id+'-gallery');await dialog.locator(root).first().waitFor({state:'visible',timeout:30000});await dialog.locator('header button').click();}
+     for(const [button,id,root]of galleries){
+       // A pinned control can move during locator.click()'s implicit scrolling.
+       // Use a real pointer on its visible intersection, without moving the
+       // document away from the completed Hobbies anchor.
+       await settled(page,'Hobbies',{fallback:unavailable});
+       const b=await page.locator('#'+button).boundingBox(),v=page.viewportSize();
+       const left=Math.max(0,b.x),right=Math.min(v.width,b.x+b.width);
+       const top=Math.max(0,b.y),bottom=Math.min(v.height,b.y+b.height);
+       assert.ok(right>left&&bottom>top,'gallery control intersects viewport');
+       await page.mouse.click((left+right)/2,(top+bottom)/2);
+       const dialog=page.locator('#'+id+'-gallery');
+       await dialog.locator(root).first().waitFor({state:'visible',timeout:30000});
+       await dialog.locator('header button').click();
+       await page.waitForFunction(()=>document.body.style.overflow===''&&!document.body.classList.contains('photography-gallery-open'));
+     }
      if(unavailable){unavailable=false;await page.evaluate(()=>dispatchEvent(new Event('online')));await page.waitForFunction(()=>document.querySelector('#gaming-controller').dataset.hobbyCompiling==='false');await settled(page,'Hobbies');}
    }
    const contexts=await page.evaluate(()=>({total:window.qaContexts.length,lost:window.qaContexts.filter(c=>c.isContextLost()).length}));

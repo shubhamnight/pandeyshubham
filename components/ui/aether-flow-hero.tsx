@@ -63,7 +63,10 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
     const bodyClasses = document.body.classList;
     const bodyPauseState = () => bodyClasses.contains('intro-active') || bodyClasses.contains('motion-paused') || bodyClasses.contains('photography-gallery-open');
     let bodyPaused = bodyPauseState();
-    const frameInterval = 1000 / (matchMedia('(pointer:coarse)').matches ? 30 : 60);
+    // Desktop already advances by elapsed time. Paint each delivered refresh
+    // instead of quantizing 75/120/144/165/240 Hz displays to skipped frames.
+    // Keep the existing touch cadence and all particle/connection detail.
+    const frameInterval = matchMedia('(pointer:coarse)').matches ? 1000 / 30 : 0;
 
     function paused() {
       return suspended || document.hidden || !visible || motionPreference.matches || bodyPaused;

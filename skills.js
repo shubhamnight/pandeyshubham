@@ -231,7 +231,10 @@ function tick(time) {
   // finishing the handoff after the wheel stops could strand the ring onscreen.
   if (top <= innerHeight * reverseStart) retreatRequested = false;
   else if (scrollingBack || !entered) retreatRequested = true;
-  let paused = pointerInside || focusInside || bodyPaused;
+  // Desktop hover pauses the finished ring. It must not strand the remaining
+  // train above the viewport when an arriving icon crosses a stationary cursor.
+  // Keyboard focus and the existing touch interaction rules are retained.
+  let paused = bodyPaused || focusInside || (pointerInside && (touchPerformance || mode === 'orbit'));
   const reverseTarget = clamp((top / innerHeight - reverseStart) / (reverseEnd - reverseStart));
   if (reduced.matches) {
     mode = 'orbit'; travel = entryLength + circumference; retreat = handoff = null;

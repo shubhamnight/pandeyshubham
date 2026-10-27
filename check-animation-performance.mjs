@@ -25,7 +25,7 @@ for(const velocity of [-35,-.11,0,.11,35])for(const dragging of [false,true])for
     comparisons++;
   }
 }
-for(const hz of [30,60,90,120,144,165]){
+for(const hz of [30,60,75,90,120,144,165,240]){
   const s={current:0,target:600,velocity:0};
   for(let i=0;i<hz;i++)advanceTravelMotion(s,60/hz,false,false);
   assert.ok(Math.abs(s.current-600*(1-Math.pow(.92,60)))<1e-9,'refresh-independent scroll easing');
@@ -95,5 +95,5 @@ for(const initiallyPaused of [true,false]){
   assert.equal(plays,initiallyPaused?0:1,'manual pause is respected and active playback resumes once');
   cleanup();assert.equal(docEvents.size+winEvents.size,0);assert.equal(loads,1);
 }
-console.log(JSON.stringify({travelRecurrenceComparisons:comparisons,refreshRates:[30,60,90,120,144,165],
+console.log(JSON.stringify({travelRecurrenceComparisons:comparisons,refreshRates:[30,60,75,90,120,144,165,240],
   contourSegments:segments.length,uniqueVertexQueries:points.size,bruteMs:before,indexedMs:after,speedup:before/after}));

@@ -1,6 +1,5 @@
 // One pinned stage and scroll timeline for the skills-to-hobbies handoff.
 import { requestHobbyFrame, cancelHobbyFrame, getSmoothPosition, clampMotionProgress as clamp } from './hobby-motion-clock.js';
-import { touchPerformance } from './touch-performance.js';
 
 const skills = document.querySelector('#about');
 const hobbies = document.querySelector('#projects');
@@ -102,12 +101,12 @@ function update() {
     const skillsCopy = 1 - ease(clamp((sceneMotion.skillExit - .55) / .30));
     const hobbiesCopy = ease(clamp((sceneMotion.modelArrival - .40) / .60));
     if (skillsCopy !== previousSkillsCopy) {
-      if(touchPerformance&&skillsHeading)skillsHeading.style.opacity=String(skillsCopy);
+      if(skillsHeading)skillsHeading.style.opacity=String(skillsCopy);
       else element.style.setProperty('--scene-skills-copy', skillsCopy);
       previousSkillsCopy = skillsCopy;
     }
     if (hobbiesCopy !== previousHobbiesCopy) {
-      if(touchPerformance&&hobbiesHeading)hobbiesHeading.style.opacity=String(hobbiesCopy);
+      if(hobbiesHeading)hobbiesHeading.style.opacity=String(hobbiesCopy);
       else element.style.setProperty('--scene-hobbies-copy', hobbiesCopy);
       previousHobbiesCopy = hobbiesCopy;
     }
@@ -116,7 +115,7 @@ function update() {
     if (skillsInert !== previousSkillsInert) { skills.inert = skillsInert; previousSkillsInert = skillsInert; }
     if (hobbiesInert !== previousHobbiesInert) { hobbies.inert = hobbiesInert; previousHobbiesInert = hobbiesInert; }
   } else {
-    if(touchPerformance){skillsHeading?.style.removeProperty('opacity');hobbiesHeading?.style.removeProperty('opacity');}
+    skillsHeading?.style.removeProperty('opacity');hobbiesHeading?.style.removeProperty('opacity');
     previousSkillsCopy=previousHobbiesCopy=null;
     skills.inert = hobbies.inert = false;
     previousSkillsInert = previousHobbiesInert = null;

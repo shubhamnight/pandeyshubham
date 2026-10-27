@@ -30,21 +30,24 @@ export function watchInputs(object, keys, callback) {
   };
 }
 
-// These values are consumed on the element that owns them. Let supporting
-// mobile engines update that element without invalidating all its descendants.
-// Keep the ordinary custom-property path on desktop and older mobile engines.
-if (touchPerformance && typeof CSS !== 'undefined' && typeof CSS.registerProperty === 'function') {
-  for (const [name, syntax, initialValue] of [
+// These transition values are consumed on the element that owns them. Their
+// changing values must not invalidate the entire hero and Skills/Hobbies tree
+// on every scroll frame. Unsupported engines keep the original CSS fallback.
+if (typeof CSS !== 'undefined' && typeof CSS.registerProperty === 'function') {
+  const properties=[
     ['--exit-scale', '<number>', '1'],
     ['--exit-rotation', '<angle>', '0deg'],
     ['--enter-scale', '<number>', '1'],
     ['--enter-rotation', '<angle>', '0deg'],
+  ];
+  if(touchPerformance)properties.push(
     ['--edge-x', '<length>', '0px'],
     ['--edge-y', '<length>', '3px'],
     ['--tilt-shadow-x', '<length>', '0px'],
     ['--tilt-shadow-y', '<length>', '0px'],
     ['--tilt-shadow-blur', '<length>', '40px'],
-  ]) {
+  );
+  for (const [name, syntax, initialValue] of properties) {
     try { CSS.registerProperty({name, syntax, initialValue, inherits:false}); }
     catch { /* Another island may have registered this property already. */ }
   }

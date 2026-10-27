@@ -13,11 +13,11 @@ rig.insertBefore(badgeShell,badge);
 const hero = document.querySelector('.hero');
 const touchBadge=window.matchMedia('(pointer: coarse)').matches ||
   (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-// Keep phone drag lighting local to the two surfaces that actually paint it.
+// Keep drag lighting local to the two surfaces that actually paint it.
 // The same values, gradients and transitions remain; other card descendants
 // no longer inherit a changing set of lighting properties every frame.
-const glareSurface=touchBadge?(badge.querySelector('.badge-glare')||badge):badge;
-const patternSurface=touchBadge?(badge.querySelector('.badge-face')||badge):badge;
+const glareSurface=badge.querySelector('.badge-glare')||badge;
+const patternSurface=badge.querySelector('.badge-face')||badge;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const restingPose = {x:0, y:0, rx:0, ry:0, rz:0, z:0, light:0, scale:1};
@@ -98,7 +98,10 @@ function paintBadge() {
 function animateBadge(time) {
   if (!motionAllowed()) { stopBadge(); return; }
   // Consume only the newest pointer sample, with layout reads before any paint writes.
-  if(badgeBoundsDirty)measureBadge();
+  // A stationary cursor does not consume screen coordinates. Scroll-only
+  // spring frames can reuse the unchanged ribbon/card layout dimensions;
+  // the resize observer still refreshes their backing layers independently.
+  if(badgeBoundsDirty&&(pointerPending||!bounds))measureBadge();
   if(pointerPending){
     pointerPending=false;
     const pointer=badgePointer(latestPointer.x,latestPointer.y);
@@ -156,7 +159,7 @@ function queueBadgePointer(event){
   // No work for pointer movement far from the rig once its spring has settled.
   // A captured touch drag is mapped once by the next animation frame. It
   // does not need a second coordinate conversion for the hover bounds guard.
-  const pointer=badgeBoundsDirty||(touchBadge&&(frame||dragging||hoveringBadge))?null:badgePointer(event.clientX,event.clientY);
+  const pointer=badgeBoundsDirty||frame||dragging||hoveringBadge?null:badgePointer(event.clientX,event.clientY);
   if(!frame&&!dragging&&!hoveringBadge&&!badgeBoundsDirty&&
     (pointer.x<bounds.left-bounds.width*.6||pointer.x>bounds.left+bounds.width*1.6||
       pointer.y<bounds.top-bounds.strapLength||pointer.y>bounds.top+bounds.height*1.25))return;

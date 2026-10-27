@@ -144,7 +144,7 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       const frameX = x + (width - frameWidth) / 2;
       const transform = `translate(${frameX}px, ${box.h - frameHeight}px)`;
       const frameWidthStyle = `${frameWidth}px`, frameHeightStyle = `${frameHeight}px`;
-      const previous = touchPerformance ? paintedCardsRef.current.get(card) : undefined;
+      const previous = paintedCardsRef.current.get(card);
       if (!previous || previous.transform !== transform) card.style.transform = transform;
       if (!previous || previous.width !== frameWidthStyle) wrap.style.width = frameWidthStyle;
       if (!previous || previous.height !== frameHeightStyle) wrap.style.height = frameHeightStyle;
@@ -154,11 +154,10 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
         // their original geometry and can return without rebuilding the strip.
         const promoted = x < box.w + cardStep;
         if (!previous || previous.promoted !== promoted) card.style.willChange = promoted ? 'transform' : 'auto';
-        if (previous) {
-          previous.transform=transform;previous.width=frameWidthStyle;previous.height=frameHeightStyle;previous.promoted=promoted;
-        }
-        else paintedCardsRef.current.set(card, {transform, width:frameWidthStyle, height:frameHeightStyle, promoted});
+        if (previous) previous.promoted=promoted;
       }
+      if (previous) { previous.transform=transform;previous.width=frameWidthStyle;previous.height=frameHeightStyle; }
+      else paintedCardsRef.current.set(card, {transform, width:frameWidthStyle, height:frameHeightStyle, promoted:touchPerformance&&x<box.w+cardStep});
       if (wrap.tabIndex !== (shown ? 0 : -1)) wrap.tabIndex = shown ? 0 : -1;
       if (wrap.inert === shown) wrap.inert = !shown;
       // Fetch only approaching cards; keep decoded images when they loop around.

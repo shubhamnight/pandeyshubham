@@ -35,7 +35,12 @@ npm run check:rounded-box
 npm run check:loading-recovery
 npm run check:renderer
 npm run check:scroll-intent
+npm run check:desktop-performance
 ```
+
+The desktop performance check compares ID-card poses, lighting, Travel geometry
+and high-refresh particle cadence against Git revision `05244ef`. Keep that
+revision available when using a shallow checkout. It runs without a browser.
 
 Optional browser regression checks use an externally installed `playwright-core`
 and Chrome (or `BROWSER_CHANNEL=msedge`). Set `PLAYWRIGHT_MODULE` to that module's
@@ -44,6 +49,15 @@ absolute path, start the local server, then run `node checks/browser-regression.
 `phone`, `tablet`, or `desktop`. Screenshots and results are written under ignored
 `output/performance/`. The checks do not edit gallery content or submit contact links.
 
+For desktop coverage, set `BROWSER_PROFILE=desktop` and optionally
+`DESKTOP_WIDTH` / `DESKTOP_HEIGHT`. `BROWSER_EXECUTABLE` selects another installed
+Chromium browser. `node checks/desktop-hover-regression.cjs` verifies that a
+stationary cursor cannot freeze the Skills entrance at five desktop sizes while
+retaining the finished orbit's hover pause. `node checks/desktop-frame-cadence.cjs`
+compares actual contact-canvas paints with delivered animation frames. Run that
+timing check alone, with `AUDIT_URL` pointing to a production preview; its default
+is port 3013. The cadence reference also requires revision `05244ef`.
+
 The additional `node checks/rendering-reliability.cjs` suite checks repeated
 Skills/Hobbies navigation, fast reversals, orientation changes at both anchors,
 direct refresh, back/forward, collected DOM/listener counts, and interrupted
@@ -51,6 +65,8 @@ module/metadata requests. Set `REPAIR_WIDTH` for one viewport,
 `REPAIR_FAULTS_ONLY=1` for the recovery cases, or `REPAIR_MEMORY_CYCLES=20` for a
 longer collected-heap/RAF check. Results go under ignored
 `output/render-repair-2026-10-25/` unless `REPAIR_OUTPUT` is provided.
+`REPAIR_DESKTOP=1` selects five desktop viewports; `REPAIR_CPU` overrides CPU
+throttling and `REPAIR_SKIP_FAULTS=1` isolates navigation/memory checks.
 
 `node checks/media-decoding.cjs` uses the same external browser module to decode
 the referenced gallery images and load each video to a playable state for
