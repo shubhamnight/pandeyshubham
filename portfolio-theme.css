@@ -6,16 +6,16 @@
 :is(#skills-heading,#hobbies-heading,#playground .play-heading h2,#profile-heading,#dialog-title,dialog.hobby-gallery>header h2) em{font-family:inherit;font-weight:inherit}
 
 /* Hero-to-skills transition: preserve the full height of the skills content. */
-.hero-skills-transition{position:relative;isolation:isolate;background:#0c0d10;overflow:clip}
+.hero-skills-transition{position:relative;isolation:isolate;background:#02070a;overflow:clip}
 .hero-skills-transition>#home{position:sticky;top:var(--hero-sticky-top,0px);transform:scale(var(--exit-scale,1)) rotate(var(--exit-rotation,0deg));transform-origin:50% 50%;z-index:0}
-.hero-skills-transition>#about{position:sticky;top:var(--skills-sticky-top,0px);z-index:1;transform:scale(var(--enter-scale,.8)) rotate(var(--enter-rotation,5deg));transform-origin:50% 0;--paper:#e7ebf0;--ink:#fafafa;--blue:#183f73;--accent:#183f73;padding-block:clamp(72px,8vw,128px)}
+.hero-skills-transition>#about{position:sticky;top:var(--skills-sticky-top,0px);z-index:1;transform:scale(var(--enter-scale,.8)) rotate(var(--enter-rotation,5deg));transform-origin:50% 0;--paper:#e7ebf0;--ink:#fafafa;--blue:#0297de;--accent:#0297de;padding-block:clamp(72px,8vw,128px)}
 .hero-skills-transition>#about{border-radius:32px;box-shadow:0 -12px 36px #00000024}
 @media(max-width:700px){.hero-skills-transition>#about{border-radius:22px}}
 .hero-skills-transition.transition-running>#home,.hero-skills-transition.transition-running>#about{will-change:transform}
 .hero-skills-transition>#projects{position:relative;z-index:2;border-radius:0;box-shadow:0 -18px 45px #0005;transform:translateZ(0)}
 @media(prefers-reduced-motion:reduce){.hero-skills-transition>#home{position:relative;top:auto;transform:none}.hero-skills-transition>#about{position:relative;top:auto;transform:none}}
 /* The canvas replaces only the hero grid, retaining its spacing and texture. */
-#home.kinetic-grid-ready{background-image:none;background-color:#0c0d10}
+#home.kinetic-grid-ready{background-image:none;background-color:#02070a}
 #home .hero-kinetic-grid{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
 #home .name-track{z-index:1;font-family:Righteous,Inter,Helvetica,sans-serif;font-weight:400}
 /* Scoped 3D skills cards, preserving tooltip overflow and existing layout. */
@@ -32,96 +32,96 @@
 #about .skill-tool{position:relative;overflow:visible;gap:9px;padding:7px 12px 7px 7px;cursor:default}
 #about .skill-tool:hover{transform:none}
 #about .skill-tool>.skill-icon-disc{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:0 0 44px;border-radius:50%;overflow:hidden;background:#e7ebf0;transition:box-shadow .3s}
-#about .skill-icon-disc:before{content:"";position:absolute;inset:0;background:#183f73;transform:translateY(101%);transition:transform .3s ease-in-out;z-index:-1}
+#about .skill-icon-disc:before{content:"";position:absolute;inset:0;background:#0297de;transform:translateY(101%);transition:transform .3s ease-in-out;z-index:-1}
 #about .skill-icon-disc>svg,#about .skill-icon-disc>img,#about .skill-icon-disc>span{position:relative;width:28px;height:28px;display:grid;place-items:center;color:#171717;line-height:1;font-size:28px;transition:filter .3s,color .3s}
 #about .skill-tool>.skill-icon-name{display:inline;width:auto;height:auto;font-size:12px}
-#about .skill-tool>.skill-icon-tooltip{position:absolute;z-index:10;top:calc(100% + 5px);left:50%;display:block;width:max-content;height:auto;max-width:220px;padding:8px 12px;border-radius:7px;background:#102b52;color:#fff;font-size:12px;font-weight:500;line-height:1.4;opacity:0;visibility:hidden;transform:translate(-50%,-5px);transition:opacity .3s,transform .3s,visibility .3s;pointer-events:auto}
+#about .skill-tool>.skill-icon-tooltip{position:absolute;z-index:10;top:calc(100% + 5px);left:50%;display:block;width:max-content;height:auto;max-width:220px;padding:8px 12px;border-radius:7px;background:#07334a;color:#fff;font-size:12px;font-weight:500;line-height:1.4;opacity:0;visibility:hidden;transform:translate(-50%,-5px);transition:opacity .3s,transform .3s,visibility .3s;pointer-events:auto}
 #about .skill-icon-tooltip:before{content:"";position:absolute;bottom:100%;left:0;right:0;height:10px}
 #about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc:before{transform:translateY(0)}
-#about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc{box-shadow:0 5px 12px #0c0d1030}
+#about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc{box-shadow:0 5px 12px #02070a30}
 #about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc>svg,#about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc>img{filter:drop-shadow(0 1px 1px #ffffff80)}
 #about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc>span{color:#fff}
 #about .skill-tool:is(:hover,:focus-visible):not(.tooltip-dismissed)>.skill-icon-tooltip{opacity:1;visibility:visible;transform:translate(-50%,3px)}
 @media(prefers-reduced-motion:reduce){#about .skill-icon-disc,#about .skill-icon-disc:before,#about .skill-icon-disc>svg,#about .skill-icon-disc>img,#about .skill-icon-disc>span,#about .skill-tool>.skill-icon-tooltip{transition:none}}
 /* All rules intentionally exclude #home and the floating navigation. */
 main>.section, #study-dialog{
-  --paper:#e7ebf0;--ink:#fafafa;--blue:#183f73;--accent:#183f73;
-  --surface-black:#0c0d10;--surface-white:#e7ebf0;
+  --paper:#e7ebf0;--ink:#fafafa;--blue:#0297de;--accent:#0297de;
+  --surface-black:#02070a;--surface-white:#e7ebf0;
 }
 main>.section{padding-block:clamp(72px,8vw,128px)}
 #about{background:#e7ebf0}
 #about .skill-design .skill-tool,#about .skill-human .skill-tool,
 .personal .polaroid,:is(#projects,#study-dialog) .mini-window{background:#e7ebf0}
-main>.section ::selection,#study-dialog ::selection{background:#183f73;color:#fff}
+main>.section ::selection,#study-dialog ::selection{background:#0297de;color:#fff}
 #about .skills-heading{padding-bottom:36px;border-bottom:1px solid #17171724}
-#about .skills-kicker{color:#183f73}
+#about .skills-kicker{color:#0297de}
 #about .skills-grid{gap:24px;align-items:stretch}
-#about .skill-card{display:flex;flex-direction:column;border-radius:18px;padding:clamp(24px,3vw,42px);box-shadow:0 8px 14px #0c0d1014,0 20px 36px -12px #0c0d1038}
+#about .skill-card{display:flex;flex-direction:column;border-radius:18px;padding:clamp(24px,3vw,42px);box-shadow:0 8px 14px #02070a14,0 20px 36px -12px #02070a38}
 #about .skill-card[hidden]{display:none}
 #about .skill-detail{margin-top:auto}
-#about .skill-design,#about .skill-human{background:#183f73;color:#fff;--card-accent:#fff}
+#about .skill-design,#about .skill-human{background:#0297de;color:#fff;--card-accent:#fff}
 #about .skill-design .skill-detail,#about .skill-human .skill-detail{border-color:#ffffff40}
-#about .skill-dimension{background:#191919;color:#fafafa;--card-accent:#5685c1}
+#about .skill-dimension{background:#191919;color:#fafafa;--card-accent:#0297de}
 #about .skill-dimension .skill-detail{border-color:#ffffff30}
 #about .skill-dimension .skill-tool{background:#303030;color:#fff;border-color:#ffffff20}
-#about .skill-card:hover{box-shadow:0 12px 20px #0c0d101c,0 28px 44px -12px #0c0d1045}
-#about .skills-filter button:hover{border-color:#183f73}
-#about .skills-filter button[aria-pressed=true]{background:#183f73;border-color:#183f73;color:#fff}
+#about .skill-card:hover{box-shadow:0 12px 20px #02070a1c,0 28px 44px -12px #02070a45}
+#about .skills-filter button:hover{border-color:#0297de}
+#about .skills-filter button[aria-pressed=true]{background:#0297de;border-color:#0297de;color:#fff}
 #about .skills-filter button[aria-pressed=true] span{color:#fff}
 #about .skills-signoff{border-top:1px solid #17171724;padding-top:26px}
-#projects{background:#0c0d10}
+#projects{background:#02070a}
 #projects .project-heading{border-bottom:1px solid #ffffff26;padding-bottom:36px}
-#projects .project-heading h2 em{color:#5685c1}
+#projects .project-heading h2 em{color:#0297de}
 #projects .study-card{border-radius:18px;border:1px solid #ffffff28}
 #projects .study-orange{background:#e7ebf0;color:#171717}
 #projects .type-art>span{color:#171717}
-#projects .type-art .outline-type{color:transparent;-webkit-text-stroke-color:#183f73}
-#projects .art-star{color:#183f73}
-#projects .study-blue{background:#183f73;color:#fff}
+#projects .type-art .outline-type{color:transparent;-webkit-text-stroke-color:#0297de}
+#projects .art-star{color:#0297de}
+#projects .study-blue{background:#0297de;color:#fff}
 #projects .study-blue .mini-window{color:#171717;box-shadow:12px 18px 0 #0002}
 #projects .study-dark{background:#1c1c1c}
-#projects .orbit-core{color:#5685c1}
-#projects .orbit-ring{border-color:#5685c180}
-#projects .orbit-word em{color:#5685c1}
-#projects .hover-label{background:#183f73;color:#fff}
+#projects .orbit-core{color:#0297de}
+#projects .orbit-ring{border-color:#0297de80}
+#projects .orbit-word em{color:#0297de}
+#projects .hover-label{background:#0297de;color:#fff}
 #projects .study-blue .hover-label{background:#e7ebf0;color:#171717}
-#projects .study-card:hover{border-color:#5685c1;box-shadow:0 18px 40px #0003}
-#playground{background:#0c0d10;border-top:0;padding-top:36px}
+#projects .study-card:hover{border-color:#0297de;box-shadow:0 18px 40px #0003}
+#playground{background:#02070a;border-top:0;padding-top:36px}
 #playground .play-heading{border-top:1px solid #ffffff26;padding-top:64px}
-#playground .play-stage{background:#e7ebf0;border:0;color:#171717;--mood:#183f73;border-radius:18px}
-#playground .play-grid{background-image:linear-gradient(#0c0d1009 1px,transparent 1px),linear-gradient(90deg,#0c0d1009 1px,transparent 1px)}
-#playground .kinetic-object span:nth-child(2){-webkit-text-stroke-color:#183f73}
+#playground .play-stage{background:#e7ebf0;border:0;color:#171717;--mood:#0297de;border-radius:18px}
+#playground .play-grid{background-image:linear-gradient(#02070a09 1px,transparent 1px),linear-gradient(90deg,#02070a09 1px,transparent 1px)}
+#playground .kinetic-object span:nth-child(2){-webkit-text-stroke-color:#0297de}
 #playground .kinetic-object span:nth-child(3){-webkit-text-stroke-color:#171717}
 #playground .stage-label{bottom:40px}
-.personal.light-section{background:#e7ebf0;border-top:6px solid #183f73}
+.personal.light-section{background:#e7ebf0;border-top:6px solid #0297de}
 .personal .personal-layout{gap:10%;padding-block:24px}
-.personal .polaroid{border:1px solid #17171718;box-shadow:12px 14px 0 #183f73,0 24px 50px #0c0d1015}
-.personal .tape{background:#183f7359}
-.personal .eyebrow{color:#183f73}
+.personal .polaroid{border:1px solid #17171718;box-shadow:12px 14px 0 #0297de,0 24px 50px #02070a15}
+.personal .tape{background:#0297de59}
+.personal .eyebrow{color:#0297de}
 .personal .personal-copy h2{padding-bottom:28px;border-bottom:1px solid #17171724}
-.personal .signature-name{color:#183f73}
-#contact{background:#0c0d10;border-top:0}
-#contact>p{color:#5685c1}
+.personal .signature-name{color:#0297de}
+#contact{background:#02070a;border-top:0}
+#contact>p{color:#0297de}
 #contact h2{max-width:1150px}
-#contact .footer-rotator{color:#5685c1}
-#contact .contact-spark{color:#5685c1}
+#contact .footer-rotator{color:#0297de}
+#contact .contact-spark{color:#0297de}
 #contact .contact-note{padding-bottom:36px;border-bottom:1px solid #ffffff26}
 #contact .footer-bottom{border-top:0;padding-top:0}
 #contact .footer-name{color:#fafafa}
-#contact .footer-name>span{color:#183f73}
+#contact .footer-name>span{color:#0297de}
 #study-dialog{background:#e7ebf0;border:1px solid #17171720;border-radius:18px}
-#study-dialog .eyebrow{color:#183f73}
+#study-dialog .eyebrow{color:#0297de}
 #study-dialog .dialog-close{background:#e7ebf0;color:#171717}
-#study-dialog .dialog-done{background:#183f73;color:#fff}
-#study-dialog .dialog-done:hover{background:#214b80}
+#study-dialog .dialog-done{background:#0297de;color:#fff}
+#study-dialog .dialog-done:hover{background:#0286c5}
 #dialog-art:has(.type-art){background:#e7ebf0!important;border:1px solid #17171720}
-#dialog-art .type-art .art-star{color:#183f73}
-#dialog-art:has(.ui-art){background:#183f73!important}
+#dialog-art .type-art .art-star{color:#0297de}
+#dialog-art:has(.ui-art){background:#0297de!important}
 #dialog-art .mini-window{color:#171717}
-#dialog-art .orbit-core{color:#5685c1}
-#dialog-art .floating-sticker,#projects .floating-sticker{background:#e7ebf0;color:#171717;border:2px solid #183f73}
-main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #183f73;outline-offset:5px}
-#projects :focus-visible,#contact :focus-visible{outline-color:#5685c1}
+#dialog-art .orbit-core{color:#0297de}
+#dialog-art .floating-sticker,#projects .floating-sticker{background:#e7ebf0;color:#171717;border:2px solid #0297de}
+main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #0297de;outline-offset:5px}
+#projects :focus-visible,#contact :focus-visible{outline-color:#0297de}
 @media(max-width:700px){
   #about .skills-heading{padding-bottom:24px}
   #about .skills-grid{gap:18px}
@@ -142,7 +142,7 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #183
 #about .skill-glass-layers{position:absolute;top:12px;right:12px;width:110px;height:110px;pointer-events:none;transform-style:preserve-3d}
 #about .skill-glass-layers>span{position:absolute;top:calc(var(--layer)*8px);right:calc(var(--layer)*8px);width:calc(100px - var(--layer)*20px);aspect-ratio:1;border-radius:50%;border:1px solid #ffffff12;background:#ffffff09;box-shadow:-5px 8px 16px #0000000c;transform:translateZ(calc(12px + var(--layer)*8px));transition:transform .45s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--layer)*45ms)}
 #about .skill-card:is(.tilt-active,:focus-within) .skill-glass-layers>span{transform:translateZ(calc(20px + var(--layer)*14px))}
-#about .skill-card:is(.tilt-active,:focus-within){box-shadow:14px 25px 35px -20px #0c0d1070,0 16px 28px -12px #0c0d1040}
+#about .skill-card:is(.tilt-active,:focus-within){box-shadow:14px 25px 35px -20px #02070a70,0 16px 28px -12px #02070a40}
 #about .skill-card .skill-tool{transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s;transition-delay:calc(var(--tool-order,0)*35ms)}
 #about .skill-card.tilt-active .skill-tool{transform:translateZ(12px);box-shadow:-3px 9px 14px -8px #0005}
 #about .skill-card .skill-tool:is(:hover,:focus-visible){transform:translateZ(22px) translateY(-3px);transition-delay:0s}
@@ -162,8 +162,8 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #183
 #about .skills-grid .skill-card{box-sizing:border-box;height:var(--skill-card-height,auto)}
 @media(max-width:700px){#about .skills-grid{grid-template-columns:minmax(0,1fr)}}
 /* Soft depth for the skills cards, including the resting state. */
-#about .skill-card.tilt-card{box-shadow:0 3px 8px #0c0d100d,0 12px 24px -10px #0c0d1026}
-#about .skill-card.tilt-card:is(:hover,.tilt-active,:focus-within){box-shadow:0 5px 12px #0c0d1012,0 18px 30px -12px #0c0d1030}
+#about .skill-card.tilt-card{box-shadow:0 3px 8px #02070a0d,0 12px 24px -10px #02070a26}
+#about .skill-card.tilt-card:is(:hover,.tilt-active,:focus-within){box-shadow:0 5px 12px #02070a12,0 18px 30px -12px #02070a30}
 
 /* The skills now read as clean cards without filter controls or secondary tag rows. */
 #about .skills-filter,
@@ -178,7 +178,7 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #183
 .hobby-orbits,.hobby-orbit,.hobby-arc-stream{position:absolute;inset:0;pointer-events:none}
 .hobby-orbits{overflow:hidden;overflow:clip;contain:paint}
 .hobby-orbit-center{position:absolute;width:96px;display:flex;align-items:center;flex-direction:column;gap:12px}
-.hobby-orbit-center svg{width:43.7px;height:43.7px;color:#5685c1}
+.hobby-orbit-center svg{width:43.7px;height:43.7px;color:#0297de}
 .hobby-orbit-center .hobby-camera-icon{display:block;width:70px;height:43.7px;object-fit:contain}
 .hobby-orbit-center h3{margin:0;max-width:13ch;text-align:center;font-size:12px;font-weight:500;letter-spacing:.04em;color:#e7ebf0}
 .hobby-photography .hobby-orbit-center{left:11%;top:11%;transform:translate(-50%,-50%)}
@@ -211,19 +211,19 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #183
 }
 
 /* A flush white fourth page, with no section translation at the shared edge. */
-#playground{position:relative;z-index:3;background:#fff;color:#171717;--ink:#171717;--accent:#183f73;transform:none;will-change:auto}
+#playground{position:relative;z-index:3;background:#fff;color:#171717;--ink:#171717;--accent:#0297de;transform:none;will-change:auto}
 #playground .play-heading{border-top-color:#17171720}
 #playground .play-heading h2{color:#171717}
-#playground .play-heading h2 em{color:#183f73}
-#playground .play-stage{background:#f5f7fa;border:1px solid #172d4914;color:#171717;--mood:#183f73}
+#playground .play-heading h2 em{color:#0297de}
+#playground .play-stage{background:#f5f7fa;border:1px solid #172d4914;color:#171717;--mood:#0297de}
 #playground .stage-label{color:#171717}
-#playground .stage-label em{color:#183f73}
+#playground .stage-label em{color:#0297de}
 #photography-camera{display:block;position:relative;width:126px;height:106px;padding:0;border:0;background:transparent;pointer-events:auto;cursor:pointer;touch-action:manipulation;border-radius:12px}
 #photography-camera canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 #photography-camera .hobby-camera-icon{margin:auto}
 #photography-camera.camera-ready .hobby-camera-icon{display:none}
-#photography-camera:focus-visible{outline:2px solid #5685c1;outline-offset:3px}
-.photography-empty-frame{aspect-ratio:4/3;background:#222426;border:1px solid #ffffff20;border-radius:8px}
+#photography-camera:focus-visible{outline:2px solid #0297de;outline-offset:3px}
+.photography-empty-frame{aspect-ratio:4/3;background:#101f29;border:1px solid #ffffff20;border-radius:8px}
 @media(max-width:900px){#photography-camera{width:90px;height:76px}}
 
 /* The controller shares the camera interaction footprint and gallery layout. */
@@ -231,8 +231,8 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #183
 #gaming-controller canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 #gaming-controller .gaming-controller-fallback{margin:auto}
 #gaming-controller.camera-ready .gaming-controller-fallback{display:none}
-#gaming-controller:focus-visible{outline:2px solid #5685c1;outline-offset:3px}
-.gaming-empty-frame{aspect-ratio:4/3;background:#222426;border:1px solid #ffffff20;border-radius:8px}
+#gaming-controller:focus-visible{outline:2px solid #0297de;outline-offset:3px}
+.gaming-empty-frame{aspect-ratio:4/3;background:#101f29;border:1px solid #ffffff20;border-radius:8px}
 @media(max-width:900px){#gaming-controller{width:90px;height:76px}}
 #gaming-controller .gaming-controller-fallback svg{margin:auto}
 
@@ -241,8 +241,8 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #183
 #travel-plane canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 #travel-plane .travel-plane-fallback{margin:auto}
 #travel-plane.camera-ready .travel-plane-fallback{display:none}
-#travel-plane:focus-visible{outline:2px solid #5685c1;outline-offset:3px}
-.travel-empty-frame{aspect-ratio:4/3;background:#222426;border:1px solid #ffffff20;border-radius:8px}
+#travel-plane:focus-visible{outline:2px solid #0297de;outline-offset:3px}
+.travel-empty-frame{aspect-ratio:4/3;background:#101f29;border:1px solid #ffffff20;border-radius:8px}
 @media(max-width:900px){#travel-plane{width:108px;height:91.2px}}
 #travel-plane .travel-plane-fallback svg{margin:auto}
 
@@ -251,8 +251,8 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #183
 #music-walkman canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 #music-walkman .music-walkman-fallback{margin:auto}
 #music-walkman.camera-ready .music-walkman-fallback{display:none}
-#music-walkman:focus-visible{outline:2px solid #5685c1;outline-offset:3px}
-.music-empty-frame{aspect-ratio:4/3;background:#222426;border:1px solid #ffffff20;border-radius:8px}
+#music-walkman:focus-visible{outline:2px solid #0297de;outline-offset:3px}
+.music-empty-frame{aspect-ratio:4/3;background:#101f29;border:1px solid #ffffff20;border-radius:8px}
 @media(max-width:900px){#music-walkman{width:90px;height:76px}}
 #music-walkman .music-walkman-fallback svg{margin:auto}
 
@@ -277,16 +277,16 @@ main>.section :focus-visible,#study-dialog :focus-visible{outline:3px solid #183
 /* Video frames stay on the same compositor path as each moving card. */
 .hobby-image-surface .hobby-video-canvas{display:block;width:100%;height:100%;transform:translateZ(0);backface-visibility:hidden}
 /* Shared hobby overlays: fixed header, bounded media, independent scrolling. */
-dialog.hobby-gallery{width:min(1060px,calc(100vw - 40px));height:min(780px,88dvh);max-width:none;max-height:88dvh;margin:auto;padding:0;box-sizing:border-box;background:#141516;color:#f4f1e9;border:1px solid #ffffff24;border-radius:18px;overflow:hidden;overscroll-behavior:contain;box-shadow:0 24px 80px #0006}
+dialog.hobby-gallery{width:min(1060px,calc(100vw - 40px));height:min(780px,88dvh);max-width:none;max-height:88dvh;margin:auto;padding:0;box-sizing:border-box;background:#09131a;color:#f4f1e9;border:1px solid #ffffff24;border-radius:18px;overflow:hidden;overscroll-behavior:contain;box-shadow:0 24px 80px #0006}
 dialog.hobby-gallery[open]{display:flex;flex-direction:column}
-dialog.hobby-gallery::backdrop,#study-dialog::backdrop{background:rgba(12,13,16,.42);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-dialog.hobby-gallery header{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:26px 30px 22px;border-bottom:1px solid #ffffff18;flex:0 0 auto;background:#141516}
+dialog.hobby-gallery::backdrop,#study-dialog::backdrop{background:rgba(2,7,10,.42);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+dialog.hobby-gallery header{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:26px 30px 22px;border-bottom:1px solid #ffffff18;flex:0 0 auto;background:#09131a}
 dialog.hobby-gallery h2{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:8px 0 0}
-dialog.hobby-gallery .eyebrow{color:#5685c1}
+dialog.hobby-gallery .eyebrow{color:#0297de}
 dialog.hobby-gallery header button{display:grid;place-items:center;width:44px;height:44px;padding:0;flex:0 0 44px;border:1px solid #ffffff30;border-radius:50%;background:#242526;color:#fff;font-size:28px;line-height:1;cursor:pointer}
-dialog.hobby-gallery :focus-visible{outline:2px solid #5685c1;outline-offset:4px}
+dialog.hobby-gallery :focus-visible{outline:2px solid #0297de;outline-offset:4px}
 /* The camera opens an isolated editorial filmstrip inside its existing dialog. */
-dialog#photography-gallery{width:calc(100vw - 32px);height:calc(100dvh - 32px);max-height:none;border-radius:0;background:#0c0d10}
+dialog#photography-gallery{width:calc(100vw - 32px);height:calc(100dvh - 32px);max-height:none;border-radius:0;background:#02070a}
 dialog#photography-gallery>header{position:absolute;top:16px;right:16px;z-index:10;padding:0;border:0;background:transparent}
 dialog#photography-gallery>header>div{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 dialog#photography-gallery>header>button{width:46px;height:46px;flex-basis:46px;font-size:27.6px;background:#0004;border-color:#ffffff70}
@@ -300,14 +300,14 @@ dialog#photography-gallery.photo-carousel-fallback .photography-carousel-mount{d
 dialog#photography-gallery.photo-carousel-fallback .photography-gallery-status{position:static;display:block;margin:0 0 20px}
 dialog#photography-gallery.photo-carousel-fallback .photography-gallery-grid{display:grid}
 @media(max-width:700px){dialog#photography-gallery{width:100vw;height:100dvh;border:0}dialog#photography-gallery>header{top:max(12px,env(safe-area-inset-top));right:12px}}
-.hobby-gallery-content{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:26px 30px 30px;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-color:#626971 #141516}
+.hobby-gallery-content{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:26px 30px 30px;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-color:#626971 #09131a}
 .hobby-gallery-content p{color:#aeb3bb;font-size:14px;margin:0 0 24px}
 .hobby-gallery-content [class$="-gallery-grid"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:start}
-.hobby-gallery-content figure{margin:0;min-width:0;background:#222426;border:1px solid #ffffff18;border-radius:8px;overflow:hidden;aspect-ratio:4/3;position:relative}
+.hobby-gallery-content figure{margin:0;min-width:0;background:#101f29;border:1px solid #ffffff18;border-radius:8px;overflow:hidden;aspect-ratio:4/3;position:relative}
 .hobby-gallery-content figure>a{display:block;width:100%;height:100%}
 .hobby-gallery-content figure>img,.hobby-gallery-content figure>video,.hobby-gallery-content figure>a{position:absolute;inset:0}
-.hobby-gallery-content figure img,.hobby-gallery-content figure video{display:block;width:100%;height:100%;max-width:100%;max-height:100%;aspect-ratio:auto;object-fit:contain;border-radius:0;background:#222426}
-.hobby-gallery-content figcaption{position:absolute;inset:auto 0 0;padding:10px 12px;background:#141516e8;font-size:13px;line-height:1.4}
+.hobby-gallery-content figure img,.hobby-gallery-content figure video{display:block;width:100%;height:100%;max-width:100%;max-height:100%;aspect-ratio:auto;object-fit:contain;border-radius:0;background:#101f29}
+.hobby-gallery-content figcaption{position:absolute;inset:auto 0 0;padding:10px 12px;background:#09131ae8;font-size:13px;line-height:1.4}
 .travel-video-player{position:absolute;inset:0;background:#000}
 .travel-video-player video{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
 @media(max-width:700px){dialog.hobby-gallery{width:calc(100vw - 24px);height:90dvh;max-height:90dvh;border-radius:14px}dialog.hobby-gallery header{padding:20px;gap:16px}.hobby-gallery-content{padding:20px}.hobby-gallery-content [class$="-gallery-grid"]{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
@@ -323,11 +323,11 @@ dialog#photography-gallery.photo-carousel-fallback .photography-gallery-grid{dis
 /* Vinyl records retain the existing 4:3 orbit bounds and shared arc clock. */
 .hobby-music .hobby-image-surface{display:grid;place-items:center;background:none;border:0;border-radius:0;box-shadow:none;overflow:visible}
 .music-record{position:relative;width:74%;aspect-ratio:1;border-radius:50%;isolation:isolate;background:repeating-radial-gradient(circle at center,transparent 0 2px,#ffffff09 2.5px 3px,transparent 3.5px 5px),conic-gradient(from -35deg,#0b0d10 0deg,#353a40 35deg,#121518 60deg,#080a0c 140deg,#30353b 210deg,#121518 240deg,#080a0c 320deg,#0b0d10 360deg);border:1px solid #545a63;box-shadow:inset 0 0 0 3px #090a0b,inset 0 0 0 5px #ffffff0c,0 8px 16px #0005;transform:rotate(0deg);transition:transform .65s cubic-bezier(.22,1,.36,1)}
-.music-record-label{position:absolute;inset:32%;border-radius:50%;overflow:hidden;background:var(--record-label,#183f73);border:1px solid #ffffff30;box-shadow:0 0 0 3px #050709,0 0 0 4px #ffffff12}
+.music-record-label{position:absolute;inset:32%;border-radius:50%;overflow:hidden;background:var(--record-label,#0297de);border:1px solid #ffffff30;box-shadow:0 0 0 3px #050709,0 0 0 4px #ffffff12}
 .music-record-label::after{content:'';position:absolute;inset:12%;border:1px solid #ffffff24;border-radius:50%;pointer-events:none}
 .hobby-music .music-record-label img,.music-gallery-grid .music-record-label img{position:static;width:100%;height:100%;object-fit:cover;background:none;border-radius:50%}
 .music-record-hole{position:absolute;left:50%;top:50%;width:5%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#111;border:1px solid #d0d5dc88;box-shadow:0 0 0 2px #0004;z-index:2}
-.music-gallery-grid .music-record-frame{display:grid;place-items:center;background:#181a1d}
+.music-gallery-grid .music-record-frame{display:grid;place-items:center;background:#09131a}
 .music-gallery-grid .music-record{width:68%}
 @media(hover:hover) and (pointer:fine){.hobby-music .hobby-image-placeholder:hover .music-record,.music-record-frame:hover .music-record{transform:rotate(14deg)}}
 @media(prefers-reduced-motion:reduce){.music-record{transition:none}.hobby-music .hobby-image-placeholder:hover .music-record,.music-record-frame:hover .music-record{transform:rotate(0deg)}}
@@ -365,65 +365,66 @@ html.lenis{scroll-behavior:auto!important}
 
 .ambient-paused,.ambient-paused *{animation-play-state:paused!important}
 
-/* Dark blue Batman palette: colour overrides only; existing geometry and motion remain intact. */
-:root{--bg:#0c0d10;--ink:#e7ebf0;--muted:#a4aab3;--accent:#183f73;--paper:#18191d;--blue:#183f73;--lime:#5685c1;--line:#5685c112}
-main>.section,main>dialog,#study-dialog,.hero-skills-transition>#about{--paper:#18191d;--ink:#e7ebf0;--blue:#183f73;--lime:#5685c1;--accent:#183f73;--surface-black:#0c0d10;--surface-white:#242529}
-.floating-nav{display:flex;align-items:center;justify-content:center;width:max-content;gap:clamp(16px,2.8vw,26px);padding:9px 16px;max-width:calc(100% - 24px);white-space:nowrap;background:#18191ded;border-color:#5685c126;box-shadow:0 8px 20px #0006,0 20px 48px #0005,0 0 24px #183f731a}
+/* Midnight base, electric blue accents and a deliberately rare warm accent.
+   Surface tints retain depth without adding layers or changing motion. */
+:root{--midnight:#02070a;--electric:#0297de;--cantaloupe:#fc734d;--surface:#09131a;--surface-raised:#101f29;--bg:var(--midnight);--ink:#e7ebf0;--muted:#a4aab3;--accent:var(--electric);--paper:var(--surface);--blue:var(--electric);--lime:var(--electric);--line:#0297de12}
+main>.section,main>dialog,#study-dialog,.hero-skills-transition>#about{--paper:#09131a;--ink:#e7ebf0;--blue:#0297de;--lime:#0297de;--accent:#0297de;--surface-black:#02070a;--surface-white:#101f29}
+.floating-nav{display:flex;align-items:center;justify-content:center;width:max-content;gap:clamp(16px,2.8vw,26px);padding:9px 16px;max-width:calc(100% - 24px);white-space:nowrap;background:#09131aed;border-color:#0297de26;box-shadow:0 8px 20px #0006,0 20px 48px #0005,0 0 24px #0297de1a}
 .floating-nav a{flex-shrink:0;font-family:Ramabhadra,Inter,Helvetica,sans-serif;font-weight:400}
 .floating-nav .mini-brand{padding-right:0}
-.floating-nav a:hover{color:#5685c1}
-.floating-nav a[aria-current="location"]{color:#e7ebf0;text-shadow:0 0 12px #5685c180}
+.floating-nav a:hover{color:#0297de}
+.floating-nav a[aria-current="location"]{color:#e7ebf0;text-shadow:0 0 12px #0297de80}
 .badge,.badge-face{background-color:#183f73;color:#e7ebf0}
 .badge-face{background-image:radial-gradient(circle at 1px 1px,#96b7df50 1px,transparent 1.5px),linear-gradient(138deg,#ffffff12,transparent 42%,#0e244530)}
 .badge-bottom{background:#17181c;color:#5685c1;justify-content:center}
 .badge-bottom>span{font-size:1.2em;font-weight:700}
 #home .badge>img,#home .badge>picture>img{filter:url('#badge-soft-shadow')}
-#about,.hero-skills-transition>#about{background:#18191d;color:#e7ebf0}
+#about,.hero-skills-transition>#about{background:#09131a;color:#e7ebf0}
 #about .skills-heading,#about .skills-signoff{border-color:#e7ebf024}
 #about .skills-heading>p,#about .skills-signoff,.personal .personal-copy p{color:#a4aab3}
-#about .skill-design,#about .skill-human{background:#142840;color:#e7ebf0;--card-accent:#5685c1}
-#about .skill-frontend,#about .skill-dimension{background:#242529;color:#e7ebf0;--card-accent:#5685c1}
-#about .skill-card.tilt-card{border-color:#5685c130}
-#about .skill-design .skill-tool,#about .skill-human .skill-tool,#about .skill-frontend .skill-tool,#about .skill-dimension .skill-tool{background:#18191d;color:#e7ebf0;border-color:#e7ebf020}
+#about .skill-design,#about .skill-human{background:#0a2738;color:#e7ebf0;--card-accent:#0297de}
+#about .skill-frontend,#about .skill-dimension{background:#101f29;color:#e7ebf0;--card-accent:#0297de}
+#about .skill-card.tilt-card{border-color:#0297de30}
+#about .skill-design .skill-tool,#about .skill-human .skill-tool,#about .skill-frontend .skill-tool,#about .skill-dimension .skill-tool{background:#09131a;color:#e7ebf0;border-color:#e7ebf020}
 #about .skill-tool>.skill-icon-disc{background:#303136}
-#about .skill-icon-disc>svg,#about .skill-icon-disc>img,#about .skill-icon-disc>span{color:#5685c1}
-#about .skill-icon-disc:before{background:#183f73}
-#about .skill-tool>.skill-icon-tooltip{background:#102b52;color:#fff}
+#about .skill-icon-disc>svg,#about .skill-icon-disc>img,#about .skill-icon-disc>span{color:#0297de}
+#about .skill-icon-disc:before{background:#0297de}
+#about .skill-tool>.skill-icon-tooltip{background:#07334a;color:#fff}
 #about .skill-tool:is(:hover,:focus-visible) .skill-icon-disc>span{color:#e7ebf0}
 #about .skills-filter button{color:#e7ebf0;border-color:#e7ebf030}
 #about .skills-filter button[aria-pressed=true]{color:#e7ebf0}
-#projects,#contact{background:#0c0d10}
+#projects,#contact{background:#02070a}
 #projects .project-heading p,#contact .contact-note p>span,#contact .footer-bottom{color:#a4aab3}
-#playground{background:#18191d;color:#e7ebf0;--ink:#e7ebf0;--accent:#183f73}
+#playground{background:#09131a;color:#e7ebf0;--ink:#e7ebf0;--accent:#0297de}
 #playground .play-heading{border-top-color:#e7ebf020}
 #playground .play-heading h2,#playground .stage-label{color:#e7ebf0}
-#playground .play-stage{background:#242529;color:#e7ebf0;border-color:#5685c114;--mood:#183f73}
+#playground .play-stage{background:#101f29;color:#e7ebf0;border-color:#0297de14;--mood:#0297de}
 #playground .play-grid{background-image:linear-gradient(#e7ebf009 1px,transparent 1px),linear-gradient(90deg,#e7ebf009 1px,transparent 1px)}
 #playground .kinetic-object span:nth-child(3){-webkit-text-stroke-color:#e7ebf0}
-.personal.light-section{background:#18191d;color:#e7ebf0}
+.personal.light-section{background:#09131a;color:#e7ebf0}
 .personal .personal-copy h2{border-color:#e7ebf024}
-.personal .polaroid{background:#242529;border-color:#e7ebf018;color:#e7ebf0}
+.personal .polaroid{background:#101f29;border-color:#e7ebf018;color:#e7ebf0}
 .personal .polaroid>div{background:#303136}
-.personal .eyebrow{color:#183f73}
-#study-dialog{background:#18191d;color:#e7ebf0;border-color:#e7ebf020}
-#study-dialog .dialog-close{background:#242529;color:#e7ebf0;border-color:#e7ebf040}
+.personal .eyebrow{color:#0297de}
+#study-dialog{background:#09131a;color:#e7ebf0;border-color:#e7ebf020}
+#study-dialog .dialog-close{background:#101f29;color:#e7ebf0;border-color:#e7ebf040}
 #study-dialog>p{color:#a4aab3}
 #study-dialog .dialog-done{color:#e7ebf0}
-#dialog-art:has(.type-art){background:#242529!important;border-color:#e7ebf020}
-#projects .study-orange,#projects .study-blue{background:#242529;color:#e7ebf0}
+#dialog-art:has(.type-art){background:#101f29!important;border-color:#e7ebf020}
+#projects .study-orange,#projects .study-blue{background:#101f29;color:#e7ebf0}
 #projects .type-art>span,#dialog-art .type-art>span{color:#e7ebf0}
-#projects .type-art .outline-type,#dialog-art .type-art .outline-type{color:transparent;-webkit-text-stroke-color:#183f73}
+#projects .type-art .outline-type,#dialog-art .type-art .outline-type{color:transparent;-webkit-text-stroke-color:#0297de}
 :is(#projects,#study-dialog) .mini-window{background:#303136;color:#e7ebf0}
 #projects .study-blue .mini-window,#dialog-art .mini-window{color:#e7ebf0}
 #projects .hover-label{color:#e7ebf0}
-#projects .study-blue .hover-label{background:#183f73;color:#e7ebf0}
-#dialog-art .floating-sticker,#projects .floating-sticker{background:#242529;color:#e7ebf0}
+#projects .study-blue .hover-label{background:#0297de;color:#e7ebf0}
+#dialog-art .floating-sticker,#projects .floating-sticker{background:#101f29;color:#e7ebf0}
 #photography-camera .hobby-camera-icon{filter:grayscale(1) sepia(1) saturate(3) hue-rotate(175deg)}
-.hobby-image-surface{border-color:#5685c124}
+.hobby-image-surface{border-color:#0297de24}
 dialog.hobby-gallery,#study-dialog{border-color:transparent;box-shadow:0 8px 20px #0008,0 28px 80px #000b}
 dialog.hobby-gallery:focus-visible,#study-dialog:focus-visible{outline:none}
-.hobby-gallery-content{scrollbar-color:#102b52 #0c0d10}
-.hobby-gallery-content figure{border-color:#5685c118}
+.hobby-gallery-content{scrollbar-color:#07334a #02070a}
+.hobby-gallery-content figure{border-color:#0297de18}
 
 /* The existing skill icons travel from above into one complete circular orbit. */
 #about,.hero-skills-transition>#about{position:relative;height:calc(100dvh + 48px);min-height:740px;padding:0;overflow:hidden;overflow:clip;--skills-disc-size:clamp(64px,7vw,96px)}
@@ -435,19 +436,19 @@ dialog.hobby-gallery:focus-visible,#study-dialog:focus-visible{outline:none}
 #about .skills-orbit-slot{position:absolute;left:0;top:0;width:var(--skills-disc-size);height:var(--skills-disc-size);visibility:hidden}
 #about.skills-orbit-running .skills-orbit-slot{will-change:transform}
 #about .skills-orbit-slot:has(.skills-orbit-disc:is(:hover,:focus-visible)){z-index:3}
-#about .skills-orbit-disc{position:relative;display:grid;place-items:center;width:100%;height:100%;padding:0;border:1px solid #5685c166;border-radius:50%;background:radial-gradient(circle at 30% 20%,#2a3a50,#17263b 65%,#142034);color:#dbe7f5;box-shadow:inset 0 1px 1px #ffffff20,0 8px 14px #0006,0 20px 30px #0004;outline-offset:5px;transition:transform .3s cubic-bezier(.22,1,.36,1),border-color .3s,box-shadow .3s;cursor:default}
+#about .skills-orbit-disc{position:relative;display:grid;place-items:center;width:100%;height:100%;padding:0;border:1px solid #0297de66;border-radius:50%;background:radial-gradient(circle at 30% 20%,#2a3a50,#0a2433 65%,#0a1c27);color:#dbe7f5;box-shadow:inset 0 1px 1px #ffffff20,0 8px 14px #0006,0 20px 30px #0004;outline-offset:5px;transition:transform .3s cubic-bezier(.22,1,.36,1),border-color .3s,box-shadow .3s;cursor:default}
 #about .skills-orbit-disc>:is(svg,img){display:block;width:48%;height:48%;object-fit:contain}
 #about .skills-orbit-disc>span[aria-hidden]{font-size:calc(var(--skills-disc-size)*.45);line-height:1}
-#about .skills-orbit-name{position:absolute;top:calc(100% + 10px);left:50%;width:max-content;max-width:120px;padding:6px 8px;border:1px solid #5685c14d;border-radius:7px;background:#152742;color:#e7ebf0;font:500 11px/1.4 Inter,Helvetica,sans-serif;text-align:center;opacity:0;transform:translate(-50%,-4px);transition:opacity .2s,transform .2s;pointer-events:none}
-#about .skills-orbit-disc:is(:hover,:focus-visible){transform:scale(1.1);border-color:#88acd9;box-shadow:inset 0 1px 1px #ffffff30,0 10px 18px #0007,0 24px 36px #0005}
+#about .skills-orbit-name{position:absolute;top:calc(100% + 10px);left:50%;width:max-content;max-width:120px;padding:6px 8px;border:1px solid #0297de4d;border-radius:7px;background:#0a2738;color:#e7ebf0;font:500 11px/1.4 Inter,Helvetica,sans-serif;text-align:center;opacity:0;transform:translate(-50%,-4px);transition:opacity .2s,transform .2s;pointer-events:none}
+#about .skills-orbit-disc:is(:hover,:focus-visible){transform:scale(1.1);border-color:#66c8f5;box-shadow:inset 0 1px 1px #ffffff30,0 10px 18px #0007,0 24px 36px #0005}
 #about .skills-orbit-disc:is(:hover,:focus-visible) .skills-orbit-name{opacity:1;transform:translate(-50%,0)}
-#about .skills-orbit-disc:focus-visible{outline:2px solid #88acd9}
+#about .skills-orbit-disc:focus-visible{outline:2px solid #66c8f5}
 @media(max-width:700px){#about,.hero-skills-transition>#about{min-height:680px}#about .skills-heading>p{margin-top:14px}}
 @media(max-width:380px){#about,.hero-skills-transition>#about{--skills-disc-size:clamp(40px,14vw,54px)}#about .skills-heading h2{font-size:20px}#about .skills-heading>p{font-size:10px;line-height:1.5;margin-top:12px}}
 @media(prefers-reduced-motion:reduce){#about .skills-orbit-disc,#about .skills-orbit-name{transition:none}#about .skills-orbit-disc:is(:hover,:focus-visible){transform:none}}
 
 /* Skills and hobbies share one viewport: no covering panel or section boundary. */
-.skills-hobbies-scene{position:relative;background:#0c0d10}
+.skills-hobbies-scene{position:relative;background:#02070a}
 .skills-hobbies-viewport{position:relative;transform-origin:50% 0}
 .hero-skills-transition.transition-running .skills-hobbies-viewport{will-change:transform}
 .scene-pinned{height:calc(max(860px,100dvh + 48px)*var(--scene-scroll-length,3.56398625))}
@@ -464,24 +465,24 @@ dialog.hobby-gallery:focus-visible,#study-dialog:focus-visible{outline:none}
 .scene-pinned #projects .hobby-orbits{overflow:clip}
 .scene-pinned #projects .hobby-arc-stream{opacity:var(--scene-hobby-media,0)}
 @media(max-width:900px){.scene-pinned{height:calc(max(780px,100dvh + 48px)*var(--scene-scroll-length,3.56398625))}.scene-pinned .skills-hobbies-viewport{height:max(780px,calc(100dvh + 48px))}}
-@media(prefers-reduced-motion:reduce){.skills-hobbies-viewport{transform:none}.skills-hobbies-scene #about,.skills-hobbies-scene #projects{transform:none;border-radius:0;box-shadow:none;background:#0c0d10}}
+@media(prefers-reduced-motion:reduce){.skills-hobbies-viewport{transform:none}.skills-hobbies-scene #about,.skills-hobbies-scene #projects{transform:none;border-radius:0;box-shadow:none;background:#02070a}}
 
 /* The games island owns its scroll viewport; retain the native grid if loading fails. */
-#gaming-gallery.gaming-tilted-active .hobby-gallery-content{overflow:hidden;padding:0;scrollbar-gutter:auto;background:#0c0d10}
+#gaming-gallery.gaming-tilted-active .hobby-gallery-content{overflow:hidden;padding:0;scrollbar-gutter:auto;background:#02070a}
 #gaming-gallery.gaming-tilted-active .gaming-gallery-grid{display:none}
 #gaming-gallery .gaming-gallery-grid[hidden]{display:none}
 #gaming-gallery .gaming-tilted-mount{width:100%;height:100%;min-height:0}
 #gaming-gallery .gaming-tilted-mount[hidden]{display:none}
 
 /* Travel photographs and looping videos share the existing dialog strip. */
-dialog#travel-gallery.travel-zoom-active .hobby-gallery-content{padding:0;background:#0c0d10;scrollbar-gutter:auto}
+dialog#travel-gallery.travel-zoom-active .hobby-gallery-content{padding:0;background:#02070a;scrollbar-gutter:auto}
 #travel-gallery .travel-zoom-mount{width:100%;height:100%;min-height:0}
 #travel-gallery .travel-zoom-mount[hidden],#travel-gallery .travel-gallery-grid[hidden]{display:none}
 #travel-gallery.travel-zoom-active .travel-gallery-grid{padding:28px 30px 30px}
 @media(max-width:700px){#travel-gallery.travel-zoom-active .travel-gallery-grid{padding:20px}}
 
 /* The music island owns the disc carousel and song navigation. */
-dialog#music-gallery.music-cascade-active .hobby-gallery-content{padding:0;overflow:hidden;scrollbar-gutter:auto;background:#0c0d10}
+dialog#music-gallery.music-cascade-active .hobby-gallery-content{padding:0;overflow:hidden;scrollbar-gutter:auto;background:#02070a}
 dialog#music-gallery h2{font-size:clamp(21px,3vw,31.5px)}
 #music-gallery.music-cascade-active .music-gallery-grid,#music-gallery .music-gallery-grid[hidden]{display:none}
 #music-gallery .music-cascade-mount{width:100%;height:100%;min-height:0}
@@ -490,8 +491,8 @@ dialog#music-gallery h2{font-size:clamp(21px,3vw,31.5px)}
 /* Apply the supplied SocialTooltip interaction to the native orbit holders.
    The inner circle clips the fill; the tooltip stays outside that clipping area.
    Slot transforms and dimensions remain owned by the existing motion clock. */
-#about .skills-orbit-disc{--skill-fill:#183f73;--skill-tooltip-ink:#fff;display:block;isolation:isolate;border:0;background:none;box-shadow:none;transition:none}
-#about .skills-orbit-disc>.skills-orbit-symbol{position:relative;display:grid;place-items:center;width:100%;height:100%;border-radius:50%;overflow:hidden;background:#18191d;box-shadow:0 8px 16px #0006;transition:box-shadow .3s ease-in-out}
+#about .skills-orbit-disc{--skill-fill:#0297de;--skill-tooltip-ink:#fff;display:block;isolation:isolate;border:0;background:none;box-shadow:none;transition:none}
+#about .skills-orbit-disc>.skills-orbit-symbol{position:relative;display:grid;place-items:center;width:100%;height:100%;border-radius:50%;overflow:hidden;background:#09131a;box-shadow:0 8px 16px #0006;transition:box-shadow .3s ease-in-out}
 #about .skills-orbit-symbol:before{content:"";position:absolute;inset:0;background:var(--skill-fill);opacity:0;transform:translateY(calc(100% + 2px));pointer-events:none;transition:transform .3s ease-in-out,opacity .3s ease-in-out}
 #about .skills-orbit-symbol>img{position:relative;z-index:1;display:block;width:58.333%;height:58.333%;object-fit:contain;filter:none}
 #about .skills-orbit-disc>.skills-orbit-name{top:calc(100% + 16px);padding:6px 10px;max-width:none;border:0;border-radius:6px;background:var(--skill-fill);color:var(--skill-tooltip-ink);font:500 14px/1.4 Inter,Helvetica,sans-serif;white-space:nowrap;opacity:0;visibility:hidden;transform:translate(-50%,-10px);transition:opacity .3s ease-in-out,transform .3s ease-in-out,visibility .3s ease-in-out;pointer-events:none}
@@ -515,3 +516,11 @@ dialog#music-gallery h2{font-size:clamp(21px,3vw,31.5px)}
 @media(max-width:700px){#about .skills-orbit-disc>.skills-orbit-name{font-size:12px}}
 #about .skills-orbit-disc>.skills-orbit-name{font-family:Ramabhadra,Inter,Helvetica,sans-serif;font-weight:400}
 @media(prefers-reduced-motion:reduce){#about .skills-orbit-disc>.skills-orbit-symbol,#about .skills-orbit-symbol:before,#about .skills-orbit-disc>.skills-orbit-name{transition:none}}
+
+/* Warm accents stay confined to the navigation and signature. */
+.floating-nav a[aria-current="location"]{color:var(--cantaloupe);text-shadow:none}
+.personal .signature-name{color:var(--cantaloupe)}
+/* Midnight ink keeps small type legible on saturated electric fills. */
+::selection{background:var(--electric);color:var(--midnight)}
+main>.section ::selection,#study-dialog ::selection{background:var(--electric);color:var(--midnight)}
+#about .skills-filter button[aria-pressed=true],#study-dialog .dialog-done,#projects .hover-label{color:var(--midnight)}

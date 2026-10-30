@@ -27,7 +27,7 @@ export default function FancyButton({ icon, variant = 'default', onClick, classN
   return <button type="button" onClick={onClick} aria-label={ariaLabel} autoFocus={autoFocus} style={style}
     className={clsx(
       'p-5 rounded-full border backdrop-blur-lg shadow-lg cursor-pointer group relative overflow-hidden',
-      'bg-[#0c0d10] bg-linear-to-tr from-black/60 to-black/40 transition-[transform,scale,rotate,box-shadow,border-color] duration-300 ease-out',
+      'bg-[#02070a] bg-linear-to-tr from-black/60 to-black/40 transition-[transform,scale,rotate,box-shadow,border-color] duration-300 ease-out',
       'hover:scale-110 active:scale-95 hover:rotate-2 active:rotate-0 hover:shadow-2xl',
       'focus-visible:scale-110 focus-visible:shadow-2xl focus-visible:outline-2 focus-visible:outline-offset-4',
       'motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:hover:rotate-0 motion-reduce:active:scale-100 motion-reduce:focus-visible:scale-100',

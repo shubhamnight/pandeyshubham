@@ -31,7 +31,7 @@ export function MusicOverlay({ songs }: { songs: MusicCard[] }) {
     <DiscCascadeCarousel items={items} height="100%" discSize="clamp(150px,min(42cqw,62cqh),400px)"
       defaultIndex={0} onIndexChange={setIndex} loop spin={20} brand="" nav={[]} wheelAxis="both"
       indexLabel="Songs" details={false} reviews={false} frame={false}
-      background="var(--song-background,#181a1d)" color="#e7ebf0" fontHref={null}
+      background="var(--song-background,#09131a)" color="#e7ebf0" fontHref={null}
       hint="Drag · Scroll · ← →" ariaLabel="Favorite songs" className="music-disc-cascade" />
     <article className="music-song-copy" aria-live="polite" aria-atomic="true" aria-labelledby="music-current-title">
       <h3 id="music-current-title" className="music-title" data-title-style={song.typography}>{song.title}</h3>

@@ -1,47 +1,47 @@
 /* The palette is scoped below the hero so the landing page stays unchanged. */
-main>.section,main>dialog{--paper:#e7ebf0;--blue:#183f73;--lime:#5685c1;--accent:#183f73;--ink:#e7ebf0}
+main>.section,main>dialog{--paper:#e7ebf0;--blue:#0297de;--lime:#0297de;--accent:#0297de;--ink:#e7ebf0}
 #about{background:#e7ebf0;color:#171717}
-#about .skills-heading h2 em{color:#183f73}
+#about .skills-heading h2 em{color:#0297de}
 #about .skills-kicker,#about .skills-heading>p,#about .skills-signoff{color:#595959}
-#about .skill-design{background:#fff;color:#171717;--card-accent:#183f73;border-top:3px solid #183f73}
-#about .skill-frontend{background:#191919;color:#e7ebf0;--card-accent:#5685c1;border-top:3px solid #183f73}
-#about .skill-dimension{background:#11233c;color:#171717;--card-accent:#183f73;border-top:3px solid #183f73}
-#about .skill-human{background:#11233c;color:#171717;--card-accent:#183f73;border-top:3px solid #183f73}
+#about .skill-design{background:#fff;color:#171717;--card-accent:#0297de;border-top:3px solid #0297de}
+#about .skill-frontend{background:#191919;color:#e7ebf0;--card-accent:#0297de;border-top:3px solid #0297de}
+#about .skill-dimension{background:#11233c;color:#171717;--card-accent:#0297de;border-top:3px solid #0297de}
+#about .skill-human{background:#11233c;color:#171717;--card-accent:#0297de;border-top:3px solid #0297de}
 #about .skill-tool{background:#fff;color:#171717;border:1px solid #17171712}
 #about .skill-frontend .skill-tool{background:#303030;color:#fff;border-color:#ffffff20}
 #about .skills-filter button[aria-pressed=true]{background:#171717;color:#fff}
-#about .skills-filter button:focus-visible{outline-color:#183f73}
-#about .skills-signoff .handwritten{color:#183f73}
-#projects{background:#0c0d10;color:#e7ebf0;border-top:1px solid #ffffff14}
+#about .skills-filter button:focus-visible{outline-color:#0297de}
+#about .skills-signoff .handwritten{color:#0297de}
+#projects{background:#02070a;color:#e7ebf0;border-top:1px solid #ffffff14}
 #projects .project-heading p{color:#b4b4b4}
-#projects .study-orange{background:#5685c1}
+#projects .study-orange{background:#0297de}
 #projects .study-blue{background:#172c48}
 #projects .study-dark{background:#202020;color:#e7ebf0;border:1px solid #ffffff20}
-#projects .orbit-core,#projects .orbit-word em{color:#5685c1}
-#projects .orbit-ring{border-color:#5685c180}
-#playground{background:#0c0d10;color:#e7ebf0;border-top:1px solid #ffffff20}
-#playground .play-heading h2 em{color:#5685c1}
-#playground .play-stage{background:#1c1c1c;border-color:#ffffff25;--mood:#5685c1}
+#projects .orbit-core,#projects .orbit-word em{color:#0297de}
+#projects .orbit-ring{border-color:#0297de80}
+#playground{background:#02070a;color:#e7ebf0;border-top:1px solid #ffffff20}
+#playground .play-heading h2 em{color:#0297de}
+#playground .play-stage{background:#1c1c1c;border-color:#ffffff25;--mood:#0297de}
 #playground .play-grid{background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px)}
 .personal.light-section{background:#e7ebf0;color:#171717}
 .personal .polaroid{background:#fff}
 .personal .polaroid>div{background:#11233c}
-.personal .tape{background:#183f733b}
-.personal .personal-copy h2 em{color:#183f73}
+.personal .tape{background:#0297de3b}
+.personal .personal-copy h2 em{color:#0297de}
 .personal .personal-copy p,.personal .eyebrow{color:#595959}
-.personal .signature-name{color:#183f73}
-#contact{background:#0c0d10;color:#e7ebf0;border-top:3px solid #183f73}
+.personal .signature-name{color:#0297de}
+#contact{background:#02070a;color:#e7ebf0;border-top:3px solid #0297de}
 #contact>p,#contact .contact-note p>span,#contact .footer-bottom{color:#b4b4b4}
-#contact .footer-name>span{color:#5685c1}
+#contact .footer-name>span{color:#0297de}
 #study-dialog{background:#e7ebf0;color:#171717}
 #dialog-art:has(.orbit-art){background:#202020!important}
 #dialog-art:has(.ui-art){background:#172c48!important}
-#dialog-art .orbit-core,#dialog-art .orbit-word em{color:#5685c1}
-#dialog-art .orbit-ring{border-color:#5685c180}
-:is(#projects,#study-dialog) .mini-window{background:#fff;box-shadow:12px 18px 0 #183f7326}
-:is(#projects,#study-dialog) .mini-chart i{background:#6894cb}
-:is(#projects,#study-dialog) .mini-chart i:nth-child(2n){background:#29558d}
-:is(#projects,#study-dialog) .mini-chart i:nth-child(3n){background:#183f73}
+#dialog-art .orbit-core,#dialog-art .orbit-word em{color:#0297de}
+#dialog-art .orbit-ring{border-color:#0297de80}
+:is(#projects,#study-dialog) .mini-window{background:#fff;box-shadow:12px 18px 0 #0297de26}
+:is(#projects,#study-dialog) .mini-chart i{background:#49b5e9}
+:is(#projects,#study-dialog) .mini-chart i:nth-child(2n){background:#0286c5}
+:is(#projects,#study-dialog) .mini-chart i:nth-child(3n){background:#0297de}
 :is(#projects,#study-dialog) .floating-sticker{background:#11233c;color:#171717}
 .skills-heading{display:flex;justify-content:space-between;align-items:end;gap:40px;margin-bottom:44px}
 .skills-kicker{font-size:10px;letter-spacing:1.8px;margin:0 0 22px;color:#595950}
@@ -50,13 +50,13 @@ main>.section,main>dialog{--paper:#e7ebf0;--blue:#183f73;--lime:#5685c1;--accent
 .skills-filter button{border:1px solid #24242430;background:transparent;color:#333;padding:12px 22px;border-radius:50px;cursor:pointer;font-size:12px;transition:background .2s,color .2s,transform .2s}
 .skills-filter button[aria-pressed=true]{background:#252525;color:var(--paper);border-color:#252525}
 .skills-filter button:hover{transform:translateY(-2px)}
-.skills-filter button span{margin-left:14px;color:#183f73}
+.skills-filter button span{margin-left:14px;color:#0297de}
 .skills-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:22px;align-items:start}
-.skill-card{--card-accent:#183f73;padding:32px;border:1px solid #2222;border-radius:22px;background:#eaddd1;min-width:0;transition:box-shadow .3s,transform .35s cubic-bezier(.2,.7,.2,1);animation:skill-enter .45s both}
+.skill-card{--card-accent:#0297de;padding:32px;border:1px solid #2222;border-radius:22px;background:#eaddd1;min-width:0;transition:box-shadow .3s,transform .35s cubic-bezier(.2,.7,.2,1);animation:skill-enter .45s both}
 .skill-card[hidden]{display:none}
 .skill-card:hover{transform:translateY(-4px);box-shadow:0 12px 0 -6px #2222}
-.skill-frontend{background:#222823;color:#e7ebf0;--card-accent:#5685c1}
-.skill-dimension{background:#315e97;--card-accent:#255c7d}
+.skill-frontend{background:#222823;color:#e7ebf0;--card-accent:#0297de}
+.skill-dimension{background:#0286c5;--card-accent:#255c7d}
 .skill-human{background:#e2e8cb;--card-accent:#4f602b}
 .skill-card-top{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:10px;letter-spacing:1.3px;min-height:36px}
 .skill-symbol{display:inline-block;color:var(--card-accent);font-size:38px;line-height:1;letter-spacing:-3px;transition:transform .7s cubic-bezier(.2,.7,.2,1)}

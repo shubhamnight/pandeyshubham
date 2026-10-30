@@ -2,7 +2,7 @@
 // round their position separately from a card moving at fractional pixels.
 import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
 import { touchPerformance } from './touch-performance.js';
-import { mobileMediaSource } from './mobile-media.js';
+import { mobileMediaSource, mobilePreviewSource } from './mobile-media.js';
 const liveCards=new Set();
 const pendingPaints=new Set();
 let paintFrame=0;
@@ -24,6 +24,13 @@ function cardResolution(canvas){
     (innerWidth<=900?Math.max(79.2,Math.min(132,innerWidth*.228)):Math.max(132,Math.min(211.2,innerWidth*.156)));
   return Math.ceil(Math.min(536,width*1.265*Math.min(devicePixelRatio||1,2))/4)*4;
 }
+function previewResolution(canvas){
+  // Anticipate rotation before choosing a file, avoiding a decoder/source swap
+  // mid-loop. A landscape tablet can use the same 536px cap as the canvas.
+  const longEdge=Math.max(innerWidth,innerHeight,window.screen?.width||0,window.screen?.height||0);
+  const slotWidth=longEdge<=900?132:Math.max(132,Math.min(211.2,longEdge*.156));
+  return Math.max(canvas.width,slotWidth*1.265*Math.min(devicePixelRatio||1,2));
+}
 window.addEventListener('resize',()=>{
   if(touchPerformance){
     // Read every placeholder size before resizing any canvas backing store.
@@ -41,7 +48,9 @@ export function createVideoCard(item) {
   const context=canvas.getContext('2d',{alpha:false});
   context.imageSmoothingQuality='high';
   const video=document.createElement('video');
-  video.src=mobileMediaSource(item.preview||item.src);video.preload='metadata';
+  // The poster can be prepared ahead, but hidden cards need no video download
+  // or decoder. Resolve the optional mobile preview at the first visible play.
+  video.preload='none';
   video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;
   let playing=false,disposed=false,callback=null,lastFrame=-1,playVersion=0;
   let lastDecodedFrame=-1;
@@ -93,6 +102,7 @@ export function createVideoCard(item) {
     play(){
       if(playing||disposed)return alreadyPlaying;
       const version=++playVersion;
+      if(!video.hasAttribute('src'))video.src=mobilePreviewSource(item.preview||item.src,previewResolution(canvas));
       playing=true;schedule();
       // A rejected older play request must not cancel a newer successful one.
       return video.play().catch(()=>{if(version===playVersion){playing=false;cancel();}});

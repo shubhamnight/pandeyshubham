@@ -215,7 +215,11 @@ import { touchPerformance } from './touch-performance.js';
   const resizeObserver=new ResizeObserver(()=>{
     if(!resizeFrame)resizeFrame=requestAnimationFrame(layout);
   });resizeObserver.observe(section);
-  const visibilityObserver=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;update();});visibilityObserver.observe(section);
+  // Rounded anchor positions can leave a 1/32px intersection after this pinned
+  // stage has left view. Do not keep twelve moving cards alive for that sliver.
+  const visibilityObserver=new IntersectionObserver(([entry])=>{
+    visible=entry.isIntersecting&&entry.intersectionRatio>=.002;update();
+  },{threshold:.002});visibilityObserver.observe(section);
   document.addEventListener('visibilitychange',update);
   function preferenceChanged(){
     if(reduced.matches){withdrawal=null;entrance=entranceTarget=1;draw();}

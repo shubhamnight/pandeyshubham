@@ -8,5 +8,5 @@ const items = [
 
 export default function Demo() {
   return <DiscCascadeCarousel items={items} defaultIndex={0} loop details={false} reviews={false}
-    background="#0c0d10" color="#e7ebf0" height="560px" ariaLabel="Song catalogue" />;
+    background="#02070a" color="#e7ebf0" height="560px" ariaLabel="Song catalogue" />;
 }

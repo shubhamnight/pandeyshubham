@@ -1,6 +1,7 @@
 /* Loaded inside the photography overlay's shadow root only. */
 @import "tailwindcss" source(none);
-@source "../components";
+@source "../components/ui/hero-carousel.tsx";
+@source "../components/photography-overlay.tsx";
 
 :host { display:block; width:100%; height:100%; color:#fff; font-family:Inter,Helvetica,sans-serif; }
 .photography-react-root { width:100%; height:100%; }
@@ -15,7 +16,7 @@
 .photo-carousel button { cursor:pointer; }
 .photo-carousel button:disabled { cursor:default; opacity:.35; }
 .photo-carousel button:focus-visible,.photo-carousel a:focus-visible { outline:2px solid white; outline-offset:5px; }
-.photo-carousel .photo-card { position:relative; flex-shrink:0; overflow:hidden; background:#0c0d10; }
+.photo-carousel .photo-card { position:relative; flex-shrink:0; overflow:hidden; background:#02070a; }
 .photo-carousel .photo-card button { width:100%; height:100%; padding:0; border:0; background:transparent; }
 .photo-carousel .photo-card img { width:100%; height:100%; object-fit:contain; object-position:center; image-rendering:auto; }
 .photo-carousel .photo-card video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:#000; }

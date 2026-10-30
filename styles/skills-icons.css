@@ -9,8 +9,8 @@
 #about .skills-orbit-symbol:has(.skill-shiny-button)::before { display:none; }
 #about .skills-orbit-symbol .skill-shiny-button {
   display:grid; place-items:center; width:100%; height:100%; padding:0;
-  background-color:#101720;
-  background-image:linear-gradient(135deg,#1c2a3c,#101720 75%);
+  background-color:#0a1922;
+  background-image:linear-gradient(135deg,#122c3c,#0a1922 75%);
   /* The surface is opaque: sampling the moving page behind it is invisible. */
   backdrop-filter:none; -webkit-backdrop-filter:none;
   border:1px solid transparent; color:#e7ebf0; outline-color:#e7ebf0;

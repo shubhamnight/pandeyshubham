@@ -30,7 +30,7 @@ const revealObserver = new IntersectionObserver(entries => entries.forEach(entry
 }), {threshold:0.1});
 document.querySelectorAll('.reveal').forEach(element => revealObserver.observe(element));
 const studies = {
-  type: {title:'Form & feeling', category:'01 / TYPOGRAPHIC STUDY', copy:'An exploration of expressive type: oversized letterforms, a warm orange palette, and a rotating asterisk. A study in making a simple identity feel unmistakably its own.', art:'.type-art', background:'#183f73'},
+  type: {title:'Form & feeling', category:'01 / TYPOGRAPHIC STUDY', copy:'An exploration of expressive type: oversized letterforms, a warm orange palette, and a rotating asterisk. A study in making a simple identity feel unmistakably its own.', art:'.type-art', background:'#0297de'},
   interface: {title:'Daylight', category:'02 / INTERFACE CONCEPT', copy:'A fictional focus dashboard exploring a calmer digital workspace. Soft sky blue, generous spacing, and a simple visual rhythm put everyday intentions first. This is a visual concept, not a released product.', art:'.ui-art', background:'#11233c'},
   motion: {title:'Out of orbit', category:'03 / MOTION EXPERIMENT', copy:'Three elliptical paths and one playful center. This experiment explores how repetition, rotation, and a small shift in perspective can give simple geometry a sense of life.', art:'.orbit-art', background:'#202124'}
 };

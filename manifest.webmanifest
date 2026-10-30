@@ -6,8 +6,8 @@
   "scope": "/",
   "display": "browser",
   "lang": "en",
-  "background_color": "#0c0d10",
-  "theme_color": "#0c0d10",
+  "background_color": "#02070a",
+  "theme_color": "#02070a",
   "icons": [
     {
       "src": "/assets/brand/icon-192.png",

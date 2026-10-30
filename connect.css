@@ -1,5 +1,5 @@
 /* Contact layout mirrors the supplied reference without affecting other pages. */
-#contact.connect-page { position:relative; isolation:isolate; min-height:100svh; padding:0; display:flex; flex-direction:column; background:#0c0d10; color:#a4aab3; }
+#contact.connect-page { position:relative; isolation:isolate; min-height:100svh; padding:0; display:flex; flex-direction:column; background:#02070a; color:#a4aab3; }
 .connect-aether-mount { position:absolute; inset:0; z-index:0; pointer-events:none; }
 .connect-aether-mount[hidden] { display:none; }
 .connect-invitation,.connect-details { position:relative; z-index:1; }
@@ -8,21 +8,21 @@
 .connect-heading-static { grid-column:1; white-space:nowrap; text-align:center; font-family:Righteous,Inter,Helvetica,sans-serif; font-weight:400; }
 .connect-heading-static:first-child { grid-row:1; }
 .connect-heading-static:nth-child(2) { grid-row:2; }
-#contact #connect-heading .footer-rotator { grid-column:2; grid-row:2; display:block; width:4.1em; min-width:0; font-family:Caveat,Georgia,serif; font-size:1.35em; font-weight:500; font-style:normal; letter-spacing:-.025em; line-height:1.07; white-space:nowrap; color:#5685c1; text-align:center; }
+#contact #connect-heading .footer-rotator { grid-column:2; grid-row:2; display:block; width:4.1em; min-width:0; font-family:Caveat,Georgia,serif; font-size:1.35em; font-weight:500; font-style:normal; letter-spacing:-.025em; line-height:1.07; white-space:nowrap; color:#0297de; text-align:center; }
 .footer-socials { margin:47px auto 0; max-width:800px; min-height:44px; }
 .social-icons-mount[hidden],.footer-socials-fallback[hidden] { display:none; }
 .footer-socials-fallback nav { display:flex; flex-wrap:wrap; justify-content:center; gap:20px 32px; font-size:18px; }
-.footer-socials-fallback a:hover { color:#96b7df; }
+.footer-socials-fallback a:hover { color:#66c8f5; }
 .connect-details { display:flex; justify-content:space-between; align-items:flex-start; gap:32px; margin-top:auto; padding:64px 4.5% clamp(60px,12svh,104px); }
 .connect-person { display:flex; align-items:center; gap:20px; }
 .connect-person img { width:64px; height:80px; object-fit:cover; object-position:center; border-radius:8px; filter:url('#connect-portrait-grey-outline'); }
-.connect-person strong { display:block; font-family:Anton,Impact,'Arial Narrow',sans-serif; font-size:30px; font-weight:400; letter-spacing:0; color:#5685c1; }
+.connect-person strong { display:block; font-family:Anton,Impact,'Arial Narrow',sans-serif; font-size:30px; font-weight:400; letter-spacing:0; color:#0297de; }
 .connect-person p { margin:0; font-family:Changa,Inter,Helvetica,sans-serif; font-size:17px; letter-spacing:.025em; color:#a4aab3; }
 .connect-secondary { display:flex; justify-content:center; align-items:center; margin:44px auto 0; font-family:Anton,Impact,'Arial Narrow',sans-serif; }
 #contact .connect-secondary a,.connect-secondary span { font-size:18px; color:#a4aab3; }
-#contact .connect-secondary a:hover { color:#96b7df; }
+#contact .connect-secondary a:hover { color:#66c8f5; }
 .connect-secondary [aria-disabled="true"] { cursor:default; }
-#contact :focus-visible { outline:2px solid #96b7df; outline-offset:6px; }
+#contact :focus-visible { outline:2px solid #66c8f5; outline-offset:6px; }
 @media(max-width:600px) {
   .connect-invitation { padding:120px 20px 56px; }
   #contact #connect-heading { font-size:clamp(22px,6.8vw,40px); column-gap:12px; }

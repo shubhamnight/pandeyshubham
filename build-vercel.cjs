@@ -35,11 +35,14 @@ for (const name of fs.readdirSync(root)) {
       if (!content.includes(localEndpoint)) throw new Error('Travel location endpoint changed; update the static build.');
       content = content.replace(localEndpoint, "fetch('./travel-locations.json')");
     }
+    const moduleScript = name.endsWith('.js') && /^\s*(?:import\s+(?!\()|export\s+)/m.test(content);
     if (/\.(?:js|css)$/.test(name)) content = transformSync(content, {
       loader: name.endsWith('.css') ? 'css' : 'js', target: 'es2020',
       minifyWhitespace: true, minifySyntax: true,
-      // Classic scripts share globals (including reducedMotion). Keep names.
-      minifyIdentifiers: false, legalComments: 'eof',
+      // ES modules have private bindings; their public exports keep their names.
+      // Classic scripts share globals (including reducedMotion). Keep those names.
+      ...(moduleScript ? {format:'esm',minifyIdentifiers:true} : {minifyIdentifiers:false}),
+      legalComments: 'eof',
     }).code;
     fs.writeFileSync(target, content);
   } else fs.copyFileSync(source, target);

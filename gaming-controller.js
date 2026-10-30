@@ -150,7 +150,7 @@ function buildController() {
     const face=new THREE.Mesh(new THREE.PlaneGeometry(.245,.245),new THREE.MeshBasicMaterial({map,transparent:true,depthWrite:false}));
     face.position.set(x,y,z);model.add(face);
   }
-  const buttons=[[1.23,.79,'triangle','#5685c1'],[1.67,.35,'circle','#183f73'],[1.23,-.09,'cross','#96b7df'],[.79,.35,'square','#315e97']];
+  const buttons=[[1.23,.79,'triangle','#0297de'],[1.67,.35,'circle','#0297de'],[1.23,-.09,'cross','#66c8f5'],[.79,.35,'square','#0286c5']];
   buttons.forEach(([x,y,symbol,color])=>{
     disc(.172,.025,x,y,.323,seam);
     disc(.148,.052,x,y,.359,buttonMat);

@@ -75,9 +75,9 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
     function draw(elapsed = 0) {
       const step = elapsed / (1000 / 60);
       ctx.globalAlpha = 1;
-      ctx.fillStyle = '#0c0d10';
+      ctx.fillStyle = '#02070a';
       ctx.fillRect(0, 0, width, height);
-      ctx.fillStyle = '#5685c1';
+      ctx.fillStyle = '#0297de';
       ctx.globalAlpha = .8;
       const radiusSquared = mouse.radius * mouse.radius;
       // Match the reference's straight drift, dot sizes and direct repulsion.
@@ -111,7 +111,7 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
       for (const bucket of buckets) bucket.length = 0;
       ctx.lineWidth = 1;
       let lineHighlighted = false;
-      ctx.strokeStyle = '#87acd9';
+      ctx.strokeStyle = '#66c8f5';
       for (const particle of particles) {
         const column = Math.max(0, Math.min(columns - 1, Math.floor(particle.x / cellSize)));
         const row = Math.max(0, Math.min(rows - 1, Math.floor(particle.y / cellSize)));
@@ -123,7 +123,7 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
               ctx.globalAlpha = Math.max(0, 1 - distanceSquared / 20000);
               if (neighbor.highlighted !== lineHighlighted) {
                 lineHighlighted = neighbor.highlighted;
-                ctx.strokeStyle = lineHighlighted ? '#e7ebf0' : '#87acd9';
+                ctx.strokeStyle = lineHighlighted ? '#e7ebf0' : '#66c8f5';
               }
               ctx.beginPath();
               ctx.moveTo(neighbor.x, neighbor.y);

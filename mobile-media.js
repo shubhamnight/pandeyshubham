@@ -9,11 +9,18 @@ const state = globalThis[key] || (globalThis[key] = { files: null, ready: null }
 export const mobileMediaReady = state.ready || (state.ready = touchPerformance
   ? fetch(new URL('/mobile-media-data.json', location.href), { cache: 'no-cache' })
     .then(response => response.ok ? response.json() : null)
-    .then(data => { state.files = data?.files || null; }).catch(() => {})
+    .then(data => { state.files = data?.files || null; state.previews = data?.previews || null; }).catch(() => {})
   : Promise.resolve());
 
 export function mobileMediaSource(source) {
   return state.files?.[source] || source;
+}
+// These copies retain the preview canvas's existing centered cover framing.
+// Full overlay videos always use mobileMediaSource and keep their resolution.
+export function mobilePreviewSource(source,maximumWidth=536) {
+  const variants=state.previews?.[source];
+  if(typeof variants==='string')return variants;
+  return (maximumWidth<=384?variants?.[384]:null)||variants?.[536]||mobileMediaSource(source);
 }
 export function mobileMediaSrcset(srcset) {
   if (!state.files || !srcset) return srcset;

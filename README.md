@@ -179,6 +179,36 @@ The media builders use Sharp; video processing also requires FFmpeg and FFprobe 
 
 ## Hosted version
 
+### Delivery and offscreen activity
+
+Decorative loops pause outside the actual viewport, behind hobby dialogs, in
+hidden tabs and during persisted page suspension. Their CSS timeline resumes
+at its paused position. Hobbies also ignores subpixel intersections left by
+rounded scroll anchors. Gaming applies the same visibility/lifecycle policy
+inside its shadow root.
+
+`npm run build:mobile-media` prepares the existing touch media plus separate
+384px/536px centered-cover orbit-video copies. Preview selection accounts for
+the canvas density, hover enlargement and rotation; full overlay videos and
+source media keep their existing URLs. Only smaller alternatives are selected.
+Hidden preview cards prepare a poster but defer video download/decoding until
+visible playback. Desktop does not fetch the mobile manifest.
+
+The production builder minifies private ES-module bindings while preserving
+public exports and classic-script globals. Photography's CSS scans only its
+own component sources. Existing WebP/WOFF2 assets and model detail are retained.
+
+Optional validation (external Playwright or FFmpeg/FFprobe required):
+
+```sh
+node checks/offscreen-motion-regression.cjs
+node checks/mobile-preview-quality.cjs
+```
+
+Set `PLAYWRIGHT_MODULE`, `AUDIT_URL` and `AUDIT_OUTPUT` for browser checks.
+The media check compares frame counts, cadence, dimensions and SSIM against the
+same centered/scaled reference; preview encodes are high quality, not lossless.
+
 ### Vercel
 
 Import this GitHub repository into Vercel. The included `vercel.json` configures:

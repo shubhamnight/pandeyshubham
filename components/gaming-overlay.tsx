@@ -23,13 +23,19 @@ function GamingOverlay({ images }: { images: GameArtwork[] }) {
       setColumnCount(entry.contentRect.width < 600 ? 2 : entry.contentRect.width < 900 ? 3 : 4);
     });
     resize.observe(element);
-    const sync = () => element.toggleAttribute('data-paused', document.hidden || document.body.classList.contains('motion-paused'));
+    let visible=false, suspended=false;
+    const sync = () => element.toggleAttribute('data-paused', suspended || !visible || document.hidden || document.body.classList.contains('motion-paused'));
+    const intersection = new IntersectionObserver(([entry]) => { visible=entry.isIntersecting; sync(); });
+    intersection.observe(element);
+    const suspend = () => { suspended=true; sync(); };
+    const resume = () => { suspended=false; sync(); };
     const pause = new MutationObserver(sync);
     pause.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     document.addEventListener('visibilitychange', sync); sync();
-    return () => { resize.disconnect(); pause.disconnect(); document.removeEventListener('visibilitychange', sync); };
+    window.addEventListener('pagehide',suspend); window.addEventListener('pageshow',resume);
+    return () => { resize.disconnect(); pause.disconnect(); intersection.disconnect(); document.removeEventListener('visibilitychange', sync); window.removeEventListener('pagehide',suspend); window.removeEventListener('pageshow',resume); };
   }, []);
-  return <div ref={viewport} className="gaming-scroll-viewport" data-lenis-prevent
+  return <div ref={viewport} className="gaming-scroll-viewport" data-lenis-prevent data-paused=""
     role="group" aria-label="Game artwork" data-game-count={images.length}>
     <div className="gaming-marquee-scene">
       <div className="gaming-marquee-plane" style={{ '--columns': columnCount } as CSSProperties}>

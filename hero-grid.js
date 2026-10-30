@@ -21,7 +21,7 @@ import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
     const bright=index%29===0;
     const radius=bright?1.35:(.45+starRandom()*.55);
     const opacity=(bright?.62:.16+starRandom()*.29).toFixed(2);
-    const color=index%4===0?'#5685c1':'#e7ebf0';
+    const color=index%4===0?'#0297de':'#e7ebf0';
     if(bright){
       starShapes.push(`<circle cx="${x}" cy="${y}" r="4" fill="${color}" opacity=".035"/>`);
       starShapes.push(`<path d="M${Number(x)-3.5} ${y}h7M${x} ${Number(y)-3.5}v7" stroke="${color}" stroke-width=".55" opacity=".2"/>`);

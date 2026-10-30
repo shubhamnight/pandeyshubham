@@ -17,7 +17,7 @@ for(const [id,path] of [
 
 export function createRecord(song,index=0,gallery=false){
   const record=document.createElement('div');record.className='music-record';
-  record.style.setProperty('--record-label', ['#183f73','#102b52','#4577b5'][index%3]);
+  record.style.setProperty('--record-label', ['#0297de','#07334a','#0286c5'][index%3]);
   record.setAttribute('role','img');record.setAttribute('aria-label',song?.title?`${song.title}${song.artist?' — '+song.artist:''}`:'Vinyl record, awaiting song artwork');
   const label=document.createElement('div');label.className='music-record-label';
   if(song?.src){const image=document.createElement('img');image.src=mobileMediaSource(gallery?song.fullSrc||song.src:song.src);image.alt='';image.loading=gallery?'lazy':'eager';image.decoding='async';label.append(image);}

@@ -43,7 +43,11 @@ async function run() {
     }
   }
   const document = { createElement(tag) { return { tag, children: [], attributes: {}, setAttribute(key, value) { this.attributes[key] = value; }, addEventListener() {}, append(...nodes) { this.children.push(...nodes); } }; } };
-  const mobile=JSON.parse(fs.readFileSync(path.join(root,'mobile-media-data.json'),'utf8')).files;
+  const mobileManifest=JSON.parse(fs.readFileSync(path.join(root,'mobile-media-data.json'),'utf8'));
+  const mobile=mobileManifest.files;
+  for(const [source,variants]of Object.entries(mobileManifest.previews||{})){
+    asset(source);for(const target of Object.values(variants))asset(target);
+  }
   for(const [source,target]of Object.entries(mobile)){asset(source);asset(target);}
   for(const resolve of [source=>source,source=>mobile[source]||source]){
   const player = moduleFrom('travel-video-player.js', { document,require:name=>{

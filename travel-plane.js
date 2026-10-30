@@ -95,9 +95,9 @@ function buildPlane() {
   const art=document.createElement('canvas');art.width=256;art.height=384;
   const c=art.getContext('2d');c.fillStyle='#17181c';c.fillRect(0,0,256,384);
   c.strokeStyle='#dedbd3';c.lineWidth=60;c.beginPath();c.moveTo(0,0);c.lineTo(256,384);c.moveTo(256,0);c.lineTo(0,384);c.stroke();
-  c.strokeStyle='#183f73';c.lineWidth=24;c.stroke();
+  c.strokeStyle='#0297de';c.lineWidth=24;c.stroke();
   c.fillStyle='#dedbd3';c.fillRect(95,0,66,384);c.fillRect(0,154,256,76);
-  c.fillStyle='#183f73';c.fillRect(110,0,36,384);c.fillRect(0,174,256,36);
+  c.fillStyle='#0297de';c.fillRect(110,0,36,384);c.fillRect(0,174,256,36);
   const tailMap=new THREE.CanvasTexture(art);tailMap.colorSpace=THREE.SRGBColorSpace;
   const finSurface=panel([[-2.59,.17],[-2.76,1.43],[-2.53,1.43],[-1.94,.17]],.003,new THREE.MeshStandardMaterial({map:tailMap,roughness:.5}));
   // ExtrudeGeometry's XY UVs are remapped to the actual fin bounds.

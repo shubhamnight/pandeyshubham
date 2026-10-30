@@ -6,7 +6,7 @@
 :host { display:block; width:100%; height:100%; color:#e7ebf0; font-family:Inter,Helvetica,sans-serif; }
 :host([hidden]) { display:none!important; }
 .gaming-react-root { width:100%; height:100%; }
-.gaming-scroll-viewport { position:relative; width:100%; height:100%; overflow:hidden; overscroll-behavior:contain; container-type:size; background:#0c0d10; }
+.gaming-scroll-viewport { position:relative; width:100%; height:100%; overflow:hidden; overscroll-behavior:contain; container-type:size; background:#02070a; }
 .gaming-marquee-scene { position:absolute; inset:0; overflow:hidden; perspective:max(300px,100cqh); isolation:isolate; }
 .gaming-marquee-plane { position:absolute; top:50%; left:50%; display:flex; gap:16px; width:155%; height:165%; transform:translate(-50%,-50%) translateX(-100px) translateZ(-100px) rotateX(20deg) rotateY(-10deg) rotateZ(20deg); }
 .marquee { --duration:40s; --gap:16px; position:relative; display:flex; flex-direction:row; overflow:hidden; gap:var(--gap); padding:8px; }
@@ -15,14 +15,14 @@
 .marquee[data-vertical]>.marquee-track { flex-direction:column; animation-name:marquee-vertical; }
 .marquee[data-reverse]>.marquee-track { animation-direction:reverse; }
 .gaming-marquee-column { flex:1 1 0; min-width:0; height:100%; touch-action:none; }
-.gaming-marquee-card { flex:none; min-width:0; margin:0; overflow:hidden; border:1px solid #ffffff12; border-radius:12px; background:#18191d; box-shadow:0 2px 3px #0008,0 12px 24px -8px #000b; }
+.gaming-marquee-card { flex:none; min-width:0; margin:0; overflow:hidden; border:1px solid #ffffff12; border-radius:12px; background:#09131a; box-shadow:0 2px 3px #0008,0 12px 24px -8px #000b; }
 .gaming-marquee-artwork { display:block; width:100%; height:auto; aspect-ratio:4/3; object-fit:cover; user-select:none; }
 .gaming-marquee-card figcaption { margin:0; padding:10px 12px 11px; color:#e7ebf0; font-size:clamp(11px,1.4cqw,14px); font-weight:500; line-height:1.4; text-wrap:balance; }
-.gaming-marquee-scene::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(#0c0d10,transparent 18%,transparent 82%,#0c0d10),linear-gradient(90deg,#0c0d10,transparent 12%,transparent 88%,#0c0d10); }
+.gaming-marquee-scene::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(#02070a,transparent 18%,transparent 82%,#02070a),linear-gradient(90deg,#02070a,transparent 12%,transparent 88%,#02070a); }
 .marquee:is([data-held],[data-user-paused])>.marquee-track,
 .marquee:focus-visible:not([data-keyboard-play])>.marquee-track,
 .gaming-scroll-viewport[data-paused] .marquee-track { animation-play-state:paused; }
-.marquee:focus-visible { outline:2px solid #96b7df; outline-offset:-4px; border-radius:12px; }
+.marquee:focus-visible { outline:2px solid #66c8f5; outline-offset:-4px; border-radius:12px; }
 @media(hover:hover) and (pointer:fine) {
   .marquee[data-pause-hover]:hover>.marquee-track { animation-play-state:paused; }
 }
@@ -34,7 +34,7 @@
   .gaming-marquee-card figcaption { padding:8px 9px; font-size:11px; }
 }
 @media(prefers-reduced-motion:reduce) {
-  .gaming-scroll-viewport { overflow-y:auto; scrollbar-color:#5685c1 #0c0d10; touch-action:pan-y; }
+  .gaming-scroll-viewport { overflow-y:auto; scrollbar-color:#0297de #02070a; touch-action:pan-y; }
   .gaming-marquee-scene { position:relative; overflow:visible; perspective:none; }
   .gaming-marquee-scene::after { display:none; }
   .gaming-marquee-plane { position:relative; top:auto; left:auto; display:grid; grid-template-columns:repeat(var(--columns),minmax(0,1fr)); width:100%; height:auto; padding:16px; transform:none; gap:16px; }
