@@ -145,7 +145,7 @@ dialog#photography-gallery>header>button { position:relative; top:auto; right:au
   #home .name-track { font-size:clamp(80px,24svh,142.5px); }
   .skills-hobbies-scene { --fit-stage-height:100svh; }
   .scene-pinned .skills-hobbies-viewport,#about,.hero-skills-transition>#about,#projects { height:100svh; min-height:0; }
-  #about,.hero-skills-transition>#about { --skills-disc-size:clamp(36px,11svh,56px); }
+  #about,.hero-skills-transition>#about { --skills-disc-size:clamp(36px,min(13vw,11svh),56px); }
   #about .skills-heading h2 { font-size:clamp(18px,5.5svh,28px); }
   #about .skills-heading>p { font-size:10px; line-height:1.45; margin-top:10px; }
   #projects .project-heading h2 { font-size:clamp(18px,5.5svh,28px); }
@@ -157,4 +157,23 @@ dialog#photography-gallery>header>button { position:relative; top:auto; right:au
   .connect-details { padding-top:28px; padding-bottom:max(28px,env(safe-area-inset-bottom)); }
   dialog.hobby-gallery header { padding:12px 18px; }
   dialog.hobby-gallery h2 { font-size:24px; }
+}
+
+/* Reading sizes only: retain the existing fonts, copy, sections and orbit paths. */
+@media (max-width:700px), (pointer:coarse) and (max-width:1100px) {
+  .floating-nav>a:not(.mini-brand) { font-size:14px; }
+  #about .skills-heading h2 { font-size:clamp(22px,5.7vw,32px); }
+  #about .skills-heading>p { font-size:clamp(13px,3.6vw,15px); line-height:1.55; }
+  #projects .project-heading h2 { font-size:clamp(22px,5.7vw,32px); }
+  #projects .project-heading p { font-size:clamp(13px,3.3vw,15px); line-height:1.55; }
+  #profile .personal-copy>p { font-size:16px; line-height:1.75; overflow-wrap:break-word; }
+  .connect-person p { font-size:14px; line-height:1.5; }
+}
+@media (max-width:1100px) and (max-height:550px), (pointer:coarse) and (max-height:550px) {
+  #about .skills-heading h2,#projects .project-heading h2 { font-size:clamp(20px,5.5svh,28px); }
+  #about .skills-heading>p,#projects .project-heading p { font-size:12.5px; line-height:1.45; margin-top:10px; }
+}
+@media(max-width:360px) {
+  #about .skills-heading h2 { font-size:clamp(20px,calc(5vw + 4px),22px); }
+  #about .skills-heading>p { max-width:155px; font-size:13px; line-height:1.4; margin-top:6px; }
 }

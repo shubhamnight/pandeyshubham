@@ -32,7 +32,7 @@ async function buildSharedUI() {
   await writeBuildFiles([...chunks, ...entries]);
   const recovery=await build({
     absWorkingDir:__dirname,
-    entryPoints:Object.fromEntries(Object.entries(entryPoints).filter(([name])=>!['connect-page','message-loading'].includes(name))
+    entryPoints:Object.fromEntries(Object.entries(entryPoints).filter(([name])=>name!=='message-loading')
       .map(([name,file])=>[name+'-recovery',file])),
     outdir:path.join(__dirname,'assets/ui'),bundle:true,splitting:false,minify:true,
     format:'esm',platform:'browser',target:['es2020'],jsx:'automatic',

@@ -18,7 +18,7 @@ export function importPortfolioModule(path){
   }).catch(error=>{
     if(!retryable(error))throw error;
     const url=new URL(base);
-    if(!/\/assets\/ui\/(?:skills-icons|photography-carousel|gaming-overlay|travel-overlay|music-overlay)\.js$/.test(url.pathname))throw error;
+    if(!/\/assets\/ui\/(?:skills-icons|photography-carousel|gaming-overlay|travel-overlay|music-overlay|connect-page)\.js$/.test(url.pathname))throw error;
     // A failed shared dependency stays cached even with a fresh entry URL.
     // This build of the same component has no shared import dependencies and
     // is requested only on recovery, preserving the normal lightweight path.
@@ -27,8 +27,13 @@ export function importPortfolioModule(path){
     if(generation>1)url.searchParams.set('portfolio-retry',String(generation));
     return import(url.href);
   }).catch(error=>{
-    pending.delete(base);
-    generations.set(base,(generations.get(base)||0)+1);
+    // Fetch failures can recover on a later connection/input event. Keep a
+    // rejected execution cached: re-running module side effects cannot repair
+    // a code error and can duplicate controllers/listeners.
+    if(retryable(error)){
+      pending.delete(base);
+      generations.set(base,(generations.get(base)||0)+1);
+    }
     throw error;
   });
   pending.set(base,request);return request;

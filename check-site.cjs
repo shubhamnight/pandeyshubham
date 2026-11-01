@@ -55,6 +55,10 @@ for (const folder of ['.', 'dist']) {
   const graphs = uiEntries.map(name => inspectModule(path.join(uiRoot, name + '.js')));
   check([...graphs[0]].some(file => file.includes(path.sep + 'chunks' + path.sep) && graphs.every(graph => graph.has(file))),
     folder + ': all UI entries reuse the same runtime chunk');
+  for (const name of uiEntries.filter(name=>name!=='message-loading')) {
+    check(inspectModule(path.join(uiRoot,name+'-recovery.js')).size===1,
+      folder+': recovery does not depend on a failed shared chunk: '+name);
+  }
   for (const name of ['offline-page', 'offline-batman']) {
     check(inspectModule(path.join(uiRoot, name + '.js')).size === 1,
       folder + ': offline module remains self-contained: ' + name);

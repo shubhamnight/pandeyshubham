@@ -9,6 +9,8 @@ assert.deepEqual(await first,{ready:true});assert.equal(calls.length,2);assert.n
 await recovered('./gallery.js');assert.equal(calls.length,2,'successful imports stay cached');
 for(const error of [new SyntaxError('Unexpected token'),new TypeError('Cannot read properties of undefined')]){
  let count=0;const broken=loader(async()=>{count++;throw error;});
+ const failed=broken('./broken.js');await assert.rejects(failed,error);
+ assert.equal(broken('./broken.js'),failed,'later events reuse the execution failure');
  await assert.rejects(broken('./broken.js'),error);assert.equal(count,1,'do not re-execute code that threw');
 }
 calls=[];let online=false;
@@ -19,6 +21,9 @@ calls=[];
 const shared=loader(async url=>{calls.push(url);if(!url.endsWith('-recovery.js'))throw new TypeError('Failed to fetch dynamically imported module');return {component:true};});
 assert.deepEqual(await shared('/assets/ui/skills-icons.js'),{component:true});
 assert.equal(calls.length,3);assert.ok(calls.at(-1).endsWith('/assets/ui/skills-icons-recovery.js'));
+calls=[];
+assert.deepEqual(await shared('/assets/ui/connect-page.js'),{component:true});
+assert.equal(calls.length,3);assert.ok(calls.at(-1).endsWith('/assets/ui/connect-page-recovery.js'),'contact also recovers failed shared dependencies');
 calls=[];online=false;
 const sharedLater=loader(async url=>{
  calls.push(url);

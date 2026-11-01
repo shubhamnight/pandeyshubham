@@ -1,58 +1,54 @@
-// Load the shared Aether background and social links near the contact section.
-let componentModule = null;
-function loadComponent() {
-  return componentModule ??= import('./assets/ui/connect-page.js').catch(error => {
-    componentModule = null;
-    throw error;
-  });
+// Keep native contact content visible while optional enhancements load/recover.
+import { importPortfolioModule } from './module-loader.js';
+const loadComponent=()=>importPortfolioModule('./assets/ui/connect-page.js');
+
+function mountOnApproach(target,mount,label){
+  const controller=new AbortController(),{signal}=controller;
+  let near=false,pending=null,complete=false,disposed=false,cleanup=null;
+  const detachRetry=()=>{
+    window.removeEventListener('online',attempt);
+    document.removeEventListener('visibilitychange',attempt);
+    window.removeEventListener('pageshow',attempt);
+  };
+  function attempt(){
+    if(!near||pending||complete||disposed||document.hidden||navigator.onLine===false)return;
+    pending=Promise.resolve().then(()=>mount(signal)).then(dispose=>{
+      if(disposed){dispose?.();return;}
+      cleanup=dispose;complete=true;observer.disconnect();detachRetry();
+    }).catch(error=>{
+      if(!disposed&&error.name!=='AbortError'&&navigator.onLine!==false)
+        console.warn(`${label} could not load; keeping the native contact content.`,error);
+    }).finally(()=>{pending=null;});
+  }
+  const observer=new IntersectionObserver(entries=>{
+    near=entries.some(entry=>entry.isIntersecting);if(near)attempt();
+  },{rootMargin:'450px 0px'});
+  observer.observe(target);
+  window.addEventListener('online',attempt);
+  document.addEventListener('visibilitychange',attempt);
+  window.addEventListener('pageshow',attempt);
+  window.addEventListener('pagehide',event=>{
+    if(event.persisted)return;
+    disposed=true;observer.disconnect();detachRetry();controller.abort();cleanup?.();
+  },{signal});
 }
-const contactStage = document.querySelector('#contact');
-const backgroundHost = contactStage?.querySelector('.connect-aether-mount');
-if (contactStage && backgroundHost) {
-  let disposeBackground = null;
-  let disposed = false;
-  const backgroundObserver = new IntersectionObserver(entries => {
-    if (!entries.some(entry => entry.isIntersecting)) return;
-    backgroundObserver.disconnect();
-    loadComponent()
-      .then(module => disposed ? null : module.mountConnectBackground(backgroundHost))
-      .then(cleanup => { if (disposed) cleanup?.(); else disposeBackground = cleanup; })
-      .catch(error => { console.error('Aether background could not load; keeping the contact background.', error); });
-  }, { rootMargin: '450px 0px' });
-  backgroundObserver.observe(contactStage);
-  window.addEventListener('pagehide', event => {
-    if (event.persisted) return;
-    disposed = true;
-    backgroundObserver.disconnect();
-    disposeBackground?.();
-  });
-}
-const socialStage = document.querySelector('.footer-socials');
-const socialHost = socialStage?.querySelector('.social-icons-mount');
-if (socialStage && socialHost) {
-  let disposeSocials = null;
-  const controller = new AbortController();
-  const socialObserver = new IntersectionObserver(entries => {
-    if (!entries.some(entry => entry.isIntersecting)) return;
-    socialObserver.disconnect();
-    Promise.all([
-      loadComponent(),
-      fetch('./social-links.json', { signal: controller.signal }).then(response => {
-        if (!response.ok) throw new Error('Social links could not load.');
-        return response.json();
-      }),
-    ])
-      .then(([module, links]) => controller.signal.aborted ? null : module.mountSocialIcons(socialHost, links))
-      .then(cleanup => { if (controller.signal.aborted) cleanup?.(); else disposeSocials = cleanup; })
-      .catch(error => {
-        if (error.name !== 'AbortError') console.error('Social icons could not load; using the static fallback.', error);
-      });
-  }, { rootMargin: '450px 0px' });
-  socialObserver.observe(socialStage);
-  window.addEventListener('pagehide', event => {
-    if (event.persisted) return;
-    socialObserver.disconnect();
-    controller.abort();
-    disposeSocials?.();
-  });
-}
+
+const contactStage=document.querySelector('#contact');
+const backgroundHost=contactStage?.querySelector('.connect-aether-mount');
+if(contactStage&&backgroundHost)mountOnApproach(contactStage,async signal=>{
+  const module=await loadComponent();
+  if(signal.aborted)return;
+  return module.mountConnectBackground(backgroundHost,signal);
+},'Contact background');
+
+const socialStage=document.querySelector('.footer-socials');
+const socialHost=socialStage?.querySelector('.social-icons-mount');
+if(socialStage&&socialHost)mountOnApproach(socialStage,async signal=>{
+  const [module,links]=await Promise.all([
+    loadComponent(),fetch('./social-links.json',{signal}).then(response=>{
+      if(!response.ok)throw new Error('Social links could not load.');return response.json();
+    }),
+  ]);
+  if(signal.aborted)return;
+  return module.mountSocialIcons(socialHost,links,signal);
+},'Social links');

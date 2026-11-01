@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createRoot } from 'react-dom/client';
 import DiscCascadeCarousel from '@/components/ui/disc-cascade-carousel';
 
@@ -20,6 +20,11 @@ export interface MusicCard {
 
 export function MusicOverlay({ songs }: { songs: MusicCard[] }) {
   const [index, setIndex] = useState(0);
+  const copyRef = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    // A longer previous card must not leave the next song's title scrolled away.
+    if (copyRef.current) copyRef.current.scrollTop = 0;
+  }, [index]);
   const items = useMemo(() => songs.map(song => ({
     title: song.title, src: song.fullSrc, label: '', fine: '',
     alt: `${song.album} — ${song.artist} artwork on a disc`,
@@ -33,7 +38,7 @@ export function MusicOverlay({ songs }: { songs: MusicCard[] }) {
       indexLabel="Songs" details={false} reviews={false} frame={false}
       background="var(--song-background,#09131a)" color="#e7ebf0" fontHref={null}
       hint="Drag · Scroll · ← →" ariaLabel="Favorite songs" className="music-disc-cascade" />
-    <article className="music-song-copy" aria-live="polite" aria-atomic="true" aria-labelledby="music-current-title">
+    <article ref={copyRef} className="music-song-copy" aria-live="polite" aria-atomic="true" aria-labelledby="music-current-title">
       <h3 id="music-current-title" className="music-title" data-title-style={song.typography}>{song.title}</h3>
       <p className="music-song-singer">{song.singer}</p>
       <blockquote cite={song.lyricSource} className="music-song-lyric">

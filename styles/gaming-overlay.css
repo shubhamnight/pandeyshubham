@@ -31,7 +31,10 @@
 @media(max-width:600px) {
   .gaming-marquee-plane { width:160%; height:145%; gap:10px; transform:translate(-50%,-50%) translateX(-30px) translateZ(-100px) rotateX(20deg) rotateY(-10deg) rotateZ(20deg); }
   .marquee { --gap:12px; padding:5px; }
-  .gaming-marquee-card figcaption { padding:8px 9px; font-size:11px; }
+  .gaming-marquee-card figcaption { padding:8px 9px; font-size:12px; }
+}
+@media(pointer:coarse) and (min-width:601px) and (max-width:1100px) {
+  .gaming-marquee-card figcaption { font-size:13px; }
 }
 @media(prefers-reduced-motion:reduce) {
   .gaming-scroll-viewport { overflow-y:auto; scrollbar-color:#0297de #02070a; touch-action:pan-y; }

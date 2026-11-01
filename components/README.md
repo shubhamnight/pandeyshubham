@@ -178,9 +178,11 @@ intro's bevels, blue metallic materials, lighting, and spin speed. It pauses whi
 hidden, renders a still pose for reduced motion, and caps GPU draws at 30 fps.
 The local Batman vector remains visible if WebGL is unavailable.
 
-`offline-boot.js` registers the root service worker and switches an open portfolio
-to the offline page when the browser reports a lost connection. The worker also
-serves it when a navigation request fails. Only offline HTML, compiled UI, Batman model,
+`offline-boot.js` prepares the root service worker after the current page loads,
+using an idle callback with a bounded timeout. A loaded portfolio stays in place
+during connection drops, preserving dialogs, scroll position and decoded content.
+The worker serves the offline page only when a new navigation request fails.
+Only offline HTML, compiled UI, Batman model,
 and required fonts are cached; portfolio pages, APIs, and large media are not.
 This requires one successful online visit to install the cache, and HTTPS or
 localhost. Return destinations are restricted to this site's origin.
@@ -315,8 +317,10 @@ navigate to an image or song page. Visible serial numbers, movie credits and
 review quotes are hidden; the artist and curated two-line lyric excerpt remain beside
 the discs, using the same shared song-title font treatments and text styles.
 Main-page music placeholders are unchanged.
-Music overlay text (including the heading, Songs menu and hint) is 25% smaller
-at each existing responsive breakpoint; font families, spacing and content remain.
+Desktop music text retains the requested 25% adjustment. Phone/tablet reading
+sizes are explicit: singer names and lyrics stay readable, menu rows fit touch
+input, and short landscapes retain bounded, scrollable copy. Font families and
+song/lyric content are unchanged.
 
 `music-highlights.json`, `music-typography.json`, `music-overlay-data.js` and the
 local album artwork retain their existing content. `music-title-styles.css`

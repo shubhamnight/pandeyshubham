@@ -6,11 +6,30 @@ const state = globalThis[key] || (globalThis[key] = { files: null, ready: null }
 // Fine-pointer desktop clients do not request the mobile manifest or copies.
 // A missing manifest preserves the existing media, including new editor uploads.
 // This optional optimization must never gate a gallery mount or preview image.
-export const mobileMediaReady = state.ready || (state.ready = touchPerformance
-  ? fetch(new URL('/mobile-media-data.json', location.href), { cache: 'no-cache' })
+function loadMobileMedia(){
+  if(state.files)return Promise.resolve();
+  if(state.pending)return state.pending;
+  const request=fetch(new URL('/mobile-media-data.json', location.href), { cache: 'no-cache' })
     .then(response => response.ok ? response.json() : null)
     .then(data => { state.files = data?.files || null; state.previews = data?.previews || null; }).catch(() => {})
-  : Promise.resolve());
+    .finally(()=>{if(state.pending===request)state.pending=null;});
+  state.pending=request;return request;
+}
+export const mobileMediaReady = state.ready || (state.ready = touchPerformance?loadMobileMedia():Promise.resolve());
+
+// A failed optional manifest must not force full-size phone downloads for the
+// rest of the visit. Share one event-driven retry across native/React islands;
+// never replace already displayed media or poll in the background.
+if(touchPerformance&&typeof window!=='undefined'&&!state.recoveryDetach){
+  const retry=()=>{if(!document.hidden&&navigator.onLine!==false&&!state.files)void loadMobileMedia();};
+  const dispose=event=>{if(event.persisted)return;state.recoveryDetach?.();delete state.recoveryDetach;};
+  state.recoveryDetach=()=>{
+    window.removeEventListener('online',retry);window.removeEventListener('pageshow',retry);
+    document.removeEventListener('visibilitychange',retry);window.removeEventListener('pagehide',dispose);
+  };
+  window.addEventListener('online',retry);window.addEventListener('pageshow',retry);
+  document.addEventListener('visibilitychange',retry);window.addEventListener('pagehide',dispose);
+}
 
 export function mobileMediaSource(source) {
   return state.files?.[source] || source;
