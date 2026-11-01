@@ -4,7 +4,7 @@ import { mergeGeometries } from './node_modules/three/examples/jsm/utils/BufferG
 // These models move as rigid units. Submit their opaque pieces together,
 // retaining every vertex, normal, UV, material and the model's root motion.
 // Transparent labels and glass keep their separate depth-sorted draws.
-export function batchRigidModel(model) {
+function* batchRigidModelSteps(model) {
   model.updateWorldMatrix(true,true);
   const inverse=new Matrix4().copy(model.matrixWorld).invert();
   const relative=new Matrix4(),buckets=new Map(),removedGeometry=new Set();
@@ -32,13 +32,15 @@ export function batchRigidModel(model) {
     // entirely indexed bucket duplicates every shared vertex before upload.
     // Mixed buckets retain the existing non-indexed path and draw grouping.
     const indexed=pieces.every(({node})=>node.geometry.index!==null);
-    const geometries=pieces.map(({node,matrix})=>{
+    const geometries=[];
+    for(const {node,matrix} of pieces){
       // Geometry.clone() invokes the procedural subclass constructor before
       // copying its buffers (including Tube/Lathe/Sphere defaults). Copy into
       // a plain buffer instead; all attributes/groups/transforms are retained.
       const geometry=!indexed&&node.geometry.index?node.geometry.toNonIndexed():new BufferGeometry().copy(node.geometry);
-      return geometry.applyMatrix4(matrix);
-    });
+      geometries.push(geometry.applyMatrix4(matrix));
+      yield;
+    }
     const geometry=mergeGeometries(geometries,false);
     geometries.forEach(part=>part.dispose());
     if(!geometry)continue;
@@ -48,9 +50,24 @@ export function batchRigidModel(model) {
     mesh.receiveShadow=original.receiveShadow;mesh.layers.mask=original.layers.mask;
     for(const {node} of pieces){removedGeometry.add(node.geometry);node.removeFromParent();}
     model.add(mesh);after-=pieces.length-1;
+    yield;
   }
   // Shared geometry that is still used by a label or an unbatched piece stays.
   model.traverse(node=>{if(node.geometry)removedGeometry.delete(node.geometry);});
   removedGeometry.forEach(geometry=>geometry.dispose());
   return {before,after};
+}
+
+export function batchRigidModel(model) {
+  const task=batchRigidModelSteps(model);
+  let step;do{step=task.next();}while(!step.done);
+  return step.value;
+}
+export async function batchRigidModelAsync(model,yieldTask) {
+  const task=batchRigidModelSteps(model);let start=performance.now(),step;
+  do{
+    step=task.next();
+    if(!step.done&&performance.now()-start>=5){await yieldTask();start=performance.now();}
+  }while(!step.done);
+  return step.value;
 }

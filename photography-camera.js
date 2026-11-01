@@ -2,19 +2,20 @@ import { deferHobbyModel, connectHobbyMotion } from './hobby-model-runtime.js';
 import * as THREE from './node_modules/three/build/three.module.js';
 import { FastRoundedBoxGeometry as RoundedBoxGeometry } from './rounded-box-geometry.js';
 import { createHobbyRenderer } from './hobby-renderer.js';
+import { yieldHobbyPreparation } from './hobby-preparation.js';
 
 const button = document.querySelector('#photography-camera');
 
 // Initialize once near the viewport, staggered across idle frames.
 deferHobbyModel(button, buildCamera);
 
-function buildCamera() {
+async function buildCamera() {
   let renderer;
   try { renderer = createHobbyRenderer(THREE.WebGLRenderer,button,Math.min(devicePixelRatio,1.5)); }
   catch { button.dataset.hobbyModelFailed='true'; return; } // The existing icon remains a clickable gallery fallback.
+  await yieldHobbyPreparation();
   renderer.setClearColor(0, 0);
   button.append(renderer.domElement);
-  button.classList.add('camera-ready');
   const scene = new THREE.Scene();
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
   // A straight-on resting view keeps the camera face centered.
@@ -40,6 +41,7 @@ function buildCamera() {
   box(2.1, .12, .48, 0, 1.13, -.42, trim);
   box(1.95, .1, .025, 0, -.61, .84, trim, .01);
   box(.48, .77, .06, -.74, .51, -.12, silver);
+  await yieldHobbyPreparation();
   for (let i = 0; i < 7; i++) box(.39, .025, .012, -.74, .22 + i * .09, -.08, trim, .003);
   box(.43, .48, .08, .76, .77, -.11, black);
   box(.28, .32, .035, .76, .77, -.055, silver);
@@ -59,5 +61,6 @@ function buildCamera() {
   });
   box(.62, .2, .09, .34, -.32, .7, black);
   disc(.065, .025, .52, -.33, .76, trim);
-  connectHobbyMotion({ button, renderer, scene, view, model });
+  await yieldHobbyPreparation();
+  await connectHobbyMotion({ button, renderer, scene, view, model });
 }

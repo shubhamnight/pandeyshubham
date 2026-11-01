@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
-import { useLayoutEffect, type CSSProperties, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, type CSSProperties } from 'react';
 import FancyButton from '@/components/ui/shiny-button';
 import { touchPerformance } from '../touch-performance.js';
 
@@ -22,11 +22,16 @@ const glowColors: Record<string, readonly [string, string]> = {
   'Problem solving': ['167, 139, 250', '167, 139, 250'],
 };
 
-function MobileSkillMount({image,children}:{image:HTMLImageElement;children:ReactNode}){
-  // Portals preserve unrelated DOM. Remove the native fallback in the same
-  // commit that installs its button, retaining it until that commit.
-  useLayoutEffect(()=>{image.remove();},[image]);
-  return children;
+function SkillLogo({image}:{image:HTMLImageElement}){
+  const host=useRef<HTMLSpanElement>(null);
+  useLayoutEffect(()=>{
+    const parent=image.parentNode;
+    // Keep the already fetched/decoded image itself. Replacing it with a new
+    // async-decoding img can briefly empty an arriving holder on Android.
+    host.current?.append(image);
+    return()=>{if(parent?.isConnected)parent.appendChild(image);};
+  },[image]);
+  return <span ref={host} className="skill-logo-mount" />;
 }
 
 /** Keep the native orbit holders and tooltip nodes; replace only their icon contents. */
@@ -48,7 +53,6 @@ export async function mountSkillsIcons(section: HTMLElement) {
     const image = mount?.querySelector('img');
     const name = disc.getAttribute('aria-label');
     if (!mount || !image || !name) return;
-    const src = image.getAttribute('src') ?? '';
     const autoFocus = document.activeElement === disc;
     const [glow, secondaryGlow] = glowColors[name] ?? ['231, 235, 240', '231, 235, 240'];
     mount.removeAttribute('aria-hidden');
@@ -57,11 +61,8 @@ export async function mountSkillsIcons(section: HTMLElement) {
       autoFocus={autoFocus} style={{
         '--skill-glow': glow,
         '--skill-glow-secondary': secondaryGlow,
-      } as CSSProperties} icon={
-        <img className="skill-logo" src={src} width={28} height={28} alt="" aria-hidden="true"
-          decoding="async" draggable={false} />
-      } />;
-    if(touchPerformance)portals.push(createPortal(<MobileSkillMount image={image}>{button}</MobileSkillMount>,mount,name));
+      } as CSSProperties} icon={<SkillLogo image={image} />} />;
+    if(touchPerformance)portals.push(createPortal(button,mount,name));
     else{
       const root=createRoot(mount);root.render(button);roots.push(root);
     }

@@ -49,6 +49,13 @@ absolute path, start the local server, then run `node checks/browser-regression.
 `phone`, `tablet`, or `desktop`. Screenshots and results are written under ignored
 `output/performance/`. The checks do not edit gallery content or submit contact links.
 
+For another legacy/CSS cleanup, set `LEGACY_BASELINE=1` and run
+`node checks/legacy-cleanup-regression.cjs` before editing. Unset that flag and
+rerun after editing to compare 30 rendered states across phone, tablet and
+desktop, including all four overlays. Results stay in ignored
+`output/legacy-cleanup/`. `node checks/share-build.cjs` checks the optional share
+packager against the current `dist/` without owner credentials or publishing.
+
 For desktop coverage, set `BROWSER_PROFILE=desktop` and optionally
 `DESKTOP_WIDTH` / `DESKTOP_HEIGHT`. `BROWSER_EXECUTABLE` selects another installed
 Chromium browser. `node checks/desktop-hover-regression.cjs` verifies that a
@@ -229,4 +236,7 @@ Run `npm run build` to generate the same static output locally. Generated `dist/
 
 https://shub-creative-portfolio.shubhamppandey1.chatgpt.site
 
-The hosted copy is a read-only snapshot. `build-share.cjs` prepares that snapshot using the owner's local Sites configuration, which is intentionally excluded from this repository. The location editor runs locally.
+The hosted copy is a read-only snapshot. `build-share.cjs` uses the same current
+static package as `build-vercel.cjs`, then adds the owner's local Sites
+configuration, which is intentionally excluded from this repository. Preparing
+the snapshot does not publish it. The location editor runs locally.

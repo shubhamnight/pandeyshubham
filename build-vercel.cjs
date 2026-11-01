@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { transformSync } = require('esbuild');
 const { renderSeo } = require('./build-seo.cjs');
+function buildVercel() {
 const root = fs.realpathSync(__dirname);
 const dist = path.resolve(root, 'dist');
 
@@ -54,7 +55,6 @@ for (const folder of ['assets', 'PHOTOGRAPHY', 'TRAVEL']) {
 }
 for (const name of [
   'three/build/three.module.js', 'three/build/three.core.js',
-  'three/examples/jsm/geometries/RoundedBoxGeometry.js',
   'three/examples/jsm/utils/BufferGeometryUtils.js',
   'lenis/dist/lenis.mjs', 'lenis/dist/lenis.css'
 ]) {
@@ -70,3 +70,8 @@ for (const name of [
   }).code);
 }
 console.log('Vercel portfolio build ready: ' + dist);
+return dist;
+}
+
+module.exports = buildVercel;
+if (require.main === module) buildVercel();

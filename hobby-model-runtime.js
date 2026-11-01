@@ -1,7 +1,8 @@
 // One event-driven frame scheduler for all four hobby models.
 import { hobbyIntro, observeHobbyIntro } from './hobby-intro.js';
 import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
-import { batchRigidModel } from './hobby-model-batching.js';
+import { batchRigidModelAsync } from './hobby-model-batching.js';
+import { yieldHobbyPreparation, warmHobbyRenderer } from './hobby-preparation.js';
 import { touchPerformance } from './touch-performance.js';
 import { Vector2 } from './node_modules/three/build/three.module.js';
 const active = new Set();
@@ -27,29 +28,26 @@ let building = false,buildFrame=0,idleBuild=0,buildTimeout=0,buildDisposed=false
 function scheduleBuild() {
   if (building || buildDisposed || !buildQueue.length || document.hidden) return;
   // Geometry construction and shader warm-up otherwise compete with the ID
-  // entrance on slower touch devices. Its existing completion event resumes
+  // entrance. Its existing completion event resumes
   // preparation; scrolling away permits preparation immediately.
-  if(touchPerformance&&document.body.classList.contains('badge-entering')&&
+  if(document.body.classList.contains('badge-entering')&&
     !document.querySelector('#home')?.classList.contains('hero-covered'))return;
   building = true;
   buildFrame=requestAnimationFrame(() => {
     buildFrame=0;
-    const build = () => {
-      building=false;idleBuild=buildTimeout=0;
-      if(buildDisposed)return;
-      try{if(!document.hidden)buildQueue.shift()?.();}
-      catch(error){console.error('Hobby model could not be prepared',error);}
-      finally{scheduleBuild();}
+    const build = async () => {
+      idleBuild=buildTimeout=0;
+      try{if(!buildDisposed&&!document.hidden)await buildQueue.shift()?.();}
+      catch(error){if(error.name!=='AbortError')console.error('Hobby model could not be prepared',error);}
+      finally{building=false;scheduleBuild();}
     };
     if ('requestIdleCallback' in window) idleBuild=requestIdleCallback(build,{timeout:500});
     else buildTimeout=setTimeout(build,0);
   });
 }
 document.addEventListener('visibilitychange',scheduleBuild);
-if(touchPerformance){
-  document.querySelector('.badge-rig')?.addEventListener('badge-entrance-complete',scheduleBuild);
-  window.addEventListener('scroll',scheduleBuild,{passive:true});
-}
+document.querySelector('.badge-rig')?.addEventListener('badge-entrance-complete',scheduleBuild);
+window.addEventListener('scroll',scheduleBuild,{passive:true});
 window.addEventListener('pagehide',event=>{
   if(event.persisted)return;
   buildDisposed=true;cancelAnimationFrame(buildFrame);
@@ -57,23 +55,22 @@ window.addEventListener('pagehide',event=>{
   clearTimeout(buildTimeout);buildQueue.length=0;
   deferredObservers.forEach(observer=>observer.disconnect());deferredObservers.clear();
   document.removeEventListener('visibilitychange',scheduleBuild);
-  if(touchPerformance){
-    document.querySelector('.badge-rig')?.removeEventListener('badge-entrance-complete',scheduleBuild);
-    window.removeEventListener('scroll',scheduleBuild);
-  }
+  document.querySelector('.badge-rig')?.removeEventListener('badge-entrance-complete',scheduleBuild);
+  window.removeEventListener('scroll',scheduleBuild);
 });
 export function deferHobbyModel(button,build) {
   const observer=new IntersectionObserver(entries=>{
     if (!entries.some(e=>e.isIntersecting)) return;
     observer.disconnect();deferredObservers.delete(observer);
-    buildQueue.push(()=>{try{build();}catch(error){button.dataset.hobbyModelFailed='true';throw error;}});scheduleBuild();
+    buildQueue.push(async()=>{try{await build();}catch(error){if(error.name!=='AbortError')button.dataset.hobbyModelFailed='true';throw error;}});scheduleBuild();
   },{rootMargin:'650px'});
   if(buildDisposed)return;
-  deferredObservers.add(observer);observer.observe(document.querySelector('#projects')||button);
+  const section=document.querySelector('#projects');
+  deferredObservers.add(observer);observer.observe(section?.closest('.skills-hobbies-scene')||section||button);
 }
 
-export function connectHobbyMotion({button,renderer,scene,view,model,orientModel=null}) {
-  const batches=batchRigidModel(model);
+export async function connectHobbyMotion({button,renderer,scene,view,model,orientModel=null}) {
+  const batches=await batchRigidModelAsync(model,yieldHobbyPreparation);
   button.dataset.modelPieces=String(batches.before);
   button.dataset.modelDraws=String(batches.after);
   // Only the root turns with the orbit or hover; detailed geometry stays rigid.
@@ -169,17 +166,37 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
   const invalidateRect=()=>{rect=null;};
   window.addEventListener('scroll',invalidateRect,{passive:true});
   const preferenceChanged=()=>{pointerPending=false;targetX=targetY=0;wake();};
-  const contextLostHandler=e=>{e.preventDefault();contextLost=true;stop();};
-  const contextRestored=()=>{contextLost=false;dirty=true;wake();};
+  let preparation=Promise.resolve(),preparationVersion=0;
+  const contextLostHandler=e=>{
+    e.preventDefault();contextLost=true;preparationVersion++;compiling=true;
+    button.dataset.hobbyCompiling='true';stop();
+  };
+  const contextRestored=()=>{contextLost=false;dirty=true;void prepare();};
   reduced.addEventListener('change',preferenceChanged);
   renderer.domElement.addEventListener('webglcontextlost',contextLostHandler);
   renderer.domElement.addEventListener('webglcontextrestored',contextRestored);
   // Warm the unchanged materials before their first visible frame. Three.js
   // uses parallel shader compilation when the browser supports it.
-  renderer.compileAsync(scene,view).catch(error=>console.warn('Model shader warm-up failed',error)).finally(()=>{
-    if(disposed)return;
-    compiling=false;button.dataset.hobbyCompiling='false';delete button.dataset.hobbyModelFailed;dirty=true;wake();
-  });
+  function prepare(){
+    const version=++preparationVersion;
+    compiling=true;button.dataset.hobbyCompiling='true';stop();
+    // A restore can arrive while an old warm-up is yielding. Let that job
+    // restore its temporary layer masks before the new one starts.
+    preparation=preparation.then(async()=>{
+      const alive=()=>!disposed&&!contextLost&&version===preparationVersion;
+      try{
+        if(!alive()||!await warmHobbyRenderer(renderer,scene,view,model,alive))return;
+        if(!alive())return;
+        compiling=false;button.dataset.hobbyCompiling='false';button.classList.add('camera-ready');
+        delete button.dataset.hobbyModelFailed;dirty=true;wake();
+      }catch(error){
+        if(!alive()||error.name==='AbortError')return;
+        compiling=false;button.dataset.hobbyCompiling='false';button.dataset.hobbyModelFailed='true';
+        button.classList.remove('camera-ready');console.warn('Model preparation failed; keeping gallery icon.',error);
+      }
+    });
+    return preparation;
+  }
   window.addEventListener('pageshow',wake);
   window.addEventListener('pagehide',e=>{
     stop();if(e.persisted)return;
@@ -203,4 +220,5 @@ export function connectHobbyMotion({button,renderer,scene,view,model,orientModel
     });
     resources.forEach(resource=>resource.dispose());renderer.dispose();renderer.forceContextLoss();
   });
+  await prepare();
 }

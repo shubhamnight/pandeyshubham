@@ -29,32 +29,6 @@ const revealObserver = new IntersectionObserver(entries => entries.forEach(entry
   if (entry.isIntersecting) { entry.target.classList.add('is-visible'); revealObserver.unobserve(entry.target); }
 }), {threshold:0.1});
 document.querySelectorAll('.reveal').forEach(element => revealObserver.observe(element));
-const studies = {
-  type: {title:'Form & feeling', category:'01 / TYPOGRAPHIC STUDY', copy:'An exploration of expressive type: oversized letterforms, a warm orange palette, and a rotating asterisk. A study in making a simple identity feel unmistakably its own.', art:'.type-art', background:'#0297de'},
-  interface: {title:'Daylight', category:'02 / INTERFACE CONCEPT', copy:'A fictional focus dashboard exploring a calmer digital workspace. Soft sky blue, generous spacing, and a simple visual rhythm put everyday intentions first. This is a visual concept, not a released product.', art:'.ui-art', background:'#11233c'},
-  motion: {title:'Out of orbit', category:'03 / MOTION EXPERIMENT', copy:'Three elliptical paths and one playful center. This experiment explores how repetition, rotation, and a small shift in perspective can give simple geometry a sense of life.', art:'.orbit-art', background:'#202124'}
-};
-const dialog = document.querySelector('#study-dialog');
-let lastStudy;
-document.querySelectorAll('[data-study]').forEach(card => card.addEventListener('click', () => {
-  lastStudy = card;
-  const data = studies[card.dataset.study];
-  document.querySelector('#dialog-title').textContent = data.title;
-  document.querySelector('#dialog-category').textContent = data.category;
-  document.querySelector('#dialog-copy').textContent = data.copy;
-  const art = document.querySelector('#dialog-art');
-  art.replaceChildren(card.querySelector(data.art).cloneNode(true));
-  art.querySelectorAll('.ambient-paused').forEach(element=>element.classList.remove('ambient-paused'));
-  art.style.background = data.background;
-  dialog.showModal();
-  document.body.classList.add('photography-gallery-open');
-  document.body.style.overflow = 'hidden';
-}));
-function closeStudy() { dialog.close(); }
-document.querySelector('.dialog-close').addEventListener('click', closeStudy);
-document.querySelector('.dialog-done').addEventListener('click', closeStudy);
-dialog.addEventListener('click', event => { if (event.target === dialog) { const rect = dialog.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeStudy(); } });
-dialog.addEventListener('close', () => { document.body.style.overflow = ''; document.body.classList.remove('photography-gallery-open'); lastStudy?.focus(); });
 const stage = document.querySelector('.play-stage');
 const kinetic = document.querySelector('.kinetic-object');
 let kineticFrame=0,kineticBounds=null,kineticX=0,kineticY=0,kineticPaint='';
@@ -85,10 +59,6 @@ window.addEventListener('pagehide',event=>{
   window.removeEventListener('scroll',invalidateKinetic);window.removeEventListener('resize',invalidateKinetic);
   document.removeEventListener('visibilitychange',kineticVisibility);
 });
-document.querySelectorAll('[data-color]').forEach(button => button.addEventListener('click', () => {
-  stage.dataset.mood = button.dataset.color;
-  document.querySelectorAll('[data-color]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
-}));
 // Scroll-linked parallax: update only visible layers, at most once per frame.
 const parallaxLayers = [...document.querySelectorAll('[data-scroll-parallax]')];
 const parallaxSections = [...document.querySelectorAll('.scroll-section:not(#about):not(#projects):not(#playground)')];

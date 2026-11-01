@@ -2,21 +2,22 @@ import { deferHobbyModel, connectHobbyMotion } from './hobby-model-runtime.js';
 import * as THREE from './node_modules/three/build/three.module.js';
 import { FastRoundedBoxGeometry as RoundedBoxGeometry } from './rounded-box-geometry.js';
 import { createHobbyRenderer } from './hobby-renderer.js';
+import { yieldHobbyPreparation } from './hobby-preparation.js';
 
 const button = document.querySelector('#music-walkman');
 
 // Initialize once near the viewport, staggered across idle frames.
 deferHobbyModel(button, buildWalkman);
 
-function buildWalkman() {
+async function buildWalkman() {
   let renderer;
   try { renderer = createHobbyRenderer(THREE.WebGLRenderer,button,Math.min(devicePixelRatio,2)); }
   catch { button.dataset.hobbyModelFailed='true'; return; } // The existing icon remains a clickable gallery fallback.
+  await yieldHobbyPreparation();
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.12;
   renderer.setClearColor(0, 0);
   button.append(renderer.domElement);
-  button.classList.add('camera-ready');
   const scene = new THREE.Scene();
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
   // A near-frontal, level view keeps the player upright with a little depth.
@@ -61,6 +62,7 @@ function buildWalkman() {
   text('SONY',-.49,.32,.40,.61,'#c2c6c0','Georgia','700');
   text('WALKMAN',-.38,-1.32,.40,.68,'#bac0ba','Arial','700');
   // A real cassette under a clear cover: colored label, tape reels and hubs.
+  await yieldHobbyPreparation();
   box(.49,1.48,.014,-.46,-.57,.400,metal,.017);
   box(.441,1.425,.009,-.46,-.57,.412,cassette,.012);
   box(.061,1.37,.012,-.635,-.57,.421,material(0x16365f,.8),.004);
@@ -98,11 +100,13 @@ function buildWalkman() {
   for(let i=0;i<15;i++)box(.018,.006,.16,.771,-.65+i*.054,.09,gray,.002);
   const port=disc(.055,.02,.778,-1.17,-.14,black);port.rotation.y=Math.PI/2;
   // Headphones sit behind the Walkman: flat padded band, sprung steel rails.
+  await yieldHobbyPreparation();
   const bandShape=new THREE.Shape();
   for(let i=0;i<=64;i++){const a=i/64*Math.PI;const x=Math.cos(a)*1.40,y=.28+Math.sin(a)*1.60;if(i===0)bandShape.moveTo(x,y);else bandShape.lineTo(x,y);}
   for(let i=64;i>=0;i--){const a=i/64*Math.PI;bandShape.lineTo(Math.cos(a)*1.33,.28+Math.sin(a)*1.52);}bandShape.closePath();
   const band=new THREE.Mesh(new THREE.ExtrudeGeometry(bandShape,{depth:.12,bevelEnabled:true,bevelSize:.013,bevelThickness:.012,bevelSegments:2,curveSegments:16}),black);band.position.z=-.36;model.add(band);
-  [-1,1].forEach(side=>{
+  for(const side of [-1,1]){
+    await yieldHobbyPreparation();
     tube([[side*1.04,1.85,-.28],[side*1.34,1.08,-.29],[side*1.39,.12,-.31],[side*1.25,-.60,-.18]],.021,metal);
     const slider=box(.15,.47,.19,side*1.37,.52,-.30,black,.027);slider.rotation.z=side*.12;
     const yoke=box(.13,.33,.18,side*1.22,-.63,-.13,metal,.025);yoke.rotation.z=-side*.12;
@@ -111,7 +115,7 @@ function buildWalkman() {
     const pad=new THREE.Mesh(new THREE.TorusGeometry(.265,.115,18,56),orange);
     pad.rotation.y=Math.PI/2;pad.position.set(side*1.10,-.85,-.04);model.add(pad);
     const padCenter=disc(.207,.046,side*1.095,-.85,-.04,material(0x172f54,.94));padCenter.rotation.set(0,0,Math.PI/2);
-  });
+  }
   // A single continuous cable loops from the jack to the right earcup, with
   // a short second branch for the left earcup. It follows the model as a unit.
   tube([[-.06,1.38,0],[-.04,1.78,-.02],[.12,1.72,-.02],[.14,.65,-.30],[.73,-1.45,-.40],[1.42,-1.50,-.1],[1.30,-1.03,-.03]],.015,black,80);
@@ -138,5 +142,6 @@ function buildWalkman() {
     model.rotation.set(angles[0],angles[1],angles[2]);
     return settled;
   }
-  connectHobbyMotion({ button, renderer, scene, view, model, orientModel });
+  await yieldHobbyPreparation();
+  await connectHobbyMotion({ button, renderer, scene, view, model, orientModel });
 }

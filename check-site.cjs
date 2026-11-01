@@ -16,6 +16,10 @@ for (const folder of ['.', 'dist']) {
   check((html.match(/rel="canonical"/g) || []).length === 1, folder + ': one canonical');
   check(html.includes('href="' + config.siteUrl + '"'), folder + ': canonical uses public preferred origin');
   check(html.includes('BCA (Honours)') && html.includes('Shubham Pandey'), folder + ': identity in HTML');
+  check(!html.includes('data-study=')&&!html.includes('id="study-dialog"'),folder+': retired hidden study demos are absent');
+  check(html.includes('id="playground"')&&html.includes('class="play-stage"'),folder+': project placeholder preserved');
+  check(html.includes('Resume will be added later'),folder+': resume placeholder preserved');
+  for(const name of ['batman-loader.js','contour-nearest.js'])check(!fs.existsSync(path.join(__dirname,folder,name)),folder+': retired runtime not shipped: '+name);
   check(/<dialog id="music-gallery"[\s\S]*?<div class="hobby-gallery-content" tabindex="0"/.test(html), folder + ': music gallery scroll region keyboard accessible');
   check(!html.includes('fonts.googleapis.com'), folder + ': fonts self-hosted');
   check(html.includes('max-image-preview:large'), folder + ': production indexable');
@@ -65,6 +69,7 @@ for (const folder of ['.', 'dist']) {
   }
 }
 check(metadata({ preview: true }).includes('noindex, follow'), 'Preview output excluded from indexing');
+check(!fs.existsSync(path.join(__dirname,'dist/vendor/three/examples/jsm/geometries/RoundedBoxGeometry.js')),'legacy geometry implementation excluded from deployment; reference remains a development dependency');
 check(metadata({ preview: true }).includes(config.siteUrl), 'Preview canonical still points to production');
 assert.throws(() => productionOrigin({ SITE_URL: 'http://localhost:3000/' })); checks++;
 check(productionOrigin({ SITE_URL: 'https://example.org/' }) === 'https://example.org/', 'Origin override supported');

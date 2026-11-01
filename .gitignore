@@ -6,6 +6,7 @@ tmp/
 .chart-data-*/
 .openai/
 .sites-runtime/
+.codex-remote-attachments/
 .env
 .env.*
 !.env.example

@@ -321,9 +321,29 @@ function focusOut(event) {
     (!touchPerformance || !!event.relatedTarget?.matches?.(':focus-visible'));wake();
 }
 if (slots.length) {
+  // A transient SVG request failure must not leave an empty phone holder for
+  // the rest of the visit. Retry only failed assets, with a bounded backoff;
+  // keep the original image node and pause recovery while the page is hidden.
+  const iconRetries=new WeakMap(),iconRetryTimers=new Map();
+  function repairIcon(image){
+    if(!touchPerformance||!(image instanceof HTMLImageElement)||!image.matches('.skill-logo')||
+      !image.complete||image.naturalWidth||iconRetryTimers.has(image)||document.hidden||!navigator.onLine)return;
+    const attempts=iconRetries.get(image)||0;
+    if(attempts>=2)return;
+    iconRetryTimers.set(image,setTimeout(()=>{
+      iconRetryTimers.delete(image);
+      if(disposed||document.hidden||!navigator.onLine||!image.isConnected||image.naturalWidth)return;
+      const source=new URL(image.getAttribute('src'),document.baseURI);
+      if(source.origin!==location.origin)return;
+      iconRetries.set(image,attempts+1);source.searchParams.set('skill-retry',String(attempts+1));image.src=source.href;
+    },attempts?1000:250));
+  }
+  const repairIcons=()=>section.querySelectorAll('.skill-logo').forEach(repairIcon);
+  const iconError=event=>repairIcon(event.target);
   // The existing logos remain usable until the small React island and its scoped styles are ready.
   let disposeIcons=null,disposed=false,iconsReady=false,iconsLoading=false,iconsApproaching=false;
   function loadIcons(){
+    repairIcons();
     if(disposed||iconsReady||iconsLoading||!iconsApproaching)return;
     iconsLoading=true;
     importPortfolioModule('./assets/ui/skills-icons.js').then(({mountSkillsIcons})=>disposed?null:mountSkillsIcons(section))
@@ -339,6 +359,9 @@ if (slots.length) {
     if(iconsApproaching)loadIcons();
   },{rootMargin:'350px 0px'});
   iconObserver.observe(section);
+  section.addEventListener('error',iconError,true);
+  document.addEventListener('visibilitychange',repairIcons);
+  window.addEventListener('pageshow',repairIcons);
   window.addEventListener('online',loadIcons);
   stage.addEventListener('pointerdown',loadIcons,{passive:true});
   const unobserveScene = observeScene(touchPerformance ? watchInputs(sceneMotion,
@@ -375,6 +398,9 @@ if (slots.length) {
     stop();
     if (event.persisted) return;
     disposed=true;
+    for(const timer of iconRetryTimers.values())clearTimeout(timer);iconRetryTimers.clear();
+    section.removeEventListener('error',iconError,true);
+    document.removeEventListener('visibilitychange',repairIcons);window.removeEventListener('pageshow',repairIcons);
     iconObserver.disconnect();disposeIcons?.();
     window.removeEventListener('online',loadIcons);stage.removeEventListener('pointerdown',loadIcons);
     observer.disconnect(); bodyObserver.disconnect(); unobserveScene();

@@ -1,5 +1,4 @@
 // Keep Three.js and the model builders out of the initial loading screen.
-import { touchPerformance } from './touch-performance.js';
 import { importPortfolioModule } from './module-loader.js';
 import { connectHobbyGallery } from './hobby-gallery.js';
 const section=document.querySelector('#projects');
@@ -60,7 +59,7 @@ function prepareModels(){
   const attempt=()=>{
     frame=0;
     if(started||!approaching)return;
-    if(touchPerformance&&document.body.classList.contains('badge-entering')&&
+    if(document.body.classList.contains('badge-entering')&&
       !document.querySelector('#home')?.classList.contains('hero-covered'))return;
     started=true;detach();
     // Media/gallery access is independent of the 3D module's network or GPU
@@ -73,14 +72,14 @@ function prepareModels(){
     if(!entries.some(entry=>entry.isIntersecting))return;
     approaching=true;
     // Delay the import as well as geometry work: parsing Three.js must not
-    // interrupt the unchanged entrance on phone/tablet CPUs.
-    if(touchPerformance)queue();else attempt();
+    // interrupt the unchanged entrance on phone, tablet or laptop CPUs.
+    queue();
   },{rootMargin:'650px'});
-  if(touchPerformance){
-    rig?.addEventListener('badge-entrance-complete',queue);
-    window.addEventListener('scroll',queue,{passive:true});
-  }
-  observer.observe(section);
+  rig?.addEventListener('badge-entrance-complete',queue);
+  window.addEventListener('scroll',queue,{passive:true});
+  // The section itself is transformed/clipped until the handoff. Observe its
+  // stable scroll track so preparation can finish before the models enter.
+  observer.observe(section.closest('.skills-hobbies-scene')||section);
   window.addEventListener('pagehide',event=>{
     if(event.persisted)return;
     disposed=true;detach();window.removeEventListener('online',retryFailed);

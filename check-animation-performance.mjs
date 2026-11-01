@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { performance } from 'node:perf_hooks';
-import * as THREE from './node_modules/three/build/three.module.js';
 import { transformSync } from 'esbuild';
-import { batmanOutline } from './batman-emblem.js';
-import { createContourSearch } from './contour-nearest.js';
 
 const ts=fs.readFileSync('lib/travel-motion.ts','utf8');
 const scope={module:{exports:{}}};
@@ -37,48 +33,6 @@ for(const hz of [30,60,75,90,120,144,165,240]){
   assert.ok(Math.abs(moving.current-reference.current)<1e-8,'refresh-independent momentum');
 }
 
-// Reconstruct the actual dense intro contour and the actual vertex samples.
-const shape=new THREE.Shape(),x=v=>(v-84)/28,y=v=>(73-v)/28;
-for(const [command,...v]of batmanOutline){
-  if(command==='M')shape.moveTo(x(v[0]),y(v[1]));
-  else if(command==='L')shape.lineTo(x(v[0]),y(v[1]));
-  else if(command==='C')shape.bezierCurveTo(x(v[0]),y(v[1]),x(v[2]),y(v[3]),x(v[4]),y(v[5]));
-  else shape.closePath();
-}
-const outline=shape.getPoints(24);if(outline[0].distanceToSquared(outline.at(-1))<1e-10)outline.pop();
-const contour=[];
-for(let i=0;i<outline.length;i++){
-  const from=outline[i],to=outline[(i+1)%outline.length],steps=Math.max(1,Math.ceil(from.distanceTo(to)/.045));
-  for(let j=0;j<steps;j++)contour.push(from.clone().lerp(to,j/steps));
-}
-const geometry=new THREE.ExtrudeGeometry(new THREE.Shape(contour),{depth:.2646,bevelEnabled:true,
-  bevelThickness:.0315,bevelSize:.045,bevelSegments:3,steps:1,curveSegments:24});
-const source=fs.readFileSync('batman-loader.js','utf8');
-const cap=source.slice(source.indexOf('function preserveCapBoundary'),source.indexOf('// Match the upper'));
-new Function('THREE','geometry','contour',cap+'\npreserveCapBoundary(geometry,contour);')(THREE,geometry,contour);
-geometry.computeBoundingBox();const origin=geometry.boundingBox.getCenter(new THREE.Vector3());
-geometry.translate(-origin.x,-origin.y,-origin.z);contour.forEach(p=>{p.x-=origin.x;p.y-=origin.y;});
-const segments=contour.map((from,i)=>{const to=contour[(i+1)%contour.length],dx=to.x-from.x,dy=to.y-from.y;return {from,dx,dy,squared:dx*dx+dy*dy,length:Math.hypot(dx,dy)};});
-function brute(px,py){
-  const result={index:-1,fraction:0,squared:Infinity};
-  segments.forEach(({from,dx,dy,squared},index)=>{
-    const fraction=Math.max(0,Math.min(1,((px-from.x)*dx+(py-from.y)*dy)/Math.max(squared,1e-12)));
-    const ex=px-from.x-dx*fraction,ey=py-from.y-dy*fraction,distance=ex*ex+ey*ey;
-    if(distance<result.squared){result.index=index;result.fraction=fraction;result.squared=distance;}
-  });return result;
-}
-const points=new Map(),position=geometry.attributes.position;
-for(let i=0;i<position.count;i++)points.set(position.getX(i)+','+position.getY(i),[position.getX(i),position.getY(i)]);
-const lookup=createContourSearch(segments),result={index:0,fraction:0,squared:0},expected=[];
-const start=performance.now();for(const [px,py]of points.values())expected.push(brute(px,py));const before=performance.now()-start;
-let index=0;const started=performance.now();
-for(const [px,py]of points.values()){lookup(px,py,result);assert.deepEqual(result,expected[index++],'exact projection and original tie order');}
-const after=performance.now()-started;
-// Include cell boundaries, ties, intersections and queries beyond the outline.
-for(const [px,py]of [[0,0],[-20,-10],[20,10],...[...points.values()].slice(0,40).map(([px,py])=>[px+.09,py-.09])]){
-  lookup(px,py,result);assert.deepEqual(result,brute(px,py));
-}
-geometry.dispose();
 // Video slides must resume only playback that was active before suspension.
 const photo=fs.readFileSync('components/ui/hero-carousel.tsx','utf8');
 const videoStart=photo.indexOf("    const video = stageRef.current?.querySelector('video')");
@@ -96,4 +50,4 @@ for(const initiallyPaused of [true,false]){
   cleanup();assert.equal(docEvents.size+winEvents.size,0);assert.equal(loads,1);
 }
 console.log(JSON.stringify({travelRecurrenceComparisons:comparisons,refreshRates:[30,60,75,90,120,144,165,240],
-  contourSegments:segments.length,uniqueVertexQueries:points.size,bruteMs:before,indexedMs:after,speedup:before/after}));
+  videoLifecycleCases:2}));

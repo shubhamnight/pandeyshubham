@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { BoxGeometry, Group, Matrix3, Mesh, MeshBasicMaterial, Vector3 } from './node_modules/three/build/three.module.js';
-import { batchRigidModel } from './hobby-model-batching.js';
+import { batchRigidModel, batchRigidModelAsync } from './hobby-model-batching.js';
 
 function vertices(model){
   model.updateWorldMatrix(true,true);
@@ -56,4 +56,12 @@ const proceduralOriginal=vertices(procedural);
 batchRigidModel(procedural);
 assert.equal(constructions,2,'batch copies do not rebuild procedural geometry');
 assert.deepEqual(vertices(procedural),proceduralOriginal);
+const asynchronous=new Group();
+for(let i=0;i<8;i++){
+  const mesh=new Mesh(new BoxGeometry(1+i*.1,2,3),material);
+  mesh.position.set(i*.2,i*.1,-i*.3);mesh.rotation.set(.1*i,-.05*i,.07*i);asynchronous.add(mesh);
+}
+const asynchronousOriginal=vertices(asynchronous);
+assert.deepEqual(await batchRigidModelAsync(asynchronous,()=>new Promise(resolve=>setImmediate(resolve))),{before:8,after:1});
+assert.deepEqual(vertices(asynchronous),asynchronousOriginal,'yielded preparation preserves every world-space vertex, normal and UV');
 console.log('Rigid model batching: geometry, transforms, transparency, exclusions and shared resources passed.');

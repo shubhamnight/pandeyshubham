@@ -2,21 +2,22 @@ import { deferHobbyModel, connectHobbyMotion } from './hobby-model-runtime.js';
 import * as THREE from './node_modules/three/build/three.module.js';
 import { FastRoundedBoxGeometry as RoundedBoxGeometry } from './rounded-box-geometry.js';
 import { createHobbyRenderer } from './hobby-renderer.js';
+import { yieldHobbyPreparation } from './hobby-preparation.js';
 
 const button = document.querySelector('#travel-plane');
 
 // Initialize once near the viewport, staggered across idle frames.
 deferHobbyModel(button, buildPlane);
 
-function buildPlane() {
+async function buildPlane() {
   let renderer;
   try { renderer = createHobbyRenderer(THREE.WebGLRenderer,button,Math.min(devicePixelRatio,2)); }
   catch { button.dataset.hobbyModelFailed='true'; return; } // The existing icon remains a clickable gallery fallback.
+  await yieldHobbyPreparation();
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.12;
   renderer.setClearColor(0, 0);
   button.append(renderer.domElement);
-  button.classList.add('camera-ready');
   const scene = new THREE.Scene();
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
   // Preserve the reference's three-quarter resting view.
@@ -40,7 +41,8 @@ function buildPlane() {
     return new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelSegments:2,bevelSize:.013,bevelThickness:.009,curveSegments:12}),mat);
   }
   // Swept wings, narrow upturned tips, tailplanes and two underwing turbofans.
-  [-1,1].forEach(side=>{
+  for(const side of [-1,1]){
+    await yieldHobbyPreparation();
     const wing=panel([[.46,.22],[-.97,2.70],[-1.25,2.85],[-1.59,2.82],[-1.03,.20]],.045,white);
     wing.rotation.x=side*Math.PI/2;wing.position.y=-.11;model.add(wing);
     const tip=panel([[-1.25,0],[-1.20,.33],[-1.49,.15],[-1.58,0]],.027,red);
@@ -88,7 +90,8 @@ function buildPlane() {
       new THREE.Vector3(-.97,-.102,side*.50),new THREE.Vector3(-1.37,-.102,side*2.4)
     ]);
     model.add(new THREE.Line(flap,new THREE.LineBasicMaterial({color:0xa3abb5})));
-  });
+  }
+  await yieldHobbyPreparation();
   const fin=panel([[-2.59,.16],[-2.76,1.45],[-2.53,1.45],[-1.94,.15]],.043,navy);
   fin.position.z=-.0215;model.add(fin);
   // The reference's red, white and navy tail motif, generated as a static decal.
@@ -146,5 +149,6 @@ function buildPlane() {
     if(settled)model.quaternion.copy(targetPose);
     return settled;
   }
-  connectHobbyMotion({ button, renderer, scene, view, model, orientModel });
+  await yieldHobbyPreparation();
+  await connectHobbyMotion({ button, renderer, scene, view, model, orientModel });
 }

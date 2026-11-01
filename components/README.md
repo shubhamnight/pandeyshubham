@@ -36,7 +36,8 @@ It never processes the button border, and no hard SourceGraphic composite is
 drawn back over the liquid. This prevents inset rectangles and blur-kernel jitter.
 `components/message-loading.tsx` provides the blue palette and hydrates the
 opening screen; `intro.css` owns its centered responsive sizing. Each component
-instance has its own filter ID. The earlier three-dot component is inactive.
+instance has its own filter ID. Retired three-dot and opening WebGL loader code
+has been removed; the offline Batman page remains a separate active feature.
 
 Run `npm run build:intro` after changing it. `build-intro-loading.cjs` renders
 the same component into the initial HTML, so delayed or failed React downloads
@@ -100,8 +101,8 @@ master and original texture, with restrained edge sharpening and WebP quality 98
 are independent of filmstrip dimensions so source selection remains correct.
 Desktop photography backgrounds request the 3840-pixel variant when available;
 smaller screens continue choosing a file based on cover size and pixel density.
-Descriptive alternatives come from `photography-descriptions.json`; short visible
-photograph numbers are supplied separately through the item's `caption` field.
+Descriptive alternatives come from `photography-descriptions.json`; visible
+captions appear only for user-supplied names, without generated numbering.
 Content hashes cache the generated copies, so unchanged photos are not reprocessed.
 Closing the dialog unmounts the React component and pauses media. If loading fails,
 the original photography grid remains available as a fallback.
@@ -113,7 +114,7 @@ the dialog and restore focus to the camera. Autoplay is disabled.
 ## Connect page
 
 The contact section in `index.html` and `connect.css` mirrors the supplied
-contact design: a full viewport, near-black background, white Inter heading
+contact design: a full viewport, near-black background, white Righteous heading
 reading “LET’S MAKE / SOMETHING” on the left, with a blue Caveat word to its right rotating through
 “meaningful.”, “unexpected.”, and “memorable.” every 3.5 seconds. Words fade
 and slide smoothly, pause offscreen or with reduced motion, and reserve their
@@ -135,9 +136,9 @@ Instagram uses a multicolor gradient, LinkedIn uses blue, GitHub and X use their
 monochrome marks, and the email envelope uses a Gmail red accent. Hover fills
 and tooltips match each icon, with white foregrounds over the filled circles.
 Destinations are configured in
-`social-links.json`; email converts to a mailto link. LinkedIn remains a
-non-navigating placeholder until supplied. Resume also remains inactive until
-a resume file is available. Resume sits below the social icons; the About link is removed.
+`social-links.json`; email converts to a mailto link, and LinkedIn opens the
+configured profile. Resume remains inactive until a resume file is available.
+Resume sits below the social icons; the About link is removed.
 
 The social component loads lazily through `connect-boot.js` into a shadow root.
 `styles/connect-page.css` scopes its reset and interaction styles. Native text
@@ -157,12 +158,12 @@ Vercel build includes it and copies the social configuration into production.
 
 ## Skill icon interaction
 
-The same supplied SocialTooltip design is adapted to the existing native skill
+`components/skills-icons.tsx` mounts the Shiny Button component into the native
 orbit holders in `index.html` and `portfolio-theme.css`. Each holder keeps its
-original dimensions, accessible skill label, keyboard focus, and local logo.
-An inner circle clips the rising fill without cutting off the tooltip underneath.
-Hover and keyboard focus reveal matching colored tooltips and a stronger shadow;
-the logos retain their original colors. Reduced motion removes the transitions.
+original dimensions, accessible skill label, keyboard focus and decoded local
+logo element. Hover and keyboard focus retain the matching colored shine, glow,
+label and shadow. Reduced motion removes the transitions. Phone icon requests
+have bounded failure recovery; successful images are reused without a new decode.
 The orbit remains controlled by `skills.js` and its existing shared animation clock,
 preserving the entrance, full circular path, reverse scroll, and hobby handoff.
 

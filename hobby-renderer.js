@@ -7,6 +7,12 @@ export function createHobbyRenderer(Renderer,button,pixelRatio){
   const canvas=document.createElement('canvas');canvas.style.display='block';
   canvas.width=Math.floor(width*pixelRatio);canvas.height=Math.floor(height*pixelRatio);
   const renderer=new Renderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});
+  // Driver diagnostic reads synchronously stall first use on Android. The
+  // same shaders still compile; context loss and model failures retain their
+  // existing recovery/fallback handling. Desktop diagnostics are unchanged.
+  const touch=globalThis.matchMedia?.('(pointer: coarse)').matches ||
+    (globalThis.navigator?.platform==='MacIntel'&&globalThis.navigator.maxTouchPoints>1);
+  if(touch&&renderer.debug)renderer.debug.checkShaderErrors=false;
   renderer.setDrawingBufferSize(width,height,pixelRatio);
   return renderer;
 }

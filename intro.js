@@ -96,7 +96,7 @@
     setTimeout(async()=>{
       const loader=await loaderReady;
       await loader.finish();
-      intro.querySelector('.intro-loading').hidden=!intro.classList.contains('play-webgl');
+      intro.querySelector('.intro-loading').hidden=true;
       intro.querySelector('.intro-play').hidden=false;
       intro.classList.add('show-play');
       document.body.classList.add('batman-follower-active');
@@ -150,14 +150,6 @@
         {transform:'scale(1)'},
         {transform:`scale(${targetScale})`}
       ],{duration,easing:'cubic-bezier(.65,0,.25,1)',fill:'forwards'}));
-      const surface=intro.querySelector('.batman-loader-stage>canvas');
-      if(surface&&intro.classList.contains('play-webgl')){
-        const surfaceBounds=surface.getBoundingClientRect();
-        surface.style.transformOrigin=`${bounds.left+bounds.width/2-surfaceBounds.left}px ${bounds.top+bounds.height/2-surfaceBounds.top}px`;
-        animations.push(surface.animate([{transform:'scale(1)'},{transform:`scale(${targetScale})`}],{
-          duration,easing:'cubic-bezier(.65,0,.25,1)',fill:'forwards'
-        }));
-      }
       // Let the solid button lead the zoom, with its details resolving early.
       for(const detail of button.querySelectorAll('.flow-label,.flow-arrow')){
         animations.push(detail.animate([{opacity:1},{opacity:0}],{

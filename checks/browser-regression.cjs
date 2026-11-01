@@ -103,9 +103,10 @@ async function scenePoint(page){return page.evaluate(()=>{const s=document.query
    assert.equal(await page.evaluate(()=>document.body.style.overflow),'');checks.push(id+' controls, keyboard, fitting and close');
   }
   await nav(page,'Projects');
-  for(const key of ['type','interface','motion']){const study=page.locator('[data-study="'+key+'"]');if(!await study.isVisible())continue;await study.click();await page.locator('#study-dialog').waitFor({state:'visible'});await page.locator('.dialog-done').click();await page.locator('#study-dialog').waitFor({state:'hidden'});}
-  for(const button of await page.locator('[data-color]').all()){await button.click();assert.equal(await button.getAttribute('aria-pressed'),'true');}
-  checks.push('visible project controls (hidden legacy study/mood controls excluded)');
+  assert.ok(await page.locator('#playground .play-stage').isVisible(),'the approved project placeholder remains');
+  assert.equal(await page.locator('#contact .connect-secondary [aria-disabled="true"]').count(),1,'the resume placeholder remains');
+  assert.equal(await page.locator('[data-study],#study-dialog').count(),0,'retired hidden study demos are absent');
+  checks.push('project and resume placeholders preserved');
   await page.locator('#contact').scrollIntoViewIfNeeded();await sleep(1900);
   const hrefs=await page.locator('#contact a[href]').evaluateAll(es=>es.map(e=>e.getAttribute('href')));assert.ok(hrefs.length>0);
   await page.screenshot({path:path.join(output,name+'-contact.png')});

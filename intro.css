@@ -6,25 +6,9 @@ body.intro-active{overflow:hidden}
 .portfolio-intro.show-play .intro-play button:hover{background:#252525}
 .portfolio-intro.show-play .intro-play button:focus-visible{outline-color:#000}
 .intro-crowd{position:absolute;bottom:0;left:0;width:100%;height:90%;pointer-events:none}
-.intro-credit{position:absolute;bottom:14px;left:0;right:0;z-index:3;text-align:center;font-size:10px;color:#444}
-.intro-credit a{color:inherit;background:#ffffffde;padding:3px;text-underline-offset:3px}
 .portfolio-intro{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#02070a;color:#e7ebf0;transition:opacity .55s ease,visibility .55s}
-.portfolio-intro.is-leaving{opacity:0;visibility:hidden;pointer-events:none}
 .intro-loading,.intro-play{grid-area:1/1;display:flex;flex-direction:column;align-items:center;gap:44px}
 .portfolio-intro [hidden]{display:none}
-.portfolio-intro .pl{--bg:#07334a;--primary1:#0297de;--primary2:#0297de;position:relative;display:flex;align-items:center;justify-content:center;width:14em;height:14em;border-radius:50%;font-size:clamp(13px,3vw,16px);letter-spacing:.1em;text-transform:uppercase;transform:rotateX(30deg) rotate(45deg);box-shadow:inset 2em 0 2em #0003,inset -2em 0 2em #ffffff1a}
-.portfolio-intro .pl__dot{position:absolute;top:calc(50% - .75em);left:calc(50% - .75em);width:1.5em;height:1.5em;border-radius:50%;transform:rotate(calc(var(--dot)*-30deg)) translate(5em) rotate(calc(var(--dot)*30deg));animation-name:shadow724;box-shadow:.1em .1em 0 .1em #000,.3em 0 .3em #0008}
-.portfolio-intro .pl__dot,.portfolio-intro .pl__dot:before,.portfolio-intro .pl__dot:after{animation-duration:2s;animation-iteration-count:infinite;animation-delay:calc(var(--dot)*-1s/6)}
-.portfolio-intro .pl__dot:before,.portfolio-intro .pl__dot:after{content:"";position:absolute;display:block;left:0;width:inherit}
-.portfolio-intro .pl__dot:before{height:inherit;background:var(--bg);border-radius:inherit;z-index:1;box-shadow:inset .05em 0 .1em #fff3;animation-name:pushInOut1724}
-.portfolio-intro .pl__dot:after{bottom:0;height:3em;border-radius:.75em;background:var(--primary1);clip-path:polygon(0 75%,100% 75%,100% 100%,0 100%);transform-origin:50% 2.25em;transform:rotate(-45deg);box-shadow:inset .1em .3em .2em #fff6,inset 0 -.4em .2em #07334a,inset 0 -1em .25em #0005;animation-name:pushInOut2724}
-.portfolio-intro .pl__dot:nth-child(1),.portfolio-intro .pl__dot:nth-child(10){z-index:5}
-.portfolio-intro .pl__dot:nth-child(2),.portfolio-intro .pl__dot:nth-child(9){z-index:4}
-.portfolio-intro .pl__dot:nth-child(3),.portfolio-intro .pl__dot:nth-child(8){z-index:3}
-.portfolio-intro .pl__dot:nth-child(4),.portfolio-intro .pl__dot:nth-child(7){z-index:2}
-.portfolio-intro .pl__dot:nth-child(5),.portfolio-intro .pl__dot:nth-child(6){z-index:1}
-.portfolio-intro .pl__dot:nth-child(11),.portfolio-intro .pl__dot:nth-child(12){z-index:6}
-.portfolio-intro .pl__text{position:relative;max-width:5rem;color:#e7ebf0;font-size:.75em;text-shadow:0 0 .1em #ffffff80;transform:rotate(-45deg)}
 .intro-play{gap:28px;padding:12px 0;overflow:clip}
 .intro-play .flow-play{animation:intro-button-rise 1s cubic-bezier(.87,0,.13,1) .12s backwards}
 .intro-play p{margin:0;font-size:12px;letter-spacing:.24em}
@@ -48,10 +32,7 @@ body.intro-active{overflow:hidden}
 .intro-play .flow-label>span:nth-child(4){animation-delay:.9s}
 @keyframes intro-letter-rise{from{translate:0 140%}to{translate:0 0}}
 @media(prefers-reduced-motion:reduce){.intro-play .flow-play,.intro-play .flow-label>span{animation:none}}
-@keyframes shadow724{from{animation-timing-function:ease-in;box-shadow:.1em .1em 0 .1em #000,.3em 0 .3em #0005}25%{animation-timing-function:ease-out;box-shadow:.1em .1em 0 .1em #000,.8em 0 .8em #0008}50%,to{box-shadow:.1em .1em 0 .1em #000,.3em 0 .3em #0005}}
-@keyframes pushInOut1724{from{animation-timing-function:ease-in;background:var(--bg);transform:translate(0,0)}25%{animation-timing-function:ease-out;background:var(--primary2);transform:translate(-71%,-71%)}50%,to{background:var(--bg);transform:translate(0,0)}}
-@keyframes pushInOut2724{from{animation-timing-function:ease-in;background:var(--bg);clip-path:polygon(0 75%,100% 75%,100% 100%,0 100%)}25%{animation-timing-function:ease-out;background:var(--primary1);clip-path:polygon(0 25%,100% 25%,100% 100%,0 100%)}50%,to{background:var(--bg);clip-path:polygon(0 75%,100% 75%,100% 100%,0 100%)}}
-@media(prefers-reduced-motion:reduce){.portfolio-intro .pl__dot:before,.portfolio-intro .pl__dot:after{animation:none;background:var(--primary2)}.portfolio-intro,.intro-play,.intro-play button{animation:none;transition:none}}
+@media(prefers-reduced-motion:reduce){.portfolio-intro,.intro-play,.intro-play button{animation:none;transition:none}}
 
 /* Flow button treatment, scoped to the PLAY control. */
 .portfolio-intro .intro-play .flow-play{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;min-width:220px;min-height:78px;padding:20px 48px;overflow:hidden;isolation:isolate;border:1.5px solid #111;border-radius:100px;background:transparent;color:#111;box-shadow:none;font-size:clamp(24px,4vw,38px);letter-spacing:.08em;transition:color .6s cubic-bezier(.23,1,.32,1),border-color .6s cubic-bezier(.23,1,.32,1),border-radius .6s cubic-bezier(.23,1,.32,1),transform .2s}
@@ -88,21 +69,13 @@ body.intro-active{overflow:hidden}
 #home .badge-rig.awaiting-entrance{visibility:hidden}
 body.badge-entering #home .badge-rig{will-change:transform,opacity;transform-origin:50% 0}
 
-/* Batman loader: a dark canvas and a light extruded silhouette. */
+/* Loading stage and the current liquid-to-PLAY handoff. */
 .portfolio-intro{background:#02070a;color:#e7e7e7}
 .portfolio-intro .intro-loading{position:absolute;inset:0;z-index:4;display:flex;justify-content:center;gap:0;background:#02070a;overflow:hidden}
 .portfolio-intro .intro-loading[hidden]{display:none}
-/* Measure and upload the final surface before it is needed on screen. */
-.portfolio-intro.play-preparing .intro-play{display:flex!important;position:absolute;top:50%;left:0;right:0;translate:0 -50%;visibility:hidden;pointer-events:none}
-.portfolio-intro.play-preparing .intro-play .flow-play{animation:none;translate:0 0;transform:none;transition:none}
-.portfolio-intro.play-preparing .flow-label>span{animation:none;translate:0 0}
-.batman-loader-stage{position:relative;width:min(76vw,400px);height:min(49.4vw,260px);flex:none;transform-origin:center}
-.batman-loader-stage>canvas{position:absolute;inset:0;display:block;width:100%;height:100%;visibility:hidden;pointer-events:none;filter:drop-shadow(0 16px 16px #1111111c)}
-.batman-loader-stage.batman-model-ready>canvas{visibility:visible}
 .portfolio-intro.play-morphing{overflow:hidden}
 .intro-blue-bloom{position:absolute;z-index:0;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle closest-side,#0297de 0%,#0297de 72%,#0297dec7 82%,#0297de52 93%,#0297de00 100%);opacity:0;transform:translate(-50%,-50%) scale(0);pointer-events:none;will-change:transform,opacity}
 .portfolio-intro.play-morphing .intro-loading{background:transparent;pointer-events:none}
-.play-morphing .batman-loader-stage>canvas{filter:none}
 .portfolio-intro.play-morphing .intro-play{position:absolute;top:50%;left:0;right:0;translate:0 -50%;z-index:6;pointer-events:none}
 .portfolio-intro.play-morphing .flow-play{background:transparent!important;border-color:transparent!important;color:#fff;transform:none!important;translate:0 0;animation:none;transition:none;box-shadow:none}
 .portfolio-intro.play-morphing:not(.play-webgl) .flow-play{background:#242424!important;border-color:#626262!important;border-radius:100px}
@@ -113,35 +86,15 @@ body.badge-entering #home .badge-rig{will-change:transform,opacity;transform-ori
 .portfolio-intro.play-morphing .flow-arrow{fill:#fff;stroke:none}
 .play-morphing .flow-label>span,.play-morphed .flow-label>span{animation:none;translate:0 0}
 .play-morphed .intro-play .flow-play{animation:none;translate:0 0}
-/* The real mesh stays behind the accessible control after the morph. */
-.portfolio-intro.play-webgl .intro-loading{background:transparent;pointer-events:none}
-.portfolio-intro.play-webgl .intro-play{z-index:6;overflow:visible}
-.portfolio-intro.play-webgl .intro-play .flow-play,
-.portfolio-intro.play-webgl .intro-play .flow-play:hover{background:transparent!important;border-color:transparent!important;color:#fff;box-shadow:none}
-.portfolio-intro.play-webgl .flow-fill{display:none}
-.portfolio-intro.play-webgl .flow-label{text-shadow:0 1px 1px #0008}
-.portfolio-intro.play-webgl .intro-play .flow-label{transition:transform .38s cubic-bezier(.22,1,.36,1)}
-.portfolio-intro.play-webgl .intro-play .flow-arrow{transition:left .42s cubic-bezier(.22,1,.36,1),right .42s cubic-bezier(.22,1,.36,1),stroke .3s}
-.portfolio-intro.play-webgl .batman-loader-stage>canvas{filter:none;transition:translate .25s cubic-bezier(.22,1,.36,1)}
-.portfolio-intro.show-play.play-webgl:not(.is-zooming) .flow-play{transition:translate .25s cubic-bezier(.22,1,.36,1)}
-@media(hover:hover) and (pointer:fine){
-  .portfolio-intro.show-play.play-webgl.play-hover-ready:not(.is-zooming) .flow-play:hover{transform:none;translate:0 -3px}
-  .portfolio-intro.show-play.play-webgl.play-hover-ready:not(.is-zooming):has(.flow-play:hover) .batman-loader-stage>canvas{translate:0 -3px}
-}
 .portfolio-intro:not(.play-hover-ready) .intro-play .flow-play .flow-label{transform:translateX(-12px)}
 .portfolio-intro:not(.play-hover-ready) .intro-play .flow-play .flow-arrow-left{left:-25%}
 .portfolio-intro:not(.play-hover-ready) .intro-play .flow-play .flow-arrow-right{right:20px}
-.portfolio-intro.show-play.play-webgl:not(.is-zooming) .flow-play:active{transform:none;translate:0 3px}
-.portfolio-intro.show-play.play-webgl:not(.is-zooming):has(.flow-play:active) .batman-loader-stage>canvas{translate:0 3px}
-.portfolio-intro.is-zooming.play-webgl .intro-loading{overflow:visible}
-.portfolio-intro.is-zooming.play-webgl .batman-loader-stage>canvas{translate:0 0;transition:none;will-change:transform}
 /* A fixed-depth surface also works when WebGL is unavailable. */
 .portfolio-intro.show-play:not(.play-webgl) .intro-play{overflow:visible}
 .portfolio-intro.show-play:not(.play-webgl) .intro-play .flow-play{background:#242424;border-color:#626262;box-shadow:inset 0 2px 2px #ffffff35,0 2px 0 #383838,0 4px 0 #292929,0 6px 0 #1c1c1c,0 9px 0 #101010,0 18px 18px #0005}
 .intro-crowd{z-index:1;opacity:0;translate:0 36px;transition:opacity .75s ease,translate .75s cubic-bezier(.22,1,.36,1)}
 .portfolio-intro.crowd-ready .intro-crowd{opacity:1;translate:0 0}
 @media(prefers-reduced-motion:reduce){.intro-crowd{transition:none;translate:0 0}}
-@media(prefers-reduced-motion:reduce){.portfolio-intro.play-webgl .batman-loader-stage>canvas,.portfolio-intro.show-play.play-webgl .flow-play,.portfolio-intro.play-webgl .intro-play .flow-label,.portfolio-intro.play-webgl .intro-play .flow-arrow{transition:none}}
 .batman-follower{position:fixed;top:0;left:0;width:40px;height:24px;z-index:2147483647;pointer-events:none!important;user-select:none;contain:layout style;will-change:transform;line-height:0;perspective:220px;filter:drop-shadow(0 2px 3px #0007)}
 .batman-follower[hidden]{display:none!important}
 .batman-follower img{display:block;width:40px;height:24px;max-width:none;pointer-events:none!important;user-select:none;transform-origin:50% 50%;backface-visibility:hidden}

@@ -2,21 +2,22 @@ import { deferHobbyModel, connectHobbyMotion } from './hobby-model-runtime.js';
 import * as THREE from './node_modules/three/build/three.module.js';
 import { FastRoundedBoxGeometry as RoundedBoxGeometry } from './rounded-box-geometry.js';
 import { createHobbyRenderer } from './hobby-renderer.js';
+import { yieldHobbyPreparation } from './hobby-preparation.js';
 
 const button = document.querySelector('#gaming-controller');
 
 // Initialize once near the viewport, staggered across idle frames.
 deferHobbyModel(button, buildController);
 
-function buildController() {
+async function buildController() {
   let renderer;
   try { renderer = createHobbyRenderer(THREE.WebGLRenderer,button,Math.min(devicePixelRatio,2)); }
   catch { button.dataset.hobbyModelFailed='true'; return; } // The existing icon remains a clickable gallery fallback.
+  await yieldHobbyPreparation();
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.12;
   renderer.setClearColor(0, 0);
   button.append(renderer.domElement);
-  button.classList.add('camera-ready');
   const scene = new THREE.Scene();
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
   // A straight-on resting view keeps the camera face centered.
@@ -100,6 +101,7 @@ function buildController() {
     const edge=new THREE.Mesh(new THREE.TorusGeometry(.266,.017,10,48),rubber);
     edge.position.set(side*.64,-.35,.492);model.add(edge);
   });
+  await yieldHobbyPreparation();
   // Four graphite direction keys inset into the left circular pad.
   const dpadSurround=material(0x555759,.67);
   box(.46,1.14,.025,-1.23,.35,.322,dpadSurround,.055);
@@ -150,6 +152,7 @@ function buildController() {
     const face=new THREE.Mesh(new THREE.PlaneGeometry(.245,.245),new THREE.MeshBasicMaterial({map,transparent:true,depthWrite:false}));
     face.position.set(x,y,z);model.add(face);
   }
+  await yieldHobbyPreparation();
   const buttons=[[1.23,.79,'triangle','#0297de'],[1.67,.35,'circle','#0297de'],[1.23,-.09,'cross','#66c8f5'],[.79,.35,'square','#0286c5']];
   buttons.forEach(([x,y,symbol,color])=>{
     disc(.172,.025,x,y,.323,seam);
@@ -169,5 +172,6 @@ function buildController() {
   [-1,1].forEach(side=>{
     const screw=disc(.027,.012,side*1.41,-.71,-.55,buttonMat);screw.rotation.x=-Math.PI/2;
   });
-  connectHobbyMotion({ button, renderer, scene, view, model });
+  await yieldHobbyPreparation();
+  await connectHobbyMotion({ button, renderer, scene, view, model });
 }
