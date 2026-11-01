@@ -24,6 +24,35 @@ React, TypeScript, Framer Motion, Tailwind, and the shadcn directory structure a
 already configured; a full website migration or a new shadcn project is not
 required. Use the existing `components.json` when adding further shadcn components.
 
+## Opening message loader
+
+The supplied `components/ui/message-loading.tsx` and its demo in
+`components/demos/message-loading-demo.tsx` use the existing React/TypeScript
+setup without extra packages, providers, props or image assets.
+`components/message-loading.tsx` mounts it into the opening screen; `intro.css`
+owns its centered responsive sizing and the existing electric-blue color.
+
+Run `npm run build:intro` after changing it. `build-intro-loading.cjs` renders
+the same component into the initial HTML, so delayed or failed React downloads
+cannot leave a blank loader. `intro-loader.js` handles visibility, reduced
+motion and the handoff to PLAY. The opening no longer imports the Batman
+WebGL loader. PLAY retains its existing CSS beveled surface, crowd, letter
+flicker and hero entry; the remaining Batman branding is unchanged.
+
+Once loading completes, `intro-liquid.js` captures the dots' current poses and
+joins them with a bounded SVG goo filter, then morphs the rounded merged dot into
+the measured capsule. Merge and expansion overlap to preserve continuous motion;
+the matched capsule stays opaque underneath as the button's bevel and letters
+blend in. The temporary surface hands off to the original HTML
+button and is removed. Resize, hidden-tab and reduced-motion handling preserve
+the final button's existing styling and interaction animations.
+
+The regression check is `node checks/intro-message-regression.cjs`, using the
+existing optional external Playwright installation via `PLAYWRIGHT_MODULE`.
+`checks/intro-liquid-geometry.cjs` checks the capsule's geometry independently;
+`checks/intro-liquid-regression.cjs` checks the liquid stages and compares the
+finished button with its pre-morph style fixture.
+
 The browser loads the compiled React bundle only when the camera dialog opens.
 The carousel reads the current `photography-data.js` manifest, includes all photos
 and videos, and uses responsive sources including the untouched originals.

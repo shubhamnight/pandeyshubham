@@ -51,10 +51,10 @@ for (const folder of ['.', 'dist']) {
     }
     return seen;
   };
-  const uiEntries = ['photography-carousel', 'connect-page', 'gaming-overlay', 'travel-overlay', 'music-overlay', 'skills-icons'];
+  const uiEntries = ['photography-carousel', 'connect-page', 'gaming-overlay', 'travel-overlay', 'music-overlay', 'skills-icons', 'message-loading'];
   const graphs = uiEntries.map(name => inspectModule(path.join(uiRoot, name + '.js')));
   check([...graphs[0]].some(file => file.includes(path.sep + 'chunks' + path.sep) && graphs.every(graph => graph.has(file))),
-    folder + ': all six UI entries reuse the same runtime chunk');
+    folder + ': all UI entries reuse the same runtime chunk');
   for (const name of ['offline-page', 'offline-batman']) {
     check(inspectModule(path.join(uiRoot, name + '.js')).size === 1,
       folder + ': offline module remains self-contained: ' + name);

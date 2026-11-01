@@ -145,3 +145,17 @@ body.badge-entering #home .badge-rig{will-change:transform,opacity;transform-ori
 .batman-follower{position:fixed;top:0;left:0;width:40px;height:24px;z-index:2147483647;pointer-events:none!important;user-select:none;contain:layout style;will-change:transform;line-height:0;perspective:220px;filter:drop-shadow(0 2px 3px #0007)}
 .batman-follower[hidden]{display:none!important}
 .batman-follower img{display:block;width:40px;height:24px;max-width:none;pointer-events:none!important;user-select:none;transform-origin:50% 50%;backface-visibility:hidden}
+
+/* The supplied loading dots replace only the opening Batman model. */
+.message-loader-stage{display:grid;place-items:center;position:relative;flex:none;width:clamp(48px,8vw,64px);height:clamp(48px,8vw,64px);color:var(--electric,#0297de)}
+.message-loading-mount{display:grid;place-items:center;width:100%;height:100%}
+.message-loading-mount svg{display:block;width:100%;height:100%;color:inherit}
+.intro-liquid-morph{position:absolute;z-index:5;max-width:none;overflow:visible;transform:translate(-50%,-50%);pointer-events:none}
+.portfolio-intro.message-loader-transition .flow-label,.portfolio-intro.message-loader-transition .flow-arrow{opacity:1}
+.portfolio-intro.message-loader-transition .intro-play .flow-play{box-shadow:inset 0 2px 2px #ffffff35,0 2px 0 #383838,0 4px 0 #292929,0 6px 0 #1c1c1c,0 9px 0 #101010,0 18px 18px #0005}
+.portfolio-intro.play-css-surface .intro-play .flow-play{border-radius:100px}
+.portfolio-intro.play-css-surface .flow-fill{display:none}
+.portfolio-intro.show-play.play-css-surface:not(.is-zooming) .flow-play{transition:translate .25s cubic-bezier(.22,1,.36,1)}
+@media(hover:hover) and (pointer:fine){.portfolio-intro.show-play.play-css-surface.play-hover-ready:not(.is-zooming) .flow-play:hover{transform:none;translate:0 -3px}}
+.portfolio-intro.show-play.play-css-surface:not(.is-zooming) .flow-play:active{transform:none;translate:0 3px}
+@media(prefers-reduced-motion:reduce){.portfolio-intro.show-play.play-css-surface .flow-play{transition:none}}

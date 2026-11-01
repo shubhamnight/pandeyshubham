@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node server.cjs",
-    "build": "node build-site-assets.cjs && node build-seo.cjs && node build-photography-carousel.cjs && node build-connect.cjs && node build-gaming-overlay.cjs && node build-travel-overlay.cjs && node build-music-overlay.cjs && node build-skills-icons.cjs && node build-shared-ui.cjs && node build-offline.cjs && node build-vercel.cjs",
+    "build": "node build-intro-loading.cjs && node build-site-assets.cjs && node build-seo.cjs && node build-photography-carousel.cjs && node build-connect.cjs && node build-gaming-overlay.cjs && node build-travel-overlay.cjs && node build-music-overlay.cjs && node build-skills-icons.cjs && node build-shared-ui.cjs && node build-offline.cjs && node build-vercel.cjs",
     "build:seo": "node build-site-assets.cjs && node build-seo.cjs",
     "build:mobile-media": "node build-mobile-media.cjs && node build-mobile-previews.cjs",
     "typecheck": "tsc --noEmit",
@@ -25,7 +25,8 @@
     "build:skills": "node build-skills-icons.cjs && node build-shared-ui.cjs",
     "build:offline": "node build-offline.cjs",
     "enhance:photography": "node enhance-photography-ai.cjs",
-    "enhance:photography-crops": "node enhance-photography-crops.cjs"
+    "enhance:photography-crops": "node enhance-photography-crops.cjs",
+    "build:intro": "node build-intro-loading.cjs && node build-shared-ui.cjs && node build-vercel.cjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

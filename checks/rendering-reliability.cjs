@@ -176,7 +176,8 @@ async function faults(browser){
      if(unavailable){unavailable=false;await page.evaluate(()=>dispatchEvent(new Event('online')));await page.waitForFunction(()=>document.querySelector('#gaming-controller').dataset.hobbyCompiling==='false');await settled(page,'Hobbies');}
    }
    const contexts=await page.evaluate(()=>({total:window.qaContexts.length,lost:window.qaContexts.filter(c=>c.isContextLost()).length}));
-   assert.ok(contexts.lost>=1,'the disposed intro releases its GPU context');
+   assert.ok(contexts.total<=4,'the SVG intro does not allocate an extra GPU context');
+   assert.equal(await page.evaluate(()=>performance.getEntriesByType('resource').some(r=>r.name.includes('/batman-loader.js'))),false,'the removed Batman loader is not downloaded');
    await page.evaluate(()=>dispatchEvent(new PageTransitionEvent('pagehide',{persisted:false})));
    assert.ok(await page.evaluate(()=>window.qaContexts.every(c=>c.isContextLost())),'permanent disposal releases every model GPU context');
    assert.deepEqual(errors,[]);

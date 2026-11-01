@@ -1,0 +1,40 @@
+[
+  {
+    "width": 1440,
+    "height": 900,
+    "style": {
+      "width": "222.094px",
+      "height": "80px",
+      "backgroundColor": "rgb(36, 36, 36)",
+      "color": "rgb(255, 255, 255)",
+      "fontFamily": "\"Archivo Black\", Inter, Helvetica, sans-serif",
+      "fontSize": "38px",
+      "letterSpacing": "3.04px",
+      "borderRadius": "100px",
+      "borderColor": "rgb(98, 98, 98)",
+      "borderWidth": "1px",
+      "boxShadow": "rgba(255, 255, 255, 0.208) 0px 2px 2px 0px inset, rgb(56, 56, 56) 0px 2px 0px 0px, rgb(41, 41, 41) 0px 4px 0px 0px, rgb(28, 28, 28) 0px 6px 0px 0px, rgb(16, 16, 16) 0px 9px 0px 0px, rgba(0, 0, 0, 0.333) 0px 18px 18px 0px",
+      "padding": "20px 48px",
+      "transition": "translate 0.25s cubic-bezier(0.22, 1, 0.36, 1)"
+    }
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "style": {
+      "width": "220px",
+      "height": "78px",
+      "backgroundColor": "rgb(36, 36, 36)",
+      "color": "rgb(255, 255, 255)",
+      "fontFamily": "\"Archivo Black\", Inter, Helvetica, sans-serif",
+      "fontSize": "24px",
+      "letterSpacing": "1.92px",
+      "borderRadius": "100px",
+      "borderColor": "rgb(98, 98, 98)",
+      "borderWidth": "1px",
+      "boxShadow": "rgba(255, 255, 255, 0.208) 0px 2px 2px 0px inset, rgb(56, 56, 56) 0px 2px 0px 0px, rgb(41, 41, 41) 0px 4px 0px 0px, rgb(28, 28, 28) 0px 6px 0px 0px, rgb(16, 16, 16) 0px 9px 0px 0px, rgba(0, 0, 0, 0.333) 0px 18px 18px 0px",
+      "padding": "20px 48px",
+      "transition": "translate 0.25s cubic-bezier(0.22, 1, 0.36, 1)"
+    }
+  }
+]
