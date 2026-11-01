@@ -24,34 +24,62 @@ React, TypeScript, Framer Motion, Tailwind, and the shadcn directory structure a
 already configured; a full website migration or a new shadcn project is not
 required. Use the existing `components.json` when adding further shadcn components.
 
-## Opening message loader
+## Opening gooey loader
 
-The supplied `components/ui/message-loading.tsx` and its demo in
-`components/demos/message-loading-demo.tsx` use the existing React/TypeScript
-setup without extra packages, providers, props or image assets.
-`components/message-loading.tsx` mounts it into the opening screen; `intro.css`
-owns its centered responsive sizing and the existing electric-blue color.
+The supplied `components/ui/loader-10.tsx` and its demo in
+`components/demos/gooey-loader-demo.tsx` use the existing React/TypeScript
+setup without extra packages, providers or image assets. Its two rotating waves
+and stagger come from the supplied component. Continuous 4-second full turns
+retain its 2-second half-turn speed; eased horizontal sway removes the old reset.
+The fixed SVG goo filter processes the wave pool inside a separate rounded clip.
+It never processes the button border, and no hard SourceGraphic composite is
+drawn back over the liquid. This prevents inset rectangles and blur-kernel jitter.
+`components/message-loading.tsx` provides the blue palette and hydrates the
+opening screen; `intro.css` owns its centered responsive sizing. Each component
+instance has its own filter ID. The earlier three-dot component is inactive.
 
 Run `npm run build:intro` after changing it. `build-intro-loading.cjs` renders
 the same component into the initial HTML, so delayed or failed React downloads
-cannot leave a blank loader. `intro-loader.js` handles visibility, reduced
+cannot leave a blank loader. Hydration preserves the actual wave elements and
+their current animation phase. `intro-loader.js` handles visibility, reduced
 motion and the handoff to PLAY. The opening no longer imports the Batman
 WebGL loader. PLAY retains its existing CSS beveled surface, crowd, letter
 flicker and hero entry; the remaining Batman branding is unchanged.
 
-Once loading completes, `intro-liquid.js` captures the dots' current poses and
-joins them with a bounded SVG goo filter, then morphs the rounded merged dot into
-the measured capsule. Merge and expansion overlap to preserve continuous motion;
-the matched capsule stays opaque underneath as the button's bevel and letters
-blend in. The temporary surface hands off to the original HTML
-button and is removed. Resize, hidden-tab and reduced-motion handling preserve
-the final button's existing styling and interaction animations.
+Once loading completes, `intro-liquid.js` expands the actual wave container
+into the measured capsule. The waves continue rotating while they rise and
+blend into the button color. The filtered wave layer fades out while the clean
+capsule fills; its border appears only once the liquid has become solid. The
+matched capsule stays opaque underneath as the button's bevel and letters
+blend in. The component then unmounts. Resize, hidden-tab, persisted page lifecycle
+and reduced-motion handling preserve the final button's styling and animations.
 
 The regression check is `node checks/intro-message-regression.cjs`, using the
 existing optional external Playwright installation via `PLAYWRIGHT_MODULE`.
-`checks/intro-liquid-geometry.cjs` checks the capsule's geometry independently;
-`checks/intro-liquid-regression.cjs` checks the liquid stages and compares the
-finished button with its pre-morph style fixture.
+`checks/intro-liquid-regression.cjs` checks the liquid stages, verifies the actual
+surface/button bounds at handoff, and compares the finished button with its
+pre-morph style fixture.
+`checks/gooey-wave-regression.cjs` samples a complete native wave cycle and
+compares rendered pixels across its seam, alongside filter/border separation.
+
+## Decorative graphics density
+
+`graphics-quality.js` caps supersampling independently of layout and animation.
+Models retain antialiasing and use at most 1.5 pixels per CSS pixel on fine-pointer
+devices, or 1.25 on touch devices. The camera's lower existing cap still applies.
+The contact particle canvas uses 1.35 / 1.25; orbit video previews use 1.75 / 1.5.
+Lower native densities remain lower. Coarse-pointer detection also covers iPads
+using desktop mode; changing the window width alone never selects mobile quality.
+
+These caps change backing-store resolution only. Model geometry, materials,
+lighting, paths, animation timing, particle count and connections remain intact.
+Photo gallery sources, album/game artwork, fonts and full overlay videos keep
+their existing quality. Preview source selection continues to anticipate device
+rotation, and all existing offscreen pause / cleanup behavior remains in place.
+
+`node checks/graphics-quality.mjs` checks device selection and density limits.
+`checks/graphics-budget-regression.cjs` measures real browser buffers, model
+readiness, antialiasing and resizing on desktop, phone and tablet viewports.
 
 The browser loads the compiled React bundle only when the camera dialog opens.
 The carousel reads the current `photography-data.js` manifest, includes all photos

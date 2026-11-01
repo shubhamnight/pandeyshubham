@@ -52,7 +52,9 @@ function paintCadence(source,hz,touch){
  for(let i=0;i<hz;i++){context.timestamp=1000+i*1000/hz;vm.runInContext('tick(timestamp)',context);}
  return draws;
 }
-const oldParticles=original('components/ui/aether-flow-hero.tsx'),newParticles=fs.readFileSync('components/ui/aether-flow-hero.tsx','utf8');
+// Compare particles against the accepted palette, rather than failing on the
+// earlier pre-palette colors while checking unchanged physics and cadence.
+const oldParticles=cp.execFileSync('git',['show','49f92b2:components/ui/aether-flow-hero.tsx'],{encoding:'utf8'}),newParticles=fs.readFileSync('components/ui/aether-flow-hero.tsx','utf8');
 const particleDraw=source=>source.slice(source.indexOf('function draw('),source.indexOf('function tick('));
 assert.equal(particleDraw(newParticles),particleDraw(oldParticles),'particle physics, dots and connections unchanged');
 const cadence=[];

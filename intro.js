@@ -9,7 +9,7 @@
   intro.setAttribute('role','dialog');
   intro.setAttribute('aria-modal','true');
   intro.setAttribute('aria-label','Enter Shubham’s portfolio');
-  if(!intro.querySelector('.intro-loading'))intro.innerHTML='<div class="intro-loading"><div class="message-loader-stage" role="status"><span class="sr-only">Loading portfolio…</span><div class="message-loading-mount" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="4" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="20" cy="12" r="2" fill="currentColor"/></svg></div></div></div>';
+  if(!intro.querySelector('.intro-loading'))intro.innerHTML='<div class="intro-loading"><div class="message-loader-stage" role="status"><span class="sr-only">Loading portfolio…</span><div class="message-loading-mount" aria-hidden="true"><div class="intro-loading-fallback"></div></div></div></div>';
   intro.insertAdjacentHTML('beforeend','<div class="intro-play" hidden><button class="flow-play" type="button" aria-label="Play"><svg class="flow-arrow flow-arrow-left" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><span class="flow-label play-flicker-label" aria-hidden="true"><span>P</span><span>L</span><span>A</span><span>Y</span></span><span class="flow-fill" aria-hidden="true"></span><svg class="flow-arrow flow-arrow-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg></button></div>');
   const content = [...document.querySelectorAll('body > main, body > nav, body > .skip')];
   content.forEach(element=>element.inert=true);

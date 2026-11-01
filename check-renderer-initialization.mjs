@@ -10,9 +10,10 @@ try{
    setDrawingBufferSize(w,h,dpr){calls.push(['buffer',w,h,dpr]);}
   }
   const renderer=createHobbyRenderer(Renderer,{clientWidth:width,clientHeight:height},ratio);
-  assert.deepEqual(calls,[['initial',Math.floor(width*ratio),Math.floor(height*ratio)],['buffer',width,height,ratio]]);
+  const density=Math.min(globalThis.devicePixelRatio||1,ratio,1.5);
+  assert.deepEqual(calls,[['initial',Math.floor(width*density),Math.floor(height*density)],['buffer',width,height,density]]);
   assert.equal(renderer.options.alpha,true);assert.equal(renderer.options.antialias,true);
   assert.equal(renderer.options.powerPreference,'low-power');
  }
- console.log('Model renderer: original DPR, antialiasing, dimensions and one-step buffer configuration passed.');
+ console.log('Model renderer: bounded DPR, retained antialiasing, dimensions and one-step buffer configuration passed.');
 }finally{if(previous===undefined)delete globalThis.document;else globalThis.document=previous;}

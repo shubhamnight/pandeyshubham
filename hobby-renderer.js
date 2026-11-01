@@ -1,6 +1,8 @@
 // Start with the actual physical buffer. The default 300x150 canvas followed
 // by setPixelRatio and an observer resize creates unnecessary GPU reallocations.
+import { graphicsPixelRatio } from './graphics-quality.js';
 export function createHobbyRenderer(Renderer,button,pixelRatio){
+  pixelRatio=graphicsPixelRatio('model',pixelRatio);
   const width=Math.max(1,button.clientWidth),height=Math.max(1,button.clientHeight);
   const canvas=document.createElement('canvas');canvas.style.display='block';
   canvas.width=Math.floor(width*pixelRatio);canvas.height=Math.floor(height*pixelRatio);

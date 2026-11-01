@@ -3,6 +3,7 @@
 import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
 import { touchPerformance } from './touch-performance.js';
 import { mobileMediaSource, mobilePreviewSource } from './mobile-media.js';
+import { graphicsPixelRatio } from './graphics-quality.js';
 const liveCards=new Set();
 const pendingPaints=new Set();
 let paintFrame=0;
@@ -22,14 +23,14 @@ function removePaint(paint){
 function cardResolution(canvas){
   const width=canvas?.closest('.hobby-image-placeholder')?.offsetWidth||
     (innerWidth<=900?Math.max(79.2,Math.min(132,innerWidth*.228)):Math.max(132,Math.min(211.2,innerWidth*.156)));
-  return Math.ceil(Math.min(536,width*1.265*Math.min(devicePixelRatio||1,2))/4)*4;
+  return Math.ceil(Math.min(536,width*1.265*graphicsPixelRatio('preview'))/4)*4;
 }
 function previewResolution(canvas){
   // Anticipate rotation before choosing a file, avoiding a decoder/source swap
   // mid-loop. A landscape tablet can use the same 536px cap as the canvas.
   const longEdge=Math.max(innerWidth,innerHeight,window.screen?.width||0,window.screen?.height||0);
   const slotWidth=longEdge<=900?132:Math.max(132,Math.min(211.2,longEdge*.156));
-  return Math.max(canvas.width,slotWidth*1.265*Math.min(devicePixelRatio||1,2));
+  return Math.max(canvas.width,slotWidth*1.265*graphicsPixelRatio('preview'));
 }
 window.addEventListener('resize',()=>{
   if(touchPerformance){

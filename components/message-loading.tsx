@@ -1,10 +1,12 @@
-import { createRoot } from 'react-dom/client';
-import { flushSync } from 'react-dom';
-import { MessageLoading } from '@/components/ui/message-loading';
+import { hydrateRoot } from 'react-dom/client';
+import { GooeyLoader } from '@/components/ui/loader-10';
+
+export function IntroLoading() {
+  return <GooeyLoader primaryColor="#0297de" secondaryColor="#66c8f5" borderColor="#0297de" />;
+}
 
 export function mountMessageLoading(host: HTMLElement) {
-  const root = createRoot(host);
-  // Replace the first-paint copy in one commit, without an empty loading frame.
-  flushSync(() => root.render(<MessageLoading />));
+  // Reuse the server-rendered waves so hydration never restarts their phase.
+  const root = hydrateRoot(host, <IntroLoading />, { identifierPrefix: 'intro-' });
   return () => root.unmount();
 }

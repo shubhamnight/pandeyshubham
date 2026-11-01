@@ -1,4 +1,4 @@
-// The first-load screen uses the supplied SVG; no WebGL model is needed.
+// The first-load screen uses the supplied CSS waves; no WebGL model is needed.
 import { morphLoadingIntoPlay } from './intro-liquid.js';
 export function createMessageLoader(intro){
   intro.classList.add('play-css-surface');
@@ -8,12 +8,9 @@ export function createMessageLoader(intro){
   const controller=new AbortController();
   let disposed=false,finishing=false,suspended=false,unmount=null,finishPromise=null;
   function sync(){
-    const svg=mount.querySelector('svg');
-    if(!svg)return;
-    if(disposed||finishing||document.hidden||suspended||preference.matches||loading.hidden){
-      svg.pauseAnimations?.();
-      if(preference.matches)svg.setCurrentTime?.(0);
-    }else svg.unpauseAnimations?.();
+    // Continue the original waves through the morph; pause only when hidden,
+    // disposed or reduced motion is requested.
+    mount.classList.toggle('intro-loader-paused',disposed||document.hidden||suspended||preference.matches||loading.hidden);
   }
   const suspend=()=>{suspended=true;sync();};
   const resume=()=>{suspended=false;sync();};
@@ -22,12 +19,12 @@ export function createMessageLoader(intro){
   window.addEventListener('pagehide',suspend);
   window.addEventListener('pageshow',resume);
   sync();
-  // Optional enhancement, never a readiness gate. The generated SVG is already
+  // Optional enhancement, never a readiness gate. The generated component is already
   // present, including its exact timing and curves, if this request is delayed.
   import('./assets/ui/message-loading.js').then(module=>{
     if(disposed||finishing||!mount.isConnected)return;
     unmount=module.mountMessageLoading(mount);sync();
-  }).catch(()=>{/* Keep the identical first-paint SVG when a bundle is unavailable. */});
+  }).catch(()=>{/* Keep the identical first-paint waves when a bundle is unavailable. */});
   function dispose(){
     if(disposed)return;
     disposed=true;controller.abort();sync();unmount?.();unmount=null;

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { motion, useInView, useReducedMotion, type Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { graphicsPixelRatio } from '@/graphics-quality.js';
 
 interface AetherFlowHeroProps {
   className?: string;
@@ -169,7 +170,7 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
     function resize() {
       const nextWidth = Math.round(stage!.clientWidth);
       const nextHeight = Math.round(stage!.clientHeight);
-      const nextDensity = Math.min(window.devicePixelRatio || 1, 1.5);
+      const nextDensity = graphicsPixelRatio('background');
       if (!nextWidth || !nextHeight || (width === nextWidth && height === nextHeight && density === nextDensity)) return;
       const previousWidth = width, previousHeight = height;
       boundsDirty = true;

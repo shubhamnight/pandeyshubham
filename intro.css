@@ -146,11 +146,11 @@ body.badge-entering #home .badge-rig{will-change:transform,opacity;transform-ori
 .batman-follower[hidden]{display:none!important}
 .batman-follower img{display:block;width:40px;height:24px;max-width:none;pointer-events:none!important;user-select:none;transform-origin:50% 50%;backface-visibility:hidden}
 
-/* The supplied loading dots replace only the opening Batman model. */
-.message-loader-stage{display:grid;place-items:center;position:relative;flex:none;width:clamp(48px,8vw,64px);height:clamp(48px,8vw,64px);color:var(--electric,#0297de)}
+/* The supplied two-wave loader and its handoff to the original PLAY surface. */
+.message-loader-stage{display:grid;place-items:center;position:relative;flex:none;width:min(224px,75vw);height:96px;color:var(--electric,#0297de)}
 .message-loading-mount{display:grid;place-items:center;width:100%;height:100%}
-.message-loading-mount svg{display:block;width:100%;height:100%;color:inherit}
-.intro-liquid-morph{position:absolute;z-index:5;max-width:none;overflow:visible;transform:translate(-50%,-50%);pointer-events:none}
+.intro-loading-fallback{width:168px;height:42px;border-bottom:8px solid #0297de}
+.portfolio-intro.play-morphing .intro-loading{position:relative;z-index:5}
 .portfolio-intro.message-loader-transition .flow-label,.portfolio-intro.message-loader-transition .flow-arrow{opacity:1}
 .portfolio-intro.message-loader-transition .intro-play .flow-play{box-shadow:inset 0 2px 2px #ffffff35,0 2px 0 #383838,0 4px 0 #292929,0 6px 0 #1c1c1c,0 9px 0 #101010,0 18px 18px #0005}
 .portfolio-intro.play-css-surface .intro-play .flow-play{border-radius:100px}
