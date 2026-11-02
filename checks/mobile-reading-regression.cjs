@@ -1,6 +1,6 @@
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path');
-const origin=process.env.AUDIT_URL||'http://localhost:3000',output=path.resolve('output/final-audit/reading');
+const origin=process.env.AUDIT_URL||'http://localhost:3000',output=path.resolve(process.env.AUDIT_OUTPUT||'output/final-audit/reading');
 const profiles=[[320,568],[320,480],[341,640],[350,780],[360,800],[390,844],[430,932],[768,1024],[820,1180],[1024,1366],[844,390],[1440,900],[2560,1440]];
 (async()=>{
  await fs.mkdir(output,{recursive:true});const browser=await chromium.launch({channel:'chrome',headless:true}),results=[];

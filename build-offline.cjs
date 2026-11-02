@@ -1,19 +1,12 @@
 const path = require('node:path');
 const fs = require('node:fs');
 const crypto = require('node:crypto');
-const { execFileSync } = require('node:child_process');
+const { buildUI } = require('./lib/build-ui.cjs');
 const { build } = require('esbuild');
 
 async function buildOffline() {
   const root = __dirname;
-  fs.mkdirSync(path.join(root, 'assets/ui'), { recursive: true });
-  const cli = path.join(path.dirname(require.resolve('@tailwindcss/cli/package.json')), 'dist/index.mjs');
-  execFileSync(process.execPath, [cli, '-i', 'styles/offline-page.css', '-o', 'assets/ui/offline-page.css', '--minify'], { cwd: root, stdio: 'inherit' });
-  await build({
-    absWorkingDir: root, entryPoints: ['components/offline-page.tsx'], outfile: 'assets/ui/offline-page.js',
-    bundle: true, minify: true, format: 'esm', platform: 'browser', target: ['es2020'], jsx: 'automatic',
-    define: { 'process.env.NODE_ENV': '"production"' }, legalComments: 'eof',
-  });
+  await buildUI('offline-page', 'components/offline-page.tsx');
   await build({
     absWorkingDir: root, entryPoints: ['lib/offline-batman.js'], outfile: 'assets/ui/offline-batman.js',
     bundle: true, minify: true, format: 'esm', platform: 'browser', target: ['es2020'], legalComments: 'eof',

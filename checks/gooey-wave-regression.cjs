@@ -1,7 +1,7 @@
 // Inspect a complete native CSS wave cycle without the app's load timer.
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
-const sharp=require('sharp'),output=path.resolve('output/intro-gooey-preview/cycle');
+const sharp=require('sharp'),output=path.resolve(process.env.AUDIT_OUTPUT||'output/intro-gooey-preview/cycle'),origin=process.env.AUDIT_URL||'http://localhost:3000';
 (async()=>{
  await fs.mkdir(output,{recursive:true});
  const html=await fs.readFile('index.html','utf8');
@@ -10,7 +10,7 @@ const sharp=require('sharp'),output=path.resolve('output/intro-gooey-preview/cyc
  try{
   const page=await browser.newPage({viewport:{width:440,height:240}});
   await page.route('**/qa-wave-cycle.html',r=>r.fulfill({contentType:'text/html',body:`<!doctype html><meta name="viewport" content="width=device-width"><style>body{margin:0;background:#02070a;display:grid;place-items:center;height:100vh}*{box-sizing:border-box}</style>${markup}`}));
-  await page.goto('http://localhost:3000/qa-wave-cycle.html');
+  await page.goto(origin+'/qa-wave-cycle.html');
   const surface=page.locator('.gooey-loader');
   assert.equal(await surface.evaluate(e=>getComputedStyle(e).filter),'none');
   assert.equal(await surface.evaluate(e=>getComputedStyle(e).borderBottomWidth),'0px');

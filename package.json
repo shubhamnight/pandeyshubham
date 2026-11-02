@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "test": "node checks/run-regressions.cjs",
+    "test:regression": "node checks/run-regressions.cjs",
+    "test:regression:core": "node checks/run-regressions.cjs --group=core",
+    "test:regression:list": "node checks/run-regressions.cjs --list",
+    "test:backend": "node checks/backend-stress.cjs",
     "start": "node server.cjs",
     "build": "node build-intro-loading.cjs && node build-site-assets.cjs && node build-seo.cjs && node build-photography-carousel.cjs && node build-connect.cjs && node build-gaming-overlay.cjs && node build-travel-overlay.cjs && node build-music-overlay.cjs && node build-skills-icons.cjs && node build-shared-ui.cjs && node build-offline.cjs && node build-vercel.cjs",
     "build:seo": "node build-site-assets.cjs && node build-seo.cjs",
@@ -44,6 +49,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "esbuild": "^0.28.2",
+    "playwright-core": "1.63.0",
     "sharp": "^0.35.5",
     "tailwindcss": "4.3.0",
     "typescript": "^7.0.2"

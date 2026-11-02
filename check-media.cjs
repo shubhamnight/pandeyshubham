@@ -26,6 +26,20 @@ function media(items) {
   }
 }
 async function run() {
+  const {createMediaDeck}=moduleFrom('media-deck.js');
+  for(const size of [0,1,7]){
+    const items=Array.from({length:size},(_,id)=>({id})),deck=createMediaDeck(items);
+    check(new Set(deck.order).size===size,'A media deck retains each original item once');
+    let previous;
+    for(let cycle=0;cycle<4;cycle++){
+      const selected=Array.from({length:size},()=>deck.next());
+      check(selected.length===size&&new Set(selected).size===size&&selected.every(item=>items.includes(item)),'Each cycle uses original media without omission or duplication');
+      if(size>1&&cycle)check(selected[0]!==previous,'Refilling a deck avoids an immediate repeat');
+      previous=selected.at(-1);
+    }
+    check(items.every((item,index)=>item.id===index),'Media selection leaves source ordering intact');
+    if(!size)check(deck.next()===undefined,'An empty media library remains safe');
+  }
   const travel = moduleFrom('travel-data.js').travelImages;
   media(travel); media(moduleFrom('photography-data.js').photographyPhotos);
   media(moduleFrom('gaming-data.js').gamingImages); media(moduleFrom('music-overlay-data.js').musicCards);

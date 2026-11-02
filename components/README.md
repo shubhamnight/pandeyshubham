@@ -24,6 +24,19 @@ React, TypeScript, Framer Motion, Tailwind, and the shadcn directory structure a
 already configured; a full website migration or a new shadcn project is not
 required. Use the existing `components.json` when adding further shadcn components.
 
+`lib/build-ui.cjs` shares the Tailwind/esbuild settings and complete-file output
+writer across UI builds. Entry-specific preparation, such as photography viewing
+sources, music metadata and offline cache generation, remains in each build script.
+`lib/overlay-host.ts` shares only shadow-root stylesheet readiness, cancellation
+and the 15-second timeout across the four gallery mounts. Their presentation,
+React components, content and unmount behavior remain separate.
+
+`media-deck.js` shares shuffled media selection and refill-boundary repeat
+avoidance. `hobby-media-runtime.js` shares photography/gaming/travel preview
+decoding, cycling, visibility-aware playback and departure cleanup. Travel keeps
+its existing one-video-per-three preview schedule and its separate video player;
+music keeps its record markup and captions.
+
 ## Opening gooey loader
 
 The supplied `components/ui/loader-10.tsx` and its demo in
@@ -56,7 +69,8 @@ blend in. The component then unmounts. Resize, hidden-tab, persisted page lifecy
 and reduced-motion handling preserve the final button's styling and animations.
 
 The regression check is `node checks/intro-message-regression.cjs`, using the
-existing optional external Playwright installation via `PLAYWRIGHT_MODULE`.
+pinned local Playwright dependency and installed Chrome. `PLAYWRIGHT_MODULE`
+can override the dependency location; see `checks/README.md` for the full suite.
 `checks/intro-liquid-regression.cjs` checks the liquid stages, verifies the actual
 surface/button bounds at handoff, and compares the finished button with its
 pre-morph style fixture.
@@ -359,8 +373,9 @@ notes alongside them. The Batman font uses WOFF2 compression of the same letteri
 Unused navbar font trials have been removed. Only the visible hero faces are
 preloaded; other faces load when their styled text is needed.
 
-Hobby gallery intent preloads both its JavaScript and stylesheet, without
-mounting the overlay or starting media. Close buttons share corner placement,
+Hobby gallery intent module-preloads JavaScript and prefetches CSS at low
+priority, without mounting the overlay or starting media. Speculative styles
+do not assert immediate use through preload. Close buttons share corner placement,
 centered crosses and static raised shadows. Dialog frames use layered shadows
 with a translucent blurred backdrop. Viewport outlines are suppressed while
 individual controls retain their keyboard focus indicators. Photography only

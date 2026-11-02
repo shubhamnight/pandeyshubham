@@ -2,6 +2,7 @@
 // compiled entry is a test-only reference; no production code is modified.
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const fs=require('node:fs/promises'),path=require('node:path'),cp=require('node:child_process');
+const assert=require('node:assert/strict');
 const origin=process.env.AUDIT_URL||'http://localhost:3013',output=path.resolve(process.env.AUDIT_OUTPUT||'output/desktop-2026-10-27/cadence');
 (async()=>{await fs.mkdir(output,{recursive:true});const browser=await chromium.launch({channel:'chrome',headless:true}),results=[];
 try{for(const mode of ['before','after']){
@@ -11,4 +12,4 @@ try{for(const mode of ['before','after']){
  await page.goto(origin);await page.getByRole('button',{name:'Enter Shubham Pandey’s portfolio',exact:true}).click({timeout:45000});await page.locator('.portfolio-intro').waitFor({state:'detached'});await page.locator('#contact').scrollIntoViewIfNeeded();await page.locator('.connect-aether-background canvas').waitFor({state:'visible'});await page.waitForTimeout(2500);
  const sample=await page.evaluate(()=>new Promise(resolve=>{let delivered=0;const start=performance.now();window.qaPaints=[];window.qaCount=true;function tick(){delivered++;if(performance.now()-start<4000)requestAnimationFrame(tick);else{window.qaCount=false;resolve({elapsed:performance.now()-start,delivered,paintTimes:window.qaPaints});}}requestAnimationFrame(tick);}));
  results.push({mode,...sample,paints:sample.paintTimes.length,paintsPerSecond:sample.paintTimes.length*1000/sample.elapsed});await page.close();
-}await fs.writeFile(path.join(output,'results.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results.map(({paintTimes,...rest})=>rest)));}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
+}const current=results.find(result=>result.mode==='after');assert.ok(current.delivered>30,'sample contains delivered frames');assert.ok(current.paints>=current.delivered-2,'current particles paint each delivered frame instead of capping high refresh');assert.ok(current.paints<=current.delivered+2,'no duplicate paint loop');await fs.writeFile(path.join(output,'results.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results.map(({paintTimes,...rest})=>rest)));}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -22,6 +22,9 @@ for (const folder of ['.', 'dist']) {
   for(const name of ['batman-loader.js','contour-nearest.js'])check(!fs.existsSync(path.join(__dirname,folder,name)),folder+': retired runtime not shipped: '+name);
   check(/<dialog id="music-gallery"[\s\S]*?<div class="hobby-gallery-content" tabindex="0"/.test(html), folder + ': music gallery scroll region keyboard accessible');
   check(!html.includes('fonts.googleapis.com'), folder + ': fonts self-hosted');
+  const importMaps=[...html.matchAll(/<script\b[^>]*type="importmap"/g)],firstModule=html.search(/<script\b[^>]*type="module"|<link\b[^>]*rel="modulepreload"/);
+  check(importMaps.length===1&&importMaps[0].index<firstModule,folder+': Three import map precedes every module script and module preload');
+  check(require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(__dirname,folder,'assets/fonts/batman-forever-alternate.woff2'))).digest('hex')===require('./checks/fixtures/batman-font-integrity.json').repairedSha256,folder+': Batman font retains the validated original glyphs/metrics and repaired metadata');
   check(html.includes('max-image-preview:large'), folder + ': production indexable');
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
   check(new Set(ids).size === ids.length, folder + ': unique IDs');

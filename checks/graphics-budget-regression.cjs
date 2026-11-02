@@ -1,7 +1,7 @@
 // Real backing-store measurements; this does not claim physical-device FPS.
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
-const output=path.resolve('output/graphics-budget'),baseline=process.env.GRAPHICS_BASELINE==='1';
+const output=path.resolve(process.env.AUDIT_OUTPUT||'output/graphics-budget'),baseline=process.env.GRAPHICS_BASELINE==='1';
 const origin=process.env.AUDIT_URL||'http://localhost:3000';
 (async()=>{
  await fs.mkdir(output,{recursive:true});

@@ -40,7 +40,7 @@ async function pixels(page,name,{allowOffscreen=false}={}){
     const source=cp.execFileSync('git',['show',process.env.PHONE_REFERENCE+':skills.js'],{encoding:'utf8'});
     return route.fulfill({contentType:'text/javascript',body:source+diagnostic});
    }
-   const response=await route.fetch();return route.fulfill({response,body:(await response.text())+diagnostic});
+   return require('./helpers/instrument-source.cjs')('skills.js',source=>source+diagnostic)(route);
   });
   const cdp=await page.context().newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
   try{

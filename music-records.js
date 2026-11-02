@@ -1,3 +1,4 @@
+import { createMediaDeck } from './media-deck.js';
 import { musicImages } from './music-data.js';
 import { musicTitleStyles } from './music-title-data.js';
 import { mobileMediaSource } from './mobile-media.js';
@@ -26,9 +27,7 @@ export function createRecord(song,index=0,gallery=false){
   return record;
 }
 
-function shuffle(items){const result=[...items];for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}return result;}
-let deck=shuffle(musicImages),previous=null;
-function nextSong(){if(!deck.length){deck=shuffle(musicImages);if(deck[0]===previous&&deck.length>1)[deck[0],deck[1]]=[deck[1],deck[0]];}previous=deck.shift();return previous;}
+const {next:nextSong}=createMediaDeck(musicImages);
 const slots=[...document.querySelectorAll('.hobby-music .hobby-image-placeholder')].slice(0,3);
 async function fillRecord(slot,index){
   const song=nextSong(),version=(slot.recordVersion||0)+1;slot.recordVersion=version;

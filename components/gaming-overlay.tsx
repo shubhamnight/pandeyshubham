@@ -1,3 +1,4 @@
+import { prepareOverlayHost } from '@/lib/overlay-host';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Marquee } from '@/components/ui/3d-testimonails';
@@ -57,28 +58,10 @@ function GamingOverlay({ images }: { images: GameArtwork[] }) {
 
 /** Load styles and React only when the native games dialog opens. */
 export async function mountGamingOverlay(host: HTMLElement, media: GameArtwork[], signal?: AbortSignal) {
-  const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
-  shadow.replaceChildren();
-  const stylesheet = document.createElement('link');
-  stylesheet.rel = 'stylesheet';
-  stylesheet.href = new URL('./gaming-overlay.css', import.meta.url).href;
-  const ready = new Promise<void>((resolve, reject) => {
-    const cleanup = () => {
-      clearTimeout(timeout);
-      signal?.removeEventListener('abort', abort);
-      stylesheet.onload = stylesheet.onerror = null;
-    };
-    const abort = () => { cleanup(); stylesheet.remove(); reject(new DOMException('Gallery closed', 'AbortError')); };
-    const timeout = window.setTimeout(() => { cleanup(); reject(new Error('Gaming styles took too long to load.')); }, 15000);
-    stylesheet.onload = () => { cleanup(); resolve(); };
-    stylesheet.onerror = () => { cleanup(); reject(new Error('Gaming styles could not load.')); };
-    signal?.addEventListener('abort', abort, { once: true });
-    if (signal?.aborted) abort();
-  });
-  const container = document.createElement('div');
-  container.className = 'gaming-react-root';
-  shadow.append(stylesheet, container);
-  await ready;
+  const { container } = await prepareOverlayHost(host, {
+    stylesheet: new URL('./gaming-overlay.css', import.meta.url),
+    containerClass: 'gaming-react-root', label: 'Gaming',
+  }, signal);
   const gallery = host.closest('dialog');
   if (signal?.aborted || !gallery?.open) return () => {};
   // Retain the existing native-dialog lifecycle and local responsive artwork.

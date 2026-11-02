@@ -1,13 +1,13 @@
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const fs=require('node:fs/promises'),assert=require('node:assert/strict'),path=require('node:path');
-const origin=process.env.AUDIT_URL||'http://localhost:3000',output=path.resolve('output/intro-liquid-preview');
+const origin=process.env.AUDIT_URL||'http://localhost:3000',output=path.resolve(process.env.AUDIT_OUTPUT||'output/intro-liquid-preview');
 (async()=>{
   await fs.mkdir(output,{recursive:true});
   const before=JSON.parse(await fs.readFile(path.join(__dirname,'fixtures/intro-play-style.json'),'utf8'));
   const browser=await chromium.launch({channel:'chrome',headless:true}),results=[];
   try{for(const reference of before){
-    const {width,height}=reference,name=width<600?'phone':'desktop';
-    const page=await browser.newPage({viewport:{width,height},isMobile:width<600,hasTouch:width<600});
+    const {width,height}=reference,name=width<600?'phone':width<1100?'tablet':'desktop';
+    const page=await browser.newPage({viewport:{width,height},isMobile:width<1100,hasTouch:width<1100});
     const errors=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto(origin,{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>document.querySelector('.portfolio-intro')?.dataset.loadingPhase==='merge');

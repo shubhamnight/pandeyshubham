@@ -1,8 +1,7 @@
 const path = require('node:path');
 const fs = require('node:fs');
 const sharp = require('sharp');
-const { execFileSync } = require('node:child_process');
-const { build } = require('esbuild');
+const { buildUI } = require('./lib/build-ui.cjs');
 
 const hex = rgb => '#' + rgb.map(value => Math.round(value).toString(16).padStart(2, '0')).join('');
 async function artworkPalette(file) {
@@ -29,8 +28,7 @@ async function artworkPalette(file) {
 }
 
 async function buildMusicOverlay() {
-  const root = __dirname, output = path.join(root, 'assets', 'ui');
-  fs.mkdirSync(output, { recursive: true });
+  const root = __dirname;
   const source = fs.readFileSync(path.join(root, 'music-data.js'), 'utf8');
   const songs = JSON.parse(source.slice(source.indexOf('['), source.lastIndexOf(']') + 1));
   const highlights = new Map(JSON.parse(fs.readFileSync(path.join(root, 'music-highlights.json'), 'utf8')).map(item => [item.title, item]));
@@ -61,13 +59,7 @@ async function buildMusicOverlay() {
     '\n\n## Title typography\n\nTitles interpret their release artwork/campaign lettering using locally hosted open fonts. These are style matches, not claims that the original commercial fonts or custom lettering are installed. Original artwork remains visible on the record.\n\n| Song | Reference and local treatment | Reference |\n| --- | --- | --- |\n' +
     cards.map(song => { const style = typography.get(song.title); return `| ${song.title} | ${style.reference} | [Reference](${style.source || song.sourcePage}) |`; }).join('\n') +
     '\n\nFont files and licenses: assets/fonts/music/. [Google Fonts source](https://github.com/google/fonts). Refresh only when needed with node build-music-fonts.cjs; normal builds never fetch fonts.\n');
-  const cli = path.join(path.dirname(require.resolve('@tailwindcss/cli/package.json')), 'dist', 'index.mjs');
-  execFileSync(process.execPath, [cli, '-i', 'styles/music-overlay.css',
-    '-o', 'assets/ui/music-overlay.css', '--minify'], { cwd: root, stdio: 'inherit' });
-  await build({ absWorkingDir: root, entryPoints: ['components/music-overlay.tsx'],
-    outfile: path.join(output, 'music-overlay.js'), bundle: true, minify: true,
-    format: 'esm', platform: 'browser', target: ['es2020'], jsx: 'automatic',
-    define: { 'process.env.NODE_ENV': '"production"' }, legalComments: 'eof' });
+  await buildUI('music-overlay', 'components/music-overlay.tsx');
   console.log('Music disc carousel compiled for ' + cards.length + ' songs.');
 }
 module.exports = buildMusicOverlay;

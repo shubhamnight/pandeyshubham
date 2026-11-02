@@ -2,6 +2,7 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { build } = require('esbuild');
+const { browserOptions } = require('./lib/build-ui.cjs');
 const writeBuildFiles = require('./lib/write-build-files.cjs');
 
 async function buildSharedUI() {
@@ -15,14 +16,11 @@ async function buildSharedUI() {
     'skills-icons': 'components/skills-icons.tsx',
   };
   const result = await build({
-    absWorkingDir: __dirname,
+    ...browserOptions, absWorkingDir: __dirname,
     entryPoints,
     outdir: path.join(__dirname, 'assets/ui'),
     chunkNames: 'chunks/shared-[hash]',
-    bundle: true, splitting: true, minify: true,
-    format: 'esm', platform: 'browser', target: ['es2020'], jsx: 'automatic',
-    define: { 'process.env.NODE_ENV': '"production"' },
-    legalComments: 'eof', write: false,
+    splitting: true,
   });
   // Publish dependencies first so a live preview never sees an entry pointing
   // to a chunk that is still being written. Existing hashed chunks stay usable.
@@ -31,12 +29,10 @@ async function buildSharedUI() {
   await fs.mkdir(path.join(__dirname, 'assets/ui/chunks'), { recursive: true });
   await writeBuildFiles([...chunks, ...entries]);
   const recovery=await build({
-    absWorkingDir:__dirname,
+    ...browserOptions, absWorkingDir:__dirname,
     entryPoints:Object.fromEntries(Object.entries(entryPoints).filter(([name])=>name!=='message-loading')
       .map(([name,file])=>[name+'-recovery',file])),
-    outdir:path.join(__dirname,'assets/ui'),bundle:true,splitting:false,minify:true,
-    format:'esm',platform:'browser',target:['es2020'],jsx:'automatic',
-    define:{'process.env.NODE_ENV':'"production"'},legalComments:'eof',write:false,
+    outdir:path.join(__dirname,'assets/ui'), splitting:false,
   });
   await writeBuildFiles(recovery.outputFiles);
   console.log(`Shared UI compiled: ${entries.length} lazy entries, ${chunks.length} shared chunks.`);

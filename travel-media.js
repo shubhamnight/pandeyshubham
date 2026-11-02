@@ -1,4 +1,5 @@
-import { createVideoCard } from './hobby-video-card.js';
+import { createHobbyMedia, connectHobbyPreviews } from './hobby-media-runtime.js';
+import { createMediaDeck, shuffle } from './media-deck.js';
 import { createTravelVideoPlayer, travelVideoFrameRatio } from './travel-video-player.js';
 import { travelImages as originalTravelImages } from './travel-data.js';
 import { applyMediaEdits } from './media-library.js';
@@ -8,91 +9,19 @@ import { observeTravelFrame } from './overlay-frame-metrics.js';
 const travelImages=applyMediaEdits('travel',originalTravelImages);
 import { locationLabel, travelLocations } from './travel-location-label.js';
 
-function shuffle(items) {
-  const result=[...items];
-  for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}
-  return result;
-}
 const order=shuffle(travelImages);
 const photos=travelImages.filter(item=>item.type==='image'),videos=travelImages.filter(item=>item.type==='video');
-const previewPools=[photos,videos].map(items=>({items,deck:shuffle(items),previous:null}));
+const previewPools=[photos,videos].map(items=>createMediaDeck(items));
 let previewCount=0;
 function nextMedia(){
-  // Keep a video among each three orbit previews, rather than hiding all four
-  // videos behind a randomly shuffled run of photographs.
+  // Keep one video among every three orbit previews.
   const videoTurn=previewCount++%3===1;
-  const pool=previewPools[(videoTurn&&videos.length)||!photos.length?1:0];
-  if(!pool.deck.length){pool.deck=shuffle(pool.items);if(pool.deck[0]===pool.previous&&pool.deck.length>1)[pool.deck[0],pool.deck[1]]=[pool.deck[1],pool.deck[0]];}
-  pool.previous=pool.deck.shift();return pool.previous;
+  return previewPools[(videoTurn&&videos.length)||!photos.length?1:0].next();
 }
-function mediaElement(item,gallery=false){
-  if(item.type==='video'){
-    if(!gallery)return createVideoCard(item);
-    return createTravelVideoPlayer(item);
-  }
-  const image=document.createElement('img');image.alt=item.alt;image.decoding='async';
-  image.width=item.width;image.height=item.height;
-  image.loading=gallery?'lazy':'eager';
-  image.fetchPriority=gallery?'low':'auto';
-  if(gallery){
-    // Use the untouched source at full resolution, previews at smaller sizes.
-    const previews=item.srcset.split(', ').filter(source=>Number(source.split(' ').at(-1).slice(0,-1))<item.width);
-    image.srcset=mobileMediaSrcset([...previews,item.original+' '+item.width+'w'].join(', '));
-    image.sizes='(max-width:600px) 42vw, (max-width:1100px) 28vw, 300px';
-    image.loading='lazy';
-  }
-  image.src=mobileMediaSource(gallery?item.original:item.src);
-  return image;
-}
-
-const section=document.querySelector('#projects');
-const slots=[...section.querySelectorAll('.hobby-travel .hobby-image-placeholder')].slice(0,3);
-const visible=new Set();
-const players=new WeakMap(),surfaces=new Map(slots.map(slot=>[slot,slot.querySelector('.hobby-image-surface')]));
-let disposed=false,previousAllowed=null;
-const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-function playbackAllowed(){return !disposed&&!document.body.classList.contains('hobbies-intro-active')&&!document.hidden&&!reduced.matches&&!document.body.classList.contains('motion-paused')&&!document.body.classList.contains('photography-gallery-open');}
-function playback(){
-  const allowed=playbackAllowed();
-  for(const slot of slots){const video=players.get(slot);if(!video)continue;
-    if(allowed&&visible.has(slot))video.play().catch(()=>{});else video.pause();
-  }
-}
-function syncPlayback(){const next=playbackAllowed();if(next!==previousAllowed){previousAllowed=next;playback();}}
-async function fill(slot){
-  if(disposed)return;
-  const item=nextMedia();if(!item)return;
-  const version=(slot.mediaVersion||0)+1;slot.mediaVersion=version;
-  const element=mediaElement(item);
-  if(item.type==='image'){try{await element.decode();}catch{return;}}
-  if(disposed||slot.mediaVersion!==version){element.videoPlayback?.dispose();return;}
-  players.get(slot)?.dispose();
-  const surface=surfaces.get(slot);surface.replaceChildren(element);
-  players.set(slot,element.videoPlayback);element.videoPlayback?.resize();
-  playback();
-}
-let started=false;
-const startup=new IntersectionObserver(entries=>{
-  if(started||!entries.some(e=>e.isIntersecting))return;
-  started=true;startup.disconnect();slots.forEach(slot=>fill(slot));
-},{rootMargin:'350px'});startup.observe(section);
-const cycleHandlers=new Map();
-slots.forEach(slot=>{const cycle=()=>fill(slot);cycleHandlers.set(slot,cycle);slot.addEventListener('hobby-cycle',cycle);});
-const observer=new IntersectionObserver(entries=>{
-  for(const entry of entries)if(entry.isIntersecting)visible.add(entry.target);else visible.delete(entry.target);
-  playback();
-},{threshold:0});slots.forEach(slot=>observer.observe(slot));
-document.addEventListener('visibilitychange',syncPlayback);
-reduced.addEventListener('change',syncPlayback);
-const playbackObserver=new MutationObserver(syncPlayback);playbackObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
-window.addEventListener('pageshow',playback);
-window.addEventListener('pagehide',event=>{
-  slots.forEach(slot=>players.get(slot)?.pause());
-  if(event.persisted)return;
-  disposed=true;startup.disconnect();observer.disconnect();playbackObserver.disconnect();visible.clear();
-  slots.forEach(slot=>{slot.mediaVersion=(slot.mediaVersion||0)+1;players.get(slot)?.dispose();slot.removeEventListener('hobby-cycle',cycleHandlers.get(slot));});
-  document.removeEventListener('visibilitychange',syncPlayback);reduced.removeEventListener('change',syncPlayback);window.removeEventListener('pageshow',playback);
-  galleryVersion++;overlayAbort?.abort();disposeOverlay?.();
+const mediaElement=(item,gallery=false)=>createHobbyMedia(item,gallery,createTravelVideoPlayer);
+let disposed=false;
+connectHobbyPreviews('.hobby-travel',nextMedia,mediaElement,()=>{
+  disposed=true;galleryVersion++;overlayAbort?.abort();disposeOverlay?.();
 });
 
 let gridMode=null;

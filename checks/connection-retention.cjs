@@ -14,7 +14,7 @@ async function contactReady(page){
 }
 (async()=>{
  await fs.mkdir(output,{recursive:true});const browser=await chromium.launch({channel:'chrome',headless:true}),results=[];
- try{for(const [name,width,height,touch]of [['phone',390,844,true],['desktop',1440,900,false]]){
+ try{for(const [name,width,height,touch]of [['phone',390,844,true],['tablet',768,1024,true],['desktop',1440,900,false]]){
   const context=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch}),page=await context.newPage(),errors=[];
   await page.addInitScript(()=>{
    window.qaLoadTime=null;window.qaWorkerTime=null;

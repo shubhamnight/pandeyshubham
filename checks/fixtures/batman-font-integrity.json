@@ -1,0 +1,22 @@
+{
+  "tool": "fontTools 4.68.0",
+  "originalSha256": "cdc35ce30f68eac1e9a67d966189be40289e087cc3e4db9fa329f8f82357618b",
+  "repairedSha256": "0078aa237f000cd297950ce9f83bde4d4e8008e1052a31aa030af6fd05b44159",
+  "originalBytes": 14392,
+  "repairedBytes": 13080,
+  "preserved": {
+    "glyphs": 187,
+    "glyphOrder": "94bb57a3575373858492b8d43c4556e309a24f586c56a6b793978ecb610d6571",
+    "outlines": "9e326e57221f88251976fdcbae878058a588109d25c2cdcbf9046eaedc0cf344",
+    "instructions": "41d29dfdb79e5257374a34b144ff8375079856e3868ac344e895589dd6d450ab",
+    "metrics": "3bd7939937be596f7356f1a28c5b901162074ae79095057a6a4b6aa33cf886e1",
+    "cmap": "0deec8fc377d85d90adcd9d118dcc8b1b1a7149e2593553ba08543c9f58ccc9b",
+    "kerning": "65a2c3d5612341e3f9264435e1a402c1080e4af53d17e361e252d2fbaeb4dc79",
+    "hints": "5a4478377b5a8ca9969605024fff8ad291c8036fcdfffc082a3cde9aea3a2a52",
+    "unitsPerEm": 1000
+  },
+  "changes": [
+    "Drop invalid hdmx device-metrics cache",
+    "Recompile cmap/kern search metadata"
+  ]
+}

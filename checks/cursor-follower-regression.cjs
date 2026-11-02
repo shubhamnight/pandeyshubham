@@ -7,7 +7,7 @@ async function move(page,x,y){await page.mouse.move(x,y);await page.waitForTimeo
 try{
  const context=await browser.newContext({viewport:{width:1440,height:900}}),page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
- await page.route('**/cursor-follower.js',async route=>{const r=await route.fetch();await route.fulfill({response:r,body:(await r.text()).replace(/function tick\(time\)\s*\{/,'function tick(time) { window.qaFollowerFrames=(window.qaFollowerFrames||0)+1;')});});
+ await page.route('**/cursor-follower.js',require('./helpers/instrument-source.cjs')('cursor-follower.js',source=>source.replace(/function tick\(time\)\s*\{/,'function tick(time) { window.qaFollowerFrames=(window.qaFollowerFrames||0)+1;')));
  await entered(page);let box=await move(page,850,350);assert.ok(Math.abs(box.x-868)<.2&&Math.abs(box.y-368)<.2,'logo trails the native pointer at an offset');
  await page.waitForTimeout(200);const idle=await page.evaluate(()=>window.qaFollowerFrames);assert.equal(typeof idle,'number','frame diagnostic was injected');await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>window.qaFollowerFrames),idle,'no idle follower RAF loop');
  assert.equal(await page.locator('.batman-follower').getAttribute('aria-hidden'),'true');assert.equal(await page.locator('.batman-follower').evaluate(e=>getComputedStyle(e).pointerEvents),'none');
@@ -32,6 +32,6 @@ try{
  await page.emulateMedia({reducedMotion:'reduce'});await page.mouse.move(900,400);await page.waitForTimeout(40);box=await page.locator('.batman-follower').boundingBox();assert.ok(Math.abs(box.x-918)<.2,'reduced motion snaps without trailing animation');
  await page.evaluate(()=>dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true})));assert.equal(await page.locator('.batman-follower').count(),0);await page.evaluate(()=>dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));await move(page,920,410);assert.equal(await page.locator('.batman-follower').count(),1);
  await page.screenshot({path:path.join(out,'desktop.png')});assert.deepEqual(errors,[]);rows.push({profile:'desktop',nativeCursors:true,allOverlays:true,clickThrough:true,idleStops:true,reducedMotion:true,bfcache:true,errors});await context.close();
- const phone=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});await entered(phone);await phone.mouse.move(200,300);await phone.touchscreen.tap(100,200);assert.equal(await phone.locator('.batman-follower').count(),0,'no decorative mouse loop on touch-only devices');rows.push({profile:'phone',noMouseFollower:true});await phone.close();
+ for(const [profile,width,height]of [['phone',390,844],['tablet',768,1024]]){const page=await browser.newPage({viewport:{width,height},isMobile:true,hasTouch:true});await entered(page);await page.mouse.move(200,300);await page.touchscreen.tap(100,200);assert.equal(await page.locator('.batman-follower').count(),0,'no decorative mouse loop on touch-only devices');rows.push({profile,noMouseFollower:true});await page.close();}
  await fs.writeFile(path.join(out,'results.json'),JSON.stringify(rows,null,2));console.log(JSON.stringify(rows));
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

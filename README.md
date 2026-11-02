@@ -56,6 +56,12 @@ desktop, including all four overlays. Results stay in ignored
 `output/legacy-cleanup/`. `node checks/share-build.cjs` checks the optional share
 packager against the current `dist/` without owner credentials or publishing.
 
+`node checks/overlay-style-lifecycle.cjs` verifies shared gallery stylesheet
+loading, cancellation, failure, timeout and retry behavior with the same external
+Playwright setup. `BROWSER_EXECUTABLE` selects an installed browser explicitly.
+The style-comparison check accepts `AUDIT_OUTPUT` and ignores inert sections;
+grid geometry is compared to 0.1 CSS px to account for subpixel track rounding.
+
 For desktop coverage, set `BROWSER_PROFILE=desktop` and optionally
 `DESKTOP_WIDTH` / `DESKTOP_HEIGHT`. `BROWSER_EXECUTABLE` selects another installed
 Chromium browser. `node checks/desktop-hover-regression.cjs` verifies that a
@@ -186,6 +192,13 @@ The media builders use Sharp; video processing also requires FFmpeg and FFprobe 
 
 ## Hosted version
 
+### Regression and backend checks
+
+Run `npm test` for the complete regression suite or `npm run test:backend` for
+isolated local-server stress tests. Setup, coverage, browser requirements,
+evidence locations and physical-device limits are documented in
+[checks/README.md](checks/README.md). Tests preserve user media and never publish.
+
 ### Delivery and offscreen activity
 
 Decorative loops pause outside the actual viewport, behind hobby dialogs, in
@@ -205,7 +218,7 @@ The production builder minifies private ES-module bindings while preserving
 public exports and classic-script globals. Photography's CSS scans only its
 own component sources. Existing WebP/WOFF2 assets and model detail are retained.
 
-Optional validation (external Playwright or FFmpeg/FFprobe required):
+Individual validation (installed test browsers or FFmpeg/FFprobe required):
 
 ```sh
 node checks/offscreen-motion-regression.cjs

@@ -86,6 +86,10 @@
   dialog#photography-gallery>header { top:max(12px,env(safe-area-inset-top)); right:max(12px,env(safe-area-inset-right)); }
 }
 
+@media (min-width:701px) and (max-width:1100px) {
+  dialog#photography-gallery>header { top:max(15px,env(safe-area-inset-top)); right:max(15px,env(safe-area-inset-right)); }
+}
+
 @media (max-width:700px) {
   #home { --fit-badge-width:min(220px,60vw,34svh); --fit-badge-height:calc(var(--fit-badge-width)*16/11); --fit-badge-top:min(190px,26svh); }
   #home .strap { width:calc(var(--fit-badge-width)*8/55); left:calc(50% - var(--fit-badge-width)*4/55); }

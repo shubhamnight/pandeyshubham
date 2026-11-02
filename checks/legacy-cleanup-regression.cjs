@@ -1,10 +1,18 @@
 // Capture before cleanup, then compare the rendered public surfaces afterwards.
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const fs=require('node:fs/promises'),assert=require('node:assert/strict'),path=require('node:path');
-const origin=process.env.AUDIT_URL||'http://localhost:3000',out=path.resolve('output/legacy-cleanup');
+const origin=process.env.AUDIT_URL||'http://localhost:3000',out=path.resolve(process.env.AUDIT_OUTPUT||'output/legacy-cleanup');
 const properties=['display','position','width','height','padding','margin','gap','fontFamily','fontSize','fontWeight','fontStyle','lineHeight','letterSpacing','textAlign','color','backgroundColor','backgroundImage','border','borderRadius','boxShadow','filter','backdropFilter','overflow','objectFit','objectPosition','transformOrigin','animationName','animationDuration','animationTimingFunction','animationIterationCount','animationDirection','animationFillMode','transition'];
 const selectors=['.floating-nav','.floating-nav a','.badge-rig','.badge','.badge-face','.badge-title','.badge-title small','.badge-name','.badge-bottom','.strap','.strap-segment','.name-track','#about','.skills-heading','.skills-heading h2','.skills-heading em','.skills-heading>p','.skills-orbit-slot','.skills-orbit-symbol','.skill-shiny-button','.skill-logo','#projects','.project-heading','.project-heading h2','.project-heading em','.project-heading>p','.hobby-orbit-center button','.hobby-image-placeholder','.hobby-image-surface','#playground','.play-heading h2','.play-stage','.play-grid','.kinetic-object','.kinetic-object span','.stage-label','#profile','.polaroid','.polaroid img','.polaroid figcaption','.personal-copy h2','.personal-copy p','.signature-name','#contact','#connect-heading','.connect-heading-static','.footer-rotator','.footer-socials','.connect-secondary','.connect-person strong','.connect-person p','.social-link','.social-icon','dialog[open]','dialog[open]>header','dialog[open] h2','dialog[open]>header>button','.photo-carousel','.photo-full-image','.photo-nav','.photo-filmstrip','.zoom-slider','.dcc-root','.music-title','.music-song-singer','.music-song-lyric','.dcc-btn','.gaming-scroll-viewport','.gaming-marquee-card'];
-(async()=>{await fs.mkdir(out,{recursive:true});const browser=await chromium.launch({channel:'chrome',headless:true}),results={};
+// Shuffled artwork lands in grid tracks with subpixel rounding. Compare geometry
+// to 0.1 CSS px while retaining exact typography, colors, shadows and animation rules.
+function normalizeStyles(states){
+ for(const selectors of Object.values(states))for(const [selector,styles]of Object.entries(selectors)){
+  const normalized=styles.map(style=>{const copy={...style};for(const property of ['width','height','transformOrigin'])if(copy[property])copy[property]=copy[property].replace(/(-?\d+(?:\.\d+)?)px/g,(_,value)=>(Math.round(Number(value)*10)/10)+'px');return copy;});
+  selectors[selector]=[...new Set(normalized.map(JSON.stringify))].map(JSON.parse).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
+ }return states;
+}
+(async()=>{await fs.mkdir(out,{recursive:true});const browser=await chromium.launch({...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{channel:'chrome'}),headless:true}),results={};
  try{for(const [name,width,height,touch] of [['phone',390,844,true],['tablet',768,1024,true],['desktop',1440,900,false]]){
   const page=await browser.newPage({viewport:{width,height},isMobile:touch,hasTouch:touch}),errors=[];page.on('pageerror',e=>errors.push(e.message));
   if(process.env.LEGACY_REPLAY_BEFORE){
@@ -26,7 +34,7 @@ const selectors=['.floating-nav','.floating-nav a','.badge-rig','.badge','.badge
      if(selector==='.music-title'&&stage!=='music')continue;
      if((selector==='.hobby-image-placeholder'||selector==='.hobby-image-surface')&&stage!=='hobbies')continue;
      const allCards=['.hobby-image-placeholder','.hobby-image-surface','.gaming-marquee-card'].includes(selector);
-     const elements=query(selector).filter(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width>0&&r.height>0&&s.display!=='none'&&s.visibility!=='hidden'&&(allCards||r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth);});
+     const elements=query(selector).filter(e=>{if(e.closest('[inert]'))return false;const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width>0&&r.height>0&&s.display!=='none'&&s.visibility!=='hidden'&&(allCards||r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth);});
      if(!elements.length)continue;
      // Repeated holders share the same stylesheet; compare each distinct style.
      values[selector]=[...new Set(elements.map(e=>JSON.stringify(Object.fromEntries(properties.map(p=>[p,getComputedStyle(e)[p]])))))].map(JSON.parse).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
@@ -47,8 +55,9 @@ const selectors=['.floating-nav','.floating-nav a','.badge-rig','.badge','.badge
   await page.locator('#contact').scrollIntoViewIfNeeded();await page.waitForTimeout(2500);await sample('contact');
   assert.deepEqual(errors,[]);await page.close();console.log(name+' rendered styles and galleries captured');
  }}finally{await browser.close();}
+ normalizeStyles(results);
  const file=path.join(out,process.env.LEGACY_BASELINE?'baseline.json':'after.json');await fs.writeFile(file,JSON.stringify(results,null,2));
- if(!process.env.LEGACY_BASELINE){const before=JSON.parse(await fs.readFile(path.join(out,'baseline.json'))),differences=[];
+ if(!process.env.LEGACY_BASELINE){const before=normalizeStyles(JSON.parse(await fs.readFile(path.join(out,'baseline.json')))),differences=[];
   for(const key of Object.keys(before))for(const selector of new Set([...Object.keys(before[key]),...Object.keys(results[key]||{})])){
    if(JSON.stringify(before[key][selector])!==JSON.stringify(results[key]?.[selector]))differences.push({stage:key,selector,before:before[key][selector],after:results[key]?.[selector]});
   }

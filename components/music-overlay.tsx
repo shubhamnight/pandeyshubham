@@ -1,3 +1,4 @@
+import { prepareOverlayHost } from '@/lib/overlay-host';
 import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createRoot } from 'react-dom/client';
 import DiscCascadeCarousel from '@/components/ui/disc-cascade-carousel';
@@ -57,25 +58,10 @@ export async function mountMusicOverlay(host: HTMLElement, songs: MusicCard[], s
     fonts.onerror = () => fonts.remove();
     document.head.append(fonts);
   }
-  const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
-  shadow.replaceChildren();
-  const stylesheet = document.createElement('link');
-  stylesheet.rel = 'stylesheet';
-  stylesheet.href = new URL('./music-overlay.css', import.meta.url).href;
-  const ready = new Promise<void>((resolve, reject) => {
-    const cleanup = () => {
-      clearTimeout(timeout); signal?.removeEventListener('abort', abort);
-      stylesheet.onload = stylesheet.onerror = null;
-    };
-    const abort = () => { cleanup(); stylesheet.remove(); reject(new DOMException('Gallery closed', 'AbortError')); };
-    const timeout = window.setTimeout(() => { cleanup(); reject(new Error('Music styles took too long to load.')); }, 15000);
-    stylesheet.onload = () => { cleanup(); resolve(); };
-    stylesheet.onerror = () => { cleanup(); reject(new Error('Music styles could not load.')); };
-    signal?.addEventListener('abort', abort, { once: true });
-  });
-  const container = document.createElement('div'); container.className = 'music-react-root';
-  shadow.append(stylesheet, container);
-  await ready;
+  const { container } = await prepareOverlayHost(host, {
+    stylesheet: new URL('./music-overlay.css', import.meta.url),
+    containerClass: 'music-react-root', label: 'Music',
+  }, signal);
   const gallery = host.closest('dialog');
   if (signal?.aborted || !gallery?.open) return () => {};
   gallery.classList.add('music-cascade-active'); host.hidden = false;

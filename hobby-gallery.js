@@ -13,12 +13,11 @@ export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={
   }[gallery.id];
   const warm=()=>{
     if(!bundle)return;
-    // Fetch the stylesheet alongside the bundle so the first render does not
-    // wait for a second request after JavaScript has loaded and compiled.
-    // Preloading does not apply styles, mount a gallery, or start media.
-    for(const [extension,rel] of [['js','modulepreload'],['css','preload']]){
+    // Warm likely gallery assets without applying styles or starting media.
+    // Hover/focus may never open the gallery: speculative CSS stays low priority.
+    for(const [extension,rel] of [['js','modulepreload'],['css','prefetch']]){
       const href=new URL(`./assets/ui/${bundle}.${extension}`,import.meta.url).href;
-      if([...document.querySelectorAll('link[rel="modulepreload"],link[rel="preload"]')].some(link=>link.href===href))continue;
+      if([...document.querySelectorAll('link[rel="modulepreload"],link[rel="preload"],link[rel="prefetch"]')].some(link=>link.href===href))continue;
       const link=document.createElement('link');link.rel=rel;link.href=href;
       if(extension==='css')link.as='style';
       document.head.append(link);

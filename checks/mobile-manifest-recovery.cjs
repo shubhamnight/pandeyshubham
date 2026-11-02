@@ -3,8 +3,8 @@ const assert=require('node:assert/strict');
 const origin=process.env.AUDIT_URL||'http://localhost:3000';
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true});
- try{for(const touch of [true,false]){
-  const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:touch,isMobile:touch});
+ try{for(const [width,height,touch]of [[390,844,true],[768,1024,true],[1440,900,false]]){
+  const page=await browser.newPage({viewport:{width,height},hasTouch:touch,isMobile:touch});
   let requests=0,release;const gate=new Promise(resolve=>release=resolve);
   await page.route('**/qa-mobile-recovery.html',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><meta name="viewport" content="width=device-width"><img id="kept" src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221%22 height=%221%22/%3E" alt="Loaded content">'}));
   await page.route('**/mobile-media-data.json',async r=>{

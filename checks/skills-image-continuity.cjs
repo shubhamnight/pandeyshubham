@@ -3,8 +3,8 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const assert=require('node:assert/strict'),fs=require('node:fs/promises');
 const origin=process.env.AUDIT_URL||'http://localhost:3000';
 (async()=>{const browser=await chromium.launch({channel:'chrome',headless:true}),results=[];
- try{for(const touch of [true,false]){
-  const page=await browser.newPage({viewport:touch?{width:425,height:887}:{width:1440,height:900},isMobile:touch,hasTouch:touch});
+ try{for(const [profile,width,height,touch]of [['phone',425,887,true],['tablet',768,1024,true],['laptop',1440,900,false]]){
+  const page=await browser.newPage({viewport:{width,height},isMobile:touch,hasTouch:touch});
   let release,failures=0;const gate=new Promise(r=>release=r),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/assets/ui/skills-icons.js',async route=>{await gate;await route.continue();});
   if(touch)await page.route('**/assets/skills/figma.svg*',r=>failures++===0?r.fulfill({status:503,body:'deliberate temporary icon outage'}):r.continue());
@@ -19,7 +19,7 @@ const origin=process.env.AUDIT_URL||'http://localhost:3000';
   await page.evaluate(()=>document.querySelector('.floating-nav a[href="#about"]').click());
   await page.waitForFunction(()=>[...document.querySelectorAll('.skills-orbit-slot')].every(e=>getComputedStyle(e).visibility==='visible'));
   assert.ok(await page.evaluate(()=>window.qaNativeIcons.every(e=>e.isConnected&&e.complete&&e.naturalWidth)));
-  assert.deepEqual(errors,[]);results.push({touch,decodedImageIdentity:true,icons:14,failedRequestRecovered:touch,errors});await page.close();
+  assert.deepEqual(errors,[]);results.push({profile,touch,decodedImageIdentity:true,icons:14,failedRequestRecovered:touch,errors});await page.close();
  }}finally{await browser.close();}
- await fs.mkdir('output/oneplus-12r',{recursive:true});await fs.writeFile('output/oneplus-12r/icon-continuity.json',JSON.stringify(results,null,2));console.log(JSON.stringify(results));
+ const out=process.env.AUDIT_OUTPUT||'output/oneplus-12r';await fs.mkdir(out,{recursive:true});await fs.writeFile(require('node:path').join(out,'icon-continuity.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results));
 })().catch(e=>{console.error(e);process.exitCode=1;});

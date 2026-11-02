@@ -1,3 +1,4 @@
+import { prepareOverlayHost } from '@/lib/overlay-host';
 import { createRoot } from 'react-dom/client';
 import { HeroCarousel, type HeroCarouselItem } from '@/components/ui/hero-carousel';
 import { photographyHeroSources } from '@/photography-hero-data.js';
@@ -25,28 +26,10 @@ interface PhotographyMedia {
 
 /** A React island: styles and events stay inside the existing native dialog. */
 export async function mountPhotographyCarousel(host: HTMLElement, media: PhotographyMedia[], signal?: AbortSignal) {
-  const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
-  shadow.replaceChildren();
-  const stylesheet = document.createElement('link');
-  stylesheet.rel = 'stylesheet';
-  stylesheet.href = new URL('./photography-carousel.css', import.meta.url).href;
-  const ready = new Promise<void>((resolve, reject) => {
-    const cleanup = () => {
-      clearTimeout(timeout);
-      signal?.removeEventListener('abort', abort);
-      stylesheet.onload = stylesheet.onerror = null;
-    };
-    const abort = () => { cleanup(); stylesheet.remove(); reject(new DOMException('Gallery closed', 'AbortError')); };
-    const timeout = window.setTimeout(() => { cleanup(); reject(new Error('Photography styles took too long to load.')); }, 15000);
-    stylesheet.onload = () => { cleanup(); resolve(); };
-    stylesheet.onerror = () => { cleanup(); reject(new Error('Photography carousel styles could not load.')); };
-    signal?.addEventListener('abort', abort, { once: true });
-    if (signal?.aborted) abort();
-  });
-  const container = document.createElement('div');
-  container.className = 'photography-react-root';
-  shadow.append(stylesheet, container);
-  await ready;
+  const { shadow, container } = await prepareOverlayHost(host, {
+    stylesheet: new URL('./photography-carousel.css', import.meta.url),
+    containerClass: 'photography-react-root', label: 'Photography', errorLabel: 'Photography carousel',
+  }, signal);
   // The camera dialog may have closed while its first bundle was loading.
   if (signal?.aborted || !host.closest('dialog')?.open) return () => {};
   const items: HeroCarouselItem[] = media.map(item => ({
