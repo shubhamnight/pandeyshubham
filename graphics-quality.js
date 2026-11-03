@@ -1,4 +1,6 @@
 // Quality changes only decorative backing stores, never source media or motion.
+// Pixel area scales with the square of the density.
+export const renderScale=Math.sqrt(.70);
 const normal={model:1.5,background:1.35,preview:1.75,decorative:1.5};
 const touchLimits={model:1.25,background:1.25,preview:1.5,decorative:1.5};
 const lowLimits={model:1,background:1,preview:1.25,decorative:1};
@@ -27,7 +29,7 @@ export function graphicsPixelRatio(kind,maximum=Infinity){
     (globalThis.navigator?.platform==='MacIntel'&&globalThis.navigator.maxTouchPoints>1);
   const limits=state.reduced||weakHardware()?lowLimits:touch?touchLimits:normal;
   const density=globalThis.devicePixelRatio,limit=limits[kind];
-  return Math.min(positive(density)?density:1,positive(maximum)?maximum:Infinity,Number.isFinite(limit)?limit:1);
+  return Math.min(positive(density)?density:1,positive(maximum)?maximum:Infinity,Number.isFinite(limit)?limit:1)*renderScale;
 }
 
 /** Subscribe to the one runtime downshift; initial density comes from the query. */

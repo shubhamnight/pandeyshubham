@@ -54,7 +54,7 @@ window.startIntroCrowd = function(host) {
     if(!reduce.matches)wake();
   }
   function rescale(force=false){
-    const next=graphics?graphics.graphicsPixelRatio('decorative'):Math.min(devicePixelRatio||1,1.5);
+    const next=graphics?graphics.graphicsPixelRatio('decorative'):Math.min(devicePixelRatio||1,1.5)*Math.sqrt(.70);
     if(!force&&next===density)return false;
     density=next;canvas.width=Math.round(w*density);canvas.height=Math.round(h*density);
     ctx.setTransform(density,0,0,density,0,0);return true;

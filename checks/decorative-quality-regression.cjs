@@ -80,7 +80,7 @@ async function crowd(importResult = 'Promise.resolve(policy)', density = 1.5) {
   const weak = await crowd('Promise.resolve(policy)', 1);
   assert.equal(weak.canvases[0].width, 800, 'early low tier uses the same crowd assets'); weak.stop();
   const unavailable = await crowd('Promise.reject(Error("Injected optional import failure"))');
-  assert.equal(unavailable.canvases[0].width, 1200); assert.ok(unavailable.frames.size, 'optional policy failure cannot gate crowd readiness'); unavailable.stop();
+  assert.equal(unavailable.canvases[0].width, Math.round(1200*Math.sqrt(.70))); assert.ok(unavailable.frames.size, 'optional policy failure cannot gate crowd readiness'); unavailable.stop();
   const pending = environment(); let release;
   pending.globals.pendingPolicy = new Promise(resolve => { release = resolve; });
   vm.runInNewContext(read('intro-crowd.js').replace("import('./graphics-quality.js')", 'pendingPolicy'), pending.globals);

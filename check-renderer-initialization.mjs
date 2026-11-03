@@ -10,7 +10,7 @@ try{
    setDrawingBufferSize(w,h,dpr){calls.push(['buffer',w,h,dpr]);}
   }
   const renderer=createHobbyRenderer(Renderer,{clientWidth:width,clientHeight:height},ratio);
-  const density=Math.min(globalThis.devicePixelRatio||1,ratio,1.5);
+  const density=Math.min(globalThis.devicePixelRatio||1,ratio,1.5)*Math.sqrt(.70);
   assert.deepEqual(calls,[['initial',Math.floor(width*density),Math.floor(height*density)],['buffer',width,height,density]]);
   assert.equal(renderer.options.alpha,true);assert.equal(renderer.options.antialias,true);
   assert.equal(renderer.options.powerPreference,'low-power');

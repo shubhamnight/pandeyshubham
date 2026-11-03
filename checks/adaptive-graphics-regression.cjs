@@ -57,7 +57,7 @@ async function idle(page){
    await enter(page);await hobbies(page);
    await page.waitForFunction(()=>document.querySelectorAll('.hobby-orbit-center button canvas').length===4&&document.querySelectorAll('.hobby-video-canvas').length>0);
    await footer(page);await idle(page);const before=await snapshot(page),weak=profile.startsWith('weak');
-   const modelRatio=weak?1:touch?1.25:1.5,backgroundRatio=weak?1:touch?1.25:1.35;
+   const scale=Math.sqrt(.70),modelRatio=(weak?1:touch?1.25:1.5)*scale,backgroundRatio=(weak?1:touch?1.25:1.35)*scale;
    for(const model of before.models){
     assert.equal(model.width,Math.floor(model.cssWidth*modelRatio),profile+' initial model density');
     assert.equal(model.height,Math.floor(model.cssHeight*modelRatio));
@@ -81,7 +81,7 @@ async function idle(page){
    assert.equal(latched,!weak,'only capable/unknown hardware needs the synthetic pressure downshift');
    await page.waitForTimeout(300);assert.equal(await page.evaluate(()=>window.qaFrames),0,'quality changes do not start offscreen frame loops');
    const lowered=await snapshot(page);
-   assert.equal(lowered.background.width,Math.round(before.background.cssWidth),'native pressure reaches the separately bundled footer');
+   assert.equal(lowered.background.width,Math.round(before.background.cssWidth*scale),'native pressure reaches the separately bundled footer');
    if(!weak)assert.ok(lowered.previews.some((canvas,index)=>canvas.width<before.previews[index].width),'existing preview backing stores shrink in place');
    lowered.previews.forEach((canvas,index)=>{
     assert.equal(canvas.smoothing,'high');assert.equal(canvas.cssWidth,before.previews[index].cssWidth);assert.equal(canvas.cssHeight,before.previews[index].cssHeight);
@@ -89,7 +89,7 @@ async function idle(page){
    assert.deepEqual(await page.evaluate(()=>window.qaPreviewVideos.map(video=>video.getAttribute('src'))),sources,'quality changes never replace video sources');
    await hobbies(page);const after=await snapshot(page);
    for(const model of after.models){
-    assert.equal(model.width,model.cssWidth);assert.equal(model.height,model.cssHeight);assert.equal(model.antialias,true);
+    assert.equal(model.width,Math.floor(model.cssWidth*scale));assert.equal(model.height,Math.floor(model.cssHeight*scale));assert.equal(model.antialias,true);
     const original=before.models.find(item=>item.id===model.id);assert.equal(model.cssWidth,original.cssWidth);assert.equal(model.cssHeight,original.cssHeight);
    }
    assert.deepEqual(after.fonts,before.fonts,'font rendering choices remain unchanged');
