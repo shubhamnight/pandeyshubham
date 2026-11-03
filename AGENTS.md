@@ -13,3 +13,6 @@
 - For bug fixes, add or reuse a test that exercises the actual failure trigger,
   run the affected checks, and distinguish browser emulation from physical-device
   evidence. Never make a failing test pass by hiding a real failure.
+- Treat frontend and backend crash prevention and recovery as release requirements.
+  Verify affected failure paths, stalled requests, invalid input and lifecycle
+  cleanup; report unresolved or unverified behavior before claiming completion.

@@ -9,7 +9,7 @@ npm test
 ```
 
 The complete run builds the production files, starts its own loopback preview,
-runs 41 named cases sequentially, writes the real exit codes and evidence to
+runs 44 named cases sequentially, writes the real exit codes and evidence to
 `output/regressions/<timestamp>/`, and stops its preview. It does not stop the
 owner's preview or publish anything. Expect a substantial run: rendering stress
 and the five-browser journeys are deliberately sequential to avoid competing
@@ -58,9 +58,12 @@ those variables; their evidence must be described as focused coverage.
 | Jitter, excess graphics work, high-refresh caps | `scroll-intent`, `animation-algorithms`, `cursor-physics`, `graphics-density`, `graphics-buffers`, `particle-paints`, `runtime-budget` |
 | Offscreen or hidden-tab animation/video keeps running | `offscreen`, `animation-algorithms`, `gaming`: viewport exit, dialog pause, hidden tab and persisted page lifecycle |
 | Missing previews, videos or wrong mobile assets | `media`, `asset-decoding`, `preview-quality`, `manifest-recovery`: all media decode, failed/stalled optional metadata, source selection, SSIM and video frame counts |
+| Hung metadata body or initially failed hobby preview stays empty | `media-recovery`: deterministic deadlines, shared retry, same-item recovery, stale decode rejection and disposal; actual source modules in an isolated VM |
 | Overlay lock, stale mount, CSS failure, unused-preload warning | `interactions`, `stylesheet-lifecycle`, `historical-contracts`: repeated open/close, abort/timeout/error/retry, speculative prefetch and browser log |
 | Travel click, unwanted navigation, labels and video controls | `historical-contracts`: real click moves a visible card into featured position, explicit saved names only, no serials/external links, muted inline loops, portrait frames with retained landscape exception |
 | Music typography, numbering and copy overlap | `historical-contracts`, `reading`, `short-music`: fonts, retired labels, all 28 cards, native lyric scroll and short screens |
+| Overlay keyboard focus and video selection | `overlay-keyboard`: native Tab/Space/Enter/Escape, Songs focus return, visible Travel focus and actual featured-card movement |
+| Photography/Travel crop editor journeys | `image-editor`: isolated synthetic media and routed API contracts across three viewport/input profiles; actual backend persistence/encoding stays covered separately by `backend-stress` |
 | Gaming accessibility, seams, missing games | `gaming`: five profiles, wheel, touch swipe, keyboard, reduced-motion access and unmount cleanup |
 | Cursor outline, drift or replacement of normal pointer | `cursor-follower`, `cursor-magnetism`, `cursor-physics`: hover/press/edge targets, shadow cards, top-layer dialogs and no touch cursor loop |
 | Connection drop discards already-loaded page | `connection`: laptop, phone, tablet, failed contact bundle and retry, cold offline navigation |
@@ -87,7 +90,18 @@ the repaired font's original outlines and metrics are recorded in
 automation build; WebKit is Playwright's Windows
 engine, not a physical Safari browser. The Firefox launcher has a Windows-only
 fallback that copies the unchanged test distribution into `tmp/` if the cache
-location fails to launch. It changes no system settings or browser profiles.
+location fails to launch. It changes no system settings or the owner's browser profiles.
+
+Headed Firefox launches on Windows disable window occlusion tracking only in
+their temporary automation profile, following [Mozilla's remote-protocol
+recommendation](https://bugzilla.mozilla.org/show_bug.cgi?id=1802473). Covered
+automation windows otherwise delivered only nine RAF callbacks in 46 seconds
+despite reporting a visible, focused document, stranding the loader. The same
+unchanged website completed all three profile journeys with the preference;
+the morph finished in 1.68–1.77 seconds. This does not replace RAF, alter the
+website's animation clocks, change the owner's Firefox settings, or suppress
+any journey assertion. Explicit launcher preferences remain overridable for
+negative controls; headless and non-Windows launches retain their defaults.
 
 ## Backend isolation and stress
 

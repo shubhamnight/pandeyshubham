@@ -7,12 +7,14 @@ const state = globalThis[key] || (globalThis[key] = { files: null, ready: null }
 // A missing manifest preserves the existing media, including new editor uploads.
 // This optional optimization must never gate a gallery mount or preview image.
 function loadMobileMedia(){
-  if(state.files)return Promise.resolve();
+  if(state.files||state.disposed)return Promise.resolve();
   if(state.pending)return state.pending;
-  const request=fetch(new URL('/mobile-media-data.json', location.href), { cache: 'no-cache' })
+  const controller=new AbortController();state.controller=controller;
+  const deadline=setTimeout(()=>controller.abort(),8000);state.deadline=deadline;
+  const request=fetch(new URL('/mobile-media-data.json', location.href), { cache: 'no-cache', signal:controller.signal })
     .then(response => response.ok ? response.json() : null)
-    .then(data => { state.files = data?.files || null; state.previews = data?.previews || null; }).catch(() => {})
-    .finally(()=>{if(state.pending===request)state.pending=null;});
+    .then(data => {if(!controller.signal.aborted&&!state.disposed){state.files=data?.files||null;state.previews=data?.previews||null;}}).catch(() => {})
+    .finally(()=>{clearTimeout(deadline);if(state.pending===request){state.pending=null;state.controller=null;state.deadline=0;}});
   state.pending=request;return request;
 }
 export const mobileMediaReady = state.ready || (state.ready = touchPerformance?loadMobileMedia():Promise.resolve());
@@ -20,9 +22,13 @@ export const mobileMediaReady = state.ready || (state.ready = touchPerformance?l
 // A failed optional manifest must not force full-size phone downloads for the
 // rest of the visit. Share one event-driven retry across native/React islands;
 // never replace already displayed media or poll in the background.
-if(touchPerformance&&typeof window!=='undefined'&&!state.recoveryDetach){
+if(touchPerformance&&typeof window!=='undefined'&&!state.recoveryDetach&&!state.disposed){
   const retry=()=>{if(!document.hidden&&navigator.onLine!==false&&!state.files)void loadMobileMedia();};
-  const dispose=event=>{if(event.persisted)return;state.recoveryDetach?.();delete state.recoveryDetach;};
+  const dispose=event=>{
+    if(event.persisted)return;
+    state.disposed=true;state.controller?.abort();clearTimeout(state.deadline);
+    state.recoveryDetach?.();delete state.recoveryDetach;
+  };
   state.recoveryDetach=()=>{
     window.removeEventListener('online',retry);window.removeEventListener('pageshow',retry);
     document.removeEventListener('visibilitychange',retry);window.removeEventListener('pagehide',dispose);

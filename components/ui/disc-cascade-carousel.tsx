@@ -1093,6 +1093,7 @@ export default function DiscCascadeCarousel({
       e.preventDefault()
       e.stopPropagation()
       setMenu(false)
+      menuRef.current?.querySelector('button')?.focus({ preventScroll: true })
       return
     }
     if ((e.target as Element).closest("[data-dcc-menu]")) return
@@ -1177,7 +1178,6 @@ export default function DiscCascadeCarousel({
               <button
                 type="button"
                 className="dcc-menubtn"
-                aria-haspopup="true"
                 aria-expanded={menu}
                 aria-controls={uid + "list"}
                 onClick={() => setMenu((m) => !m)}

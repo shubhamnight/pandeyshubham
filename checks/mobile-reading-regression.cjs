@@ -2,6 +2,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path');
 const origin=process.env.AUDIT_URL||'http://localhost:3000',output=path.resolve(process.env.AUDIT_OUTPUT||'output/final-audit/reading');
 const profiles=[[320,568],[320,480],[341,640],[350,780],[360,800],[390,844],[430,932],[768,1024],[820,1180],[1024,1366],[844,390],[1440,900],[2560,1440]];
+const titleStyles=Object.fromEntries(require('../music-typography.json').map(song=>[song.title,song.typography]));
 (async()=>{
  await fs.mkdir(output,{recursive:true});const browser=await chromium.launch({channel:'chrome',headless:true}),results=[];
  try{for(const [width,height]of profiles){
@@ -34,6 +35,10 @@ const profiles=[[320,568],[320,480],[341,640],[350,780],[360,800],[390,844],[430
   await page.screenshot({path:path.join(output,width+'-skills.png')});
   await page.locator('.floating-nav a[href="#projects"]').evaluate(e=>e.click());
   await page.waitForFunction(()=>!document.querySelector('#projects').inert&&document.querySelector('#projects').hobbyEntranceProgress===1);
+  await page.waitForFunction(()=>document.querySelectorAll('.music-record-caption').length===3);
+  for(const caption of await page.locator('.music-record-caption').evaluateAll(elements=>elements.map(e=>({title:e.querySelector('strong').textContent,style:e.querySelector('strong').dataset.titleStyle,singer:getComputedStyle(e.querySelector('span')).fontFamily})))){
+   assert.equal(caption.style,titleStyles[caption.title]);assert.match(caption.singer,/Acme/);
+  }
   await page.locator('#music-walkman').click();await page.locator('#music-gallery .music-song-copy').waitFor();
   const copy=page.locator('#music-gallery .music-song-copy');
   const songMetrics=[];
@@ -41,9 +46,10 @@ const profiles=[[320,568],[320,480],[341,640],[350,780],[360,800],[390,844],[430
    const metrics=await copy.evaluate(e=>{
     const b=e.getBoundingClientRect(),stage=e.parentElement.getBoundingClientRect();
     const title=e.querySelector('h3'),singer=e.querySelector('.music-song-singer'),lyric=e.querySelector('.music-song-lyric');
-    return {title:title.textContent,width:b.width,height:b.height,stageHeight:stage.height,copyBottom:(b.bottom-stage.top)/stage.height,scrollHeight:e.scrollHeight,clientHeight:e.clientHeight,scrollable:getComputedStyle(e).overflowY==='auto',fits:b.left>=stage.left-.5&&b.right<=stage.right+.5&&b.top>=stage.top-.5&&b.bottom<=stage.bottom+.5,horizontalOverflow:e.scrollWidth>e.clientWidth+1,titleFont:parseFloat(getComputedStyle(title).fontSize),singerFont:parseFloat(getComputedStyle(singer).fontSize),lyricFont:parseFloat(getComputedStyle(lyric).fontSize)};
+    return {title:title.textContent,titleStyle:title.dataset.titleStyle,singerFamily:getComputedStyle(singer).fontFamily,lyricFamily:getComputedStyle(lyric).fontFamily,width:b.width,height:b.height,stageHeight:stage.height,copyBottom:(b.bottom-stage.top)/stage.height,scrollHeight:e.scrollHeight,clientHeight:e.clientHeight,scrollable:getComputedStyle(e).overflowY==='auto',fits:b.left>=stage.left-.5&&b.right<=stage.right+.5&&b.top>=stage.top-.5&&b.bottom<=stage.bottom+.5,horizontalOverflow:e.scrollWidth>e.clientWidth+1,titleFont:parseFloat(getComputedStyle(title).fontSize),singerFont:parseFloat(getComputedStyle(singer).fontSize),lyricFont:parseFloat(getComputedStyle(lyric).fontSize)};
    });
    assert.ok(metrics.fits&&!metrics.horizontalOverflow,`${width}: ${metrics.title} text fits the existing copy area`);
+   assert.equal(metrics.titleStyle,titleStyles[metrics.title]);assert.match(metrics.singerFamily,/Acme/);assert.match(metrics.lyricFamily,/Righteous/);
    assert.ok(metrics.scrollHeight<=metrics.clientHeight+1||metrics.scrollable,'long copy remains reachable');
    if(width<=640&&metrics.stageHeight>360)assert.ok(metrics.copyBottom<=.451,'copy stays inside its original region above the discs');
    if(touch){assert.ok(metrics.singerFont>=12.5);assert.ok(metrics.lyricFont>=13);assert.ok(metrics.titleFont>=16);}

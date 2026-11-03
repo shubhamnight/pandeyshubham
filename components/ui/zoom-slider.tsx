@@ -404,7 +404,7 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
           {item.desc && <p data-desc className="select-none text-[10px] leading-normal tracking-[0.04em] text-white/60">{item.desc}</p>}
         </div>
         {item.type === 'video' ? <div ref={element => { imageWrapRefs.current[index] = element; }}
-          data-travel-index={index} tabIndex={-1} role="group"
+          data-travel-index={index} tabIndex={-1} role="button"
           aria-label={`Show ${item.title || 'this video'} in the featured position`}
           className="zoom-image-wrap relative block overflow-hidden border-0 p-0 text-left">
           <TravelSliderVideo item={item} onReady={video => { videoRefs.current[index] = video; }} />

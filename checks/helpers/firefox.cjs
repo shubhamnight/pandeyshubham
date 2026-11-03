@@ -1,6 +1,11 @@
 const fs=require('node:fs'),path=require('node:path');
 module.exports=async function launchFirefox(browserType,options={}){
  const settings={headless:true,...options};
+ // Covered Windows automation windows otherwise exponentially throttle RAF.
+ // Mozilla's remote-protocol recommendation: https://bugzilla.mozilla.org/show_bug.cgi?id=1802473
+ if(process.platform==='win32'&&settings.headless===false)settings.firefoxUserPrefs={
+  'widget.windows.window_occlusion_tracking.enabled':false,...settings.firefoxUserPrefs,
+ };
  try{return await browserType.launch(settings);}
  catch(error){
   if(process.platform!=='win32'||!error.message.includes('spawn UNKNOWN'))throw error;

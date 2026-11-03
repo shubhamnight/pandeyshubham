@@ -27,7 +27,7 @@ export function createHobbyMedia(item,gallery=false,createGalleryVideo=galleryVi
 export function connectHobbyPreviews(selector,nextMedia,mediaElement,onDispose) {
   const section=document.querySelector('#projects');
   const slots=[...section.querySelectorAll(selector+' .hobby-image-placeholder')].slice(0,3);
-  const visible=new Set(),players=new WeakMap();
+  const visible=new Set(),players=new WeakMap(),failures=new Map(),pendingLoads=new Map();
   const surfaces=new Map(slots.map(slot=>[slot,slot.querySelector('.hobby-image-surface')]));
   let disposed=false,previousAllowed=null,started=false;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -41,13 +41,54 @@ export function connectHobbyPreviews(selector,nextMedia,mediaElement,onDispose) 
       if(allowed&&visible.has(slot))video.play().catch(()=>{});else video.pause();
     }
   }
-  function syncPlayback(){const next=playbackAllowed();if(next!==previousAllowed){previousAllowed=next;playback();}}
-  async function fill(slot){
+  function retryFailed(){
+    if(disposed||document.hidden||navigator.onLine===false)return;
+    for(const [slot,failure] of failures){
+      if(failure.timer||failure.attempt>2)continue;
+      failure.timer=setTimeout(()=>{
+        failure.timer=0;
+        if(!disposed&&!document.hidden&&navigator.onLine!==false&&failures.get(slot)===failure)
+          void fill(slot,failure.item,failure.attempt);
+      },failure.attempt===1?250:1000);
+    }
+  }
+  function syncPlayback(){const next=playbackAllowed();if(next!==previousAllowed){previousAllowed=next;playback();}retryFailed();}
+  function recover(){
+    // A real reconnect/restore renews an exhausted budget; animation/class
+    // changes only resume pending attempts and cannot create a polling loop.
+    for(const failure of failures.values())if(failure.attempt>2)failure.attempt=1;
+    playback();retryFailed();
+  }
+  async function fill(slot,item=nextMedia(),attempt=0){
     if(disposed)return;
-    const item=nextMedia();if(!item)return;
+    pendingLoads.get(slot)?.();
+    clearTimeout(failures.get(slot)?.timer);failures.delete(slot);
+    if(!item)return;
     const version=(slot.mediaVersion||0)+1;slot.mediaVersion=version;
     const element=mediaElement(item);
-    if(item.type==='image'){try{await element.decode();}catch{return;}}
+    if(item.type==='image'){
+      if(attempt&&element.src){
+        const source=new URL(element.src,location.href);
+        if(source.origin===location.origin){source.searchParams.set('preview-retry',String(attempt));element.src=source.href;}
+      }
+      try{await new Promise((resolve,reject)=>{
+        let finished=false,timer;
+        const finish=error=>{
+          if(finished)return;finished=true;clearTimeout(timer);
+          if(pendingLoads.get(slot)===cancel)pendingLoads.delete(slot);
+          if(error){element.removeAttribute?.('srcset');element.removeAttribute?.('src');reject(error);}
+          else resolve();
+        };
+        const cancel=()=>finish(new DOMException('Preview load cancelled','AbortError'));
+        pendingLoads.set(slot,cancel);timer=setTimeout(cancel,8000);
+        Promise.resolve().then(()=>element.decode()).then(()=>finish(),finish);
+      });}catch{
+        if(!disposed&&slot.mediaVersion===version&&!surfaces.get(slot).children.length){
+          failures.set(slot,{item,attempt:attempt+1,timer:0});retryFailed();
+        }
+        return;
+      }
+    }
     if(disposed||slot.mediaVersion!==version){element.videoPlayback?.dispose();return;}
     players.get(slot)?.dispose();surfaces.get(slot).replaceChildren(element);
     players.set(slot,element.videoPlayback);element.videoPlayback?.resize();playback();
@@ -64,12 +105,15 @@ export function connectHobbyPreviews(selector,nextMedia,mediaElement,onDispose) 
   },{threshold:0});slots.forEach(slot=>observer.observe(slot));
   document.addEventListener('visibilitychange',syncPlayback);reduced.addEventListener('change',syncPlayback);
   const playbackObserver=new MutationObserver(syncPlayback);playbackObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
-  window.addEventListener('pageshow',playback);
+  window.addEventListener('pageshow',recover);window.addEventListener('online',recover);
   window.addEventListener('pagehide',event=>{
     slots.forEach(slot=>players.get(slot)?.pause());if(event.persisted)return;
     disposed=true;startup.disconnect();observer.disconnect();playbackObserver.disconnect();visible.clear();
+    pendingLoads.forEach(cancel=>cancel());pendingLoads.clear();
+    failures.forEach(failure=>clearTimeout(failure.timer));failures.clear();
     slots.forEach(slot=>{slot.mediaVersion=(slot.mediaVersion||0)+1;players.get(slot)?.dispose();slot.removeEventListener('hobby-cycle',cycleHandlers.get(slot));});
-    document.removeEventListener('visibilitychange',syncPlayback);reduced.removeEventListener('change',syncPlayback);window.removeEventListener('pageshow',playback);
+    document.removeEventListener('visibilitychange',syncPlayback);reduced.removeEventListener('change',syncPlayback);
+    window.removeEventListener('pageshow',recover);window.removeEventListener('online',recover);
     onDispose();
   });
 }

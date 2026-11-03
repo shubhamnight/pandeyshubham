@@ -354,6 +354,12 @@ if (slots.length) {
       .catch(error=>console.error('Shiny skill icons could not load; keeping the native icons.',error))
       .finally(()=>{iconsLoading=false;});
   }
+  function recoverIcons(){
+    // Only a reconnect/restore renews exhausted failed-image budgets.
+    for(const image of section.querySelectorAll('.skill-logo'))
+      if(image.complete&&!image.naturalWidth&&(iconRetries.get(image)||0)>=2)iconRetries.delete(image);
+    loadIcons();
+  }
   const iconObserver=new IntersectionObserver(entries=>{
     iconsApproaching=entries.some(entry=>entry.isIntersecting);
     if(iconsApproaching)loadIcons();
@@ -361,8 +367,8 @@ if (slots.length) {
   iconObserver.observe(section);
   section.addEventListener('error',iconError,true);
   document.addEventListener('visibilitychange',repairIcons);
-  window.addEventListener('pageshow',repairIcons);
-  window.addEventListener('online',loadIcons);
+  window.addEventListener('pageshow',recoverIcons);
+  window.addEventListener('online',recoverIcons);
   stage.addEventListener('pointerdown',loadIcons,{passive:true});
   const unobserveScene = observeScene(touchPerformance ? watchInputs(sceneMotion,
     ['enabled','visible','exit','modelArrival','stageHeight','top'],wake) : wake);
@@ -400,9 +406,9 @@ if (slots.length) {
     disposed=true;
     for(const timer of iconRetryTimers.values())clearTimeout(timer);iconRetryTimers.clear();
     section.removeEventListener('error',iconError,true);
-    document.removeEventListener('visibilitychange',repairIcons);window.removeEventListener('pageshow',repairIcons);
+    document.removeEventListener('visibilitychange',repairIcons);window.removeEventListener('pageshow',recoverIcons);
     iconObserver.disconnect();disposeIcons?.();
-    window.removeEventListener('online',loadIcons);stage.removeEventListener('pointerdown',loadIcons);
+    window.removeEventListener('online',recoverIcons);stage.removeEventListener('pointerdown',loadIcons);
     observer.disconnect(); bodyObserver.disconnect(); unobserveScene();
     window.removeEventListener('scroll', wake);
     window.removeEventListener('resize', resize);

@@ -7,7 +7,7 @@ function meta(file){return JSON.parse(execFileSync('ffprobe',['-v','error','-sel
 async function resolver(touch,failed=false){
   let requests=0;const module={exports:{}};
   const code=transformSync(fs.readFileSync('mobile-media.js','utf8'),{format:'cjs'}).code;
-  vm.runInNewContext(code,{module,Symbol,URL,location:{href:'http://localhost/'},
+  vm.runInNewContext(code,{module,Symbol,URL,AbortController,setTimeout,clearTimeout,location:{href:'http://localhost/'},
     require:()=>({touchPerformance:touch}),fetch:async()=>{requests++;if(failed)throw Error('offline');return {ok:true,json:async()=>manifest};}});
   await module.exports.mobileMediaReady;return {api:module.exports,requests};
 }
