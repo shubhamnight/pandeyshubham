@@ -62,6 +62,12 @@ body.intro-active{overflow:hidden}
 .portfolio-intro.is-zooming .intro-play{overflow:visible;animation:none}
 .portfolio-intro.is-zooming .intro-play .flow-play{animation:none;translate:0 0;transition:none;transform-origin:center;outline:none;will-change:transform}
 .portfolio-intro.is-zooming .flow-label>span{animation:none;translate:0 0}
+/* Keep the touch zoom from scaling nested clipped paint layers. */
+@media(pointer:coarse){
+  .portfolio-intro.is-zooming .intro-play .flow-play{overflow:visible;will-change:auto}
+  .portfolio-intro.is-zooming .intro-play .flow-label{overflow:visible}
+  .portfolio-intro.is-zooming .intro-play .flow-arrow-left{visibility:hidden}
+}
 .portfolio-intro .intro-play .flow-play:active,
 .portfolio-intro .intro-play .flow-play:focus:not(:focus-visible),
 .portfolio-intro.is-zooming .intro-play .flow-play:focus-visible{outline:none;box-shadow:none}

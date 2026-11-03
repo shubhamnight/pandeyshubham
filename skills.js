@@ -99,8 +99,8 @@ function draw() {
       x = centerX + radius * Math.cos(angle);
       y = centerY + radius * Math.sin(angle);
     }
-    const transform = 'translate3d(' + (x - size / 2).toFixed(3) + 'px,' +
-      (y - size / 2).toFixed(3) + 'px,0)';
+    const position = (x - size / 2).toFixed(3) + 'px,' + (y - size / 2).toFixed(3) + 'px';
+    const transform = touchPerformance ? `translate(${position})` : `translate3d(${position},0)`;
     if (slot.orbitTransform !== transform) {
       slot.orbitTransform = transform;
       slot.style.transform = transform;
@@ -291,7 +291,9 @@ function tick(time) {
     (mode !== 'retreat' || retreatMoving) &&
     (mode !== 'handoff' || handoff.velocity !== 0 || handoff.progress !== Math.max(sceneMotion.exit,
       sceneMotion.modelArrival > 0 ? .78 + .22 * sceneMotion.modelArrival : 0));
-  if (section.classList.contains('skills-orbit-running') !== running) section.classList.toggle('skills-orbit-running', running);
+  // Avoid a separate promoted layer per icon in the touch transition.
+  const promoteSlots = running && !touchPerformance;
+  if (section.classList.contains('skills-orbit-running') !== promoteSlots) section.classList.toggle('skills-orbit-running', promoteSlots);
   if (running) scheduled = requestHobbyFrame(tick, 15);
   else stop();
 }
