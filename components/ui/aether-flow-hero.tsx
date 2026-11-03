@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { motion, useInView, useReducedMotion, type Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { graphicsPixelRatio } from '@/graphics-quality.js';
+import { graphicsPixelRatio, observeGraphicsQuality, reportGraphicsFrame } from '@/graphics-quality.js';
 
 interface AetherFlowHeroProps {
   className?: string;
@@ -140,6 +140,7 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
     function tick(now: number) {
       frame = 0;
       if (paused()) return;
+      reportGraphicsFrame(now);
       if (!lastDraw || now - lastDraw >= frameInterval - 1) {
         if (pointerPending) {
           if (boundsDirty || !pointerBounds) { pointerBounds = stage!.getBoundingClientRect(); boundsDirty = false; }
@@ -173,13 +174,15 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
       const nextDensity = graphicsPixelRatio('background');
       if (!nextWidth || !nextHeight || (width === nextWidth && height === nextHeight && density === nextDensity)) return;
       const previousWidth = width, previousHeight = height;
-      boundsDirty = true;
+      const sizeChanged = width !== nextWidth || height !== nextHeight;
+      if(sizeChanged)boundsDirty = true;
       width = nextWidth;
       height = nextHeight;
       density = nextDensity;
       canvas!.width = Math.round(width * density);
       canvas!.height = Math.round(height * density);
       ctx.setTransform(density, 0, 0, density, 0, 0);
+      if(!sizeChanged){draw();return;}
       connectionSquared = Math.min(width * height / 49, 20000);
       cellSize = Math.sqrt(connectionSquared);
       columns = Math.max(1, Math.ceil(width / cellSize));
@@ -229,6 +232,7 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
     });
     const resizeObserver = new ResizeObserver(resize);
     const bodyObserver = new MutationObserver(sync);
+    const unobserveQuality = observeGraphicsQuality(resize);
     resize();
     visibility.observe(stage);
     resizeObserver.observe(stage);
@@ -246,6 +250,7 @@ export default function AetherFlowHero({ className, onReady, backgroundOnly = fa
       visibility.disconnect();
       resizeObserver.disconnect();
       bodyObserver.disconnect();
+      unobserveQuality();
       pointerSurface.removeEventListener('pointermove', pointerMove);
       pointerSurface.removeEventListener('pointerleave', pointerLeave);
       window.removeEventListener('scroll', invalidateBounds);

@@ -135,7 +135,9 @@ function tick(time){
     });
     measure=false;
   }
-  const dt=last?Math.min((time-last)/1000,.05):1/60;last=time;
+  // The progress solver already uses small steps. Allow it to catch up when
+  // visible frames are sparse, while bounding the work after a stall.
+  const dt=last?Math.max(0,Math.min((time-last)/1000,.25)):1/60;last=time;
   const paused=bodyIsPaused();
   if(reduced.matches){progress=spreadMotion.value=arrivalMotion.value=1;spreadMotion.velocity=arrivalMotion.velocity=0;}
   else if(!paused){

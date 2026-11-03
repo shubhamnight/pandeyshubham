@@ -10,6 +10,9 @@
 - Preserve required behavior, design, animations, media quality, accessibility,
   error recovery and meaningful regression coverage. Keep necessary safeguards;
   do not remove them merely to shorten code.
+- The requested adaptive graphics feature may reduce decorative backing-buffer
+  resolution on low-end or consistently struggling devices. Keep capable-device
+  quality, original media, model geometry, layout and animation timing unchanged.
 - For bug fixes, add or reuse a test that exercises the actual failure trigger,
   run the affected checks, and distinguish browser emulation from physical-device
   evidence. Never make a failing test pass by hiding a real failure.

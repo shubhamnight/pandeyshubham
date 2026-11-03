@@ -3,7 +3,7 @@
 import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
 import { touchPerformance } from './touch-performance.js';
 import { mobileMediaSource, mobilePreviewSource } from './mobile-media.js';
-import { graphicsPixelRatio } from './graphics-quality.js';
+import { graphicsPixelRatio, observeGraphicsQuality } from './graphics-quality.js';
 const liveCards=new Set();
 const pendingPaints=new Set();
 let paintFrame=0;
@@ -14,7 +14,7 @@ function flushPaints(){
 }
 function queuePaint(paint){
   pendingPaints.add(paint);
-  if(!paintFrame)paintFrame=requestHobbyFrame(flushPaints,40);
+  if(!paintFrame)paintFrame=requestHobbyFrame(flushPaints,40,false);
 }
 function removePaint(paint){
   pendingPaints.delete(paint);
@@ -32,15 +32,18 @@ function previewResolution(canvas){
   const slotWidth=longEdge<=900?132:Math.max(132,Math.min(211.2,longEdge*.156));
   return Math.max(canvas.width,slotWidth*1.265*graphicsPixelRatio('preview'));
 }
-window.addEventListener('resize',()=>{
+function resizeCards(){
   if(touchPerformance){
     // Read every placeholder size before resizing any canvas backing store.
     const sizes=[...liveCards].map(player=>[player,player.measure()]);
     for(const [player,size] of sizes)player.resize(size);
   }else for(const player of liveCards)player.resize();
-},{passive:true});
+}
+window.addEventListener('resize',resizeCards,{passive:true});
+const unobserveQuality=observeGraphicsQuality(resizeCards);
 window.addEventListener('pagehide',event=>{
   for(const player of [...liveCards])if(event.persisted)player.pause();else player.dispose();
+  if(!event.persisted){unobserveQuality();window.removeEventListener('resize',resizeCards);}
 });
 export function createVideoCard(item) {
   const canvas=document.createElement('canvas');
@@ -83,7 +86,7 @@ export function createVideoCard(item) {
   }
   function schedule(){
     if(callback!==null||!playing||disposed)return;
-    callback=nativeFrames?video.requestVideoFrameCallback(update):requestHobbyFrame(update,35);
+    callback=nativeFrames?video.requestVideoFrameCallback(update):requestHobbyFrame(update,35,false);
   }
   function cancel(){
     removePaint(drawFrame);

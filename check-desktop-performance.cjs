@@ -47,7 +47,7 @@ assert.ok(a.measurements>before);assert.equal(b.measurements,after,'stationary s
 function paintCadence(source,hz,touch){
  const interval=source.slice(source.indexOf('const frameInterval ='),source.indexOf('function paused()'));
  const tick=transformSync(source.slice(source.indexOf('function tick(now:'),source.indexOf('function sync()')),{loader:'ts'}).code;
- const draws=[];const context=vm.createContext({frame:0,lastDraw:0,paused:()=>false,pointerPending:false,draw:dt=>draws.push(dt),requestAnimationFrame:()=>1,matchMedia:()=>({matches:touch})});
+ const draws=[];const context=vm.createContext({frame:0,lastDraw:0,paused:()=>false,reportGraphicsFrame(){},pointerPending:false,draw:dt=>draws.push(dt),requestAnimationFrame:()=>1,matchMedia:()=>({matches:touch})});
  vm.runInContext(interval+tick,context);
  for(let i=0;i<hz;i++){context.timestamp=1000+i*1000/hz;vm.runInContext('tick(timestamp)',context);}
  return draws;

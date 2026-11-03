@@ -1,5 +1,6 @@
 // One ordered animation frame: scroll, models' positions, arcs, video, WebGL.
 import { touchPerformance } from './touch-performance.js';
+import { reportGraphicsFrame } from './graphics-quality.js';
 const callbacks=new Map();
 // Reuse mobile callback records without retaining disposed gallery callbacks.
 const reusable=touchPerformance?new WeakMap():null;
@@ -25,6 +26,7 @@ function tick(time){
     orderDirty=false;
   }
   const current=ordered;
+  if(current.some(entry=>entry.active&&entry.sampleGraphics))reportGraphicsFrame(time);
   try{
     for(const entry of current)if(entry.active){
       try{entry.callback(time);}catch(error){cancelHobbyFrame(entry.callback);console.error('Animation frame failed',error);}
@@ -32,7 +34,7 @@ function tick(time){
   }
   finally{ticking=false;prune();if(activeCount&&!frame)frame=requestAnimationFrame(tick);}
 }
-export function requestHobbyFrame(callback,priority=30){
+export function requestHobbyFrame(callback,priority=30,sampleGraphics=true){
   let entry=callbacks.get(callback);
   if(!entry){
     entry=reusable?.get(callback)||{callback,priority,active:true};
@@ -42,6 +44,7 @@ export function requestHobbyFrame(callback,priority=30){
     entry.active=true;activeCount++;removed.delete(entry);
     if(entry.priority!==priority){entry.priority=priority;orderDirty=true;}
   }
+  entry.sampleGraphics=sampleGraphics;
   if(!frame&&!ticking)frame=requestAnimationFrame(tick);
   return 1;
 }

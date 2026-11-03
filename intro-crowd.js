@@ -9,6 +9,7 @@ window.startIntroCrowd = function(host) {
   const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   const img=new Image();
   let frame=0,last=0,w=0,h=0,people=[],sprites=[],spriteBounds=[],dead=false,loaded=false;
+  let graphics=null,density=0,stopQuality=()=>{};
   // The existing alpha repair is baked once by build-intro-crowd.cjs.
   const spriteRequest=new AbortController();
   const spriteManifest=fetch('assets/intro-crowd-sprites.json',{signal:spriteRequest.signal}).then(response=>{
@@ -34,9 +35,7 @@ window.startIntroCrowd = function(host) {
     const nextW=canvas.clientWidth,nextH=canvas.clientHeight;
     if(nextW===w&&nextH===h)return;
     w=nextW;h=nextH;
-    const dpr=Math.min(devicePixelRatio||1,1.5);
-    canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
+    rescale(true);
     const scale=Math.min(1,Math.max(.48,w/1400))*1.2;
     const count=Math.min(54,Math.max(20,Math.round(w/25)));
     people=Array.from({length:count},(_,index)=>{
@@ -51,6 +50,17 @@ window.startIntroCrowd = function(host) {
   function draw(time){
     frame=0;if(dead||document.hidden||!host.classList.contains('crowd-ready'))return;
     const dt=Math.min((time-(last||time))/1000,.04);last=time;
+    paint(dt);
+    if(!reduce.matches)wake();
+  }
+  function rescale(force=false){
+    const next=graphics?graphics.graphicsPixelRatio('decorative'):Math.min(devicePixelRatio||1,1.5);
+    if(!force&&next===density)return false;
+    density=next;canvas.width=Math.round(w*density);canvas.height=Math.round(h*density);
+    ctx.setTransform(density,0,0,density,0,0);return true;
+  }
+  function qualityChanged(){if(!dead&&loaded&&w&&h&&rescale())paint(0);}
+  function paint(dt){
     ctx.clearRect(0,0,w,h);
     for(const p of people){
       if(!reduce.matches){p.x+=p.direction*p.speed*dt;p.phase+=dt*Math.PI*4;}
@@ -59,7 +69,6 @@ window.startIntroCrowd = function(host) {
       ctx.save();ctx.translate(p.x,p.y+(reduce.matches?0:Math.sin(p.phase)*1.5));ctx.scale(p.direction,1);
       ctx.drawImage(p.sprite,-p.width/2,0,p.width,p.height);ctx.restore();
     }
-    if(!reduce.matches)wake();
   }
   function wake(){if(!frame&&!dead&&loaded&&!document.hidden&&host.classList.contains('crowd-ready'))frame=requestAnimationFrame(draw);}
   function visibility(){cancelAnimationFrame(frame);frame=0;last=0;wake();}
@@ -69,8 +78,12 @@ window.startIntroCrowd = function(host) {
   document.addEventListener('visibilitychange',visibility);reduce.addEventListener('change',visibility);
   img.onload=async()=>{if(dead)return;await prepareSprites();if(dead||!sprites.length)return;loaded=true;size();};
   img.src='assets/intro-crowd.webp';
+  introCrowdGraphics.then(policy=>{
+    if(dead||!policy||typeof policy.observeGraphicsQuality!=='function')return;
+    graphics=policy;stopQuality=policy.observeGraphicsQuality(qualityChanged);qualityChanged();
+  }).catch(()=>{graphics=null;stopQuality();});
   return ()=>{
-    dead=true;cancelAnimationFrame(frame);observer.disconnect();hostObserver.disconnect();spriteRequest.abort();
+    dead=true;stopQuality();cancelAnimationFrame(frame);observer.disconnect();hostObserver.disconnect();spriteRequest.abort();
     document.removeEventListener('visibilitychange',visibility);reduce.removeEventListener('change',visibility);img.onload=null;
     // The crowd has finished; release its decoded sprite surfaces immediately.
     people.length=0;for(const sprite of sprites)if(sprite)sprite.width=sprite.height=1;sprites.length=0;spriteBounds=[];
@@ -78,3 +91,5 @@ window.startIntroCrowd = function(host) {
     img.removeAttribute('src');
   };
 };
+// Optional: register the classic entry immediately; this never gates image readiness.
+const introCrowdGraphics=import('./graphics-quality.js').catch(()=>null);

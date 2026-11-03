@@ -9,7 +9,7 @@ npm test
 ```
 
 The complete run builds the production files, starts its own loopback preview,
-runs 44 named cases sequentially, writes the real exit codes and evidence to
+runs 46 named cases sequentially, writes the real exit codes and evidence to
 `output/regressions/<timestamp>/`, and stops its preview. It does not stop the
 owner's preview or publish anything. Expect a substantial run: rendering stress
 and the five-browser journeys are deliberately sequential to avoid competing

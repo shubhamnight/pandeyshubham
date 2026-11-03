@@ -5,6 +5,8 @@ import { batchRigidModelAsync } from './hobby-model-batching.js';
 import { yieldHobbyPreparation, warmHobbyRenderer } from './hobby-preparation.js';
 import { touchPerformance } from './touch-performance.js';
 import { Vector2 } from './node_modules/three/build/three.module.js';
+import { resizeHobbyRenderer } from './hobby-renderer.js';
+import { observeGraphicsQuality } from './graphics-quality.js';
 const active = new Set();
 let frame = 0;
 function tick(time) {
@@ -87,6 +89,7 @@ export async function connectHobbyMotion({button,renderer,scene,view,model,orien
   const renderedTransform = new Float64Array(10);
   renderedTransform.fill(NaN);
   function drawIfChanged() {
+    if(dirty)resizeHobbyRenderer(renderer,width,height);
     const position=model.position, rotation=model.quaternion, scale=model.scale;
     const changed = dirty || renderedTransform[0]!==position.x || renderedTransform[1]!==position.y ||
       renderedTransform[2]!==position.z || renderedTransform[3]!==rotation.x ||
@@ -140,6 +143,7 @@ export async function connectHobbyMotion({button,renderer,scene,view,model,orien
     if(!allowed()){stop();return;}
     if(dirty || pointerPending || (!reduced.matches&&hobbyIntro.strength>.001) || Math.abs(targetX-model.rotation.x)+Math.abs(targetY-model.rotation.y)+Math.abs(model.rotation.z)>=.0004)activate(render);
   };
+  const unobserveQuality=observeGraphicsQuality(()=>{dirty=true;wake();});
   const follow=e=>{
     if(reduced.matches || hobbyIntro.strength>.001 || e.pointerType==='touch')return;
     // Keep only the latest position; high-rate pointer events allocate nothing.
@@ -155,7 +159,7 @@ export async function connectHobbyMotion({button,renderer,scene,view,model,orien
     rect=null;
     const w=button.clientWidth,h=button.clientHeight;
     if(!w || !h || (w===width && h===height))return;
-    width=w;height=h;renderer.setSize(w,h,false);view.aspect=w/h;view.updateProjectionMatrix();dirty=true;wake();
+    width=w;height=h;resizeHobbyRenderer(renderer,w,h);view.aspect=w/h;view.updateProjectionMatrix();dirty=true;wake();
   });resize.observe(button);
   const intersection=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;rect=null;wake();});intersection.observe(button);
   const state=new MutationObserver(()=>{
@@ -200,7 +204,7 @@ export async function connectHobbyMotion({button,renderer,scene,view,model,orien
   window.addEventListener('pageshow',wake);
   window.addEventListener('pagehide',e=>{
     stop();if(e.persisted)return;
-    disposed=true;unobserveIntro();resize.disconnect();intersection.disconnect();state.disconnect();
+    disposed=true;unobserveIntro();unobserveQuality();resize.disconnect();intersection.disconnect();state.disconnect();
     button.removeEventListener('pointerenter',pointerEnter);
     button.removeEventListener('pointermove',follow);
     button.removeEventListener('pointerleave',pointerLeave);

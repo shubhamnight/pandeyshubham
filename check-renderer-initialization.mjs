@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createHobbyRenderer} from './hobby-renderer.js';
+import {createHobbyRenderer,resizeHobbyRenderer} from './hobby-renderer.js';
 const previous=globalThis.document;
 globalThis.document={createElement:()=>({style:{}})};
 try{
@@ -14,6 +14,10 @@ try{
   assert.deepEqual(calls,[['initial',Math.floor(width*density),Math.floor(height*density)],['buffer',width,height,density]]);
   assert.equal(renderer.options.alpha,true);assert.equal(renderer.options.antialias,true);
   assert.equal(renderer.options.powerPreference,'low-power');
+  assert.equal(resizeHobbyRenderer(renderer,width,height),false,'unchanged buffers are not reallocated');
+  assert.equal(calls.length,2);
+  assert.equal(resizeHobbyRenderer(renderer,width+10,height+5),true);
+  assert.deepEqual(calls.at(-1),['buffer',width+10,height+5,density],'CSS resize retains the caller density cap');
  }
  console.log('Model renderer: bounded DPR, retained antialiasing, dimensions and one-step buffer configuration passed.');
 }finally{if(previous===undefined)delete globalThis.document;else globalThis.document=previous;}
