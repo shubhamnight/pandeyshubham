@@ -1,7 +1,7 @@
 // Package the existing portfolio as a static Vercel deployment.
 const fs = require('node:fs');
 const path = require('node:path');
-const { transformSync } = require('esbuild');
+const { buildSync, transformSync } = require('esbuild');
 const { renderSeo } = require('./build-seo.cjs');
 function buildVercel() {
 const root = fs.realpathSync(__dirname);
@@ -17,6 +17,21 @@ if (fs.lstatSync(dist, { throwIfNoEntry: false })?.isSymbolicLink()) {
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(dist, { recursive: true });
 
+const production = process.env.VERCEL_ENV === 'production';
+if (production) {
+  const config = JSON.stringify(process.env.VERCEL_OBSERVABILITY_CLIENT_CONFIG || '');
+  buildSync({
+    stdin: {
+      contents: `import { inject } from '@vercel/analytics'; inject({ mode: 'production' }, ${config});`,
+      resolveDir: root,
+    },
+    bundle: true,
+    minify: true,
+    target: 'es2020',
+    outfile: path.join(dist, 'web-analytics.js'),
+  });
+}
+
 for (const name of fs.readdirSync(root)) {
   if (name === 'travel-locations-editor.js' || name.startsWith('image-manager')) continue;
   if (!/\.(?:js|css)$/.test(name) && ![
@@ -30,7 +45,10 @@ for (const name of fs.readdirSync(root)) {
     // Vercel excludes node_modules from public assets. Publish only the
     // required browser modules under vendor, retaining their directory layout.
     let content = fs.readFileSync(source, 'utf8').replaceAll('node_modules/', 'vendor/');
-    if (name === 'index.html') content = renderSeo(content, { preview: process.env.VERCEL_ENV === 'preview' });
+    if (name === 'index.html') {
+      content = renderSeo(content, { preview: process.env.VERCEL_ENV === 'preview' });
+      if (production) content = content.replace('</head>', '<script defer src="/web-analytics.js"></script>\n</head>');
+    }
     if (name === 'travel-location-label.js') {
       const localEndpoint = "fetch('/api/travel-locations')";
       if (!content.includes(localEndpoint)) throw new Error('Travel location endpoint changed; update the static build.');
