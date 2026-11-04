@@ -2,8 +2,7 @@
 // between its CPU/GPU stages, without advancing any of the motion clocks.
 const lifetime=new AbortController();
 window.addEventListener('pagehide',event=>{if(!event.persisted)lifetime.abort();});
-export function yieldHobbyPreparation() {
-  const signal=lifetime.signal;
+export function yieldHobbyPreparation(signal=lifetime.signal) {
   return new Promise((resolve,reject)=>{
     let frame=0,idle=0,timer=0,finished=false;
     const cleanup=()=>{
@@ -30,7 +29,7 @@ export function yieldHobbyPreparation() {
 // compileAsync alone leaves attribute uploads, uniform discovery and first-use
 // GPU work for the first visible orbit frame. Prepare one unchanged draw at a
 // time while its canvas is hidden; the final complete render is revealed once.
-export async function warmHobbyRenderer(renderer,scene,view,model,alive) {
+export async function warmHobbyRenderer(renderer,scene,view,model,alive,yieldWork=yieldHobbyPreparation) {
   const pieces=[];
   model.traverse(node=>{if(node.isMesh||node.isLine||node.isPoints)pieces.push([node,node.layers.mask]);});
   const canvas=renderer.domElement,visibility=canvas.style.visibility;
@@ -39,17 +38,17 @@ export async function warmHobbyRenderer(renderer,scene,view,model,alive) {
    try{
     for(const [node] of pieces)node.layers.mask=0;
     for(const [node,mask] of pieces){
-      await yieldHobbyPreparation();if(!alive())return false;
+      await yieldWork();if(!alive())return false;
       node.layers.mask=mask;
       await renderer.compileAsync(node,view,scene);
-      await yieldHobbyPreparation();if(!alive())return false;
+      await yieldWork();if(!alive())return false;
       renderer.render(scene,view);
       node.layers.mask=0;
     }
    }finally{
     for(const [node,mask] of pieces)node.layers.mask=mask;
    }
-   await yieldHobbyPreparation();if(!alive())return false;
+   await yieldWork();if(!alive())return false;
    renderer.render(scene,view);
    return true;
   }finally{canvas.style.visibility=visibility;}

@@ -1,23 +1,13 @@
-import { deferHobbyModel, connectHobbyMotion } from './hobby-model-runtime.js';
+import { mountHobbyModel } from './hobby-model-runtime.js';
 import * as THREE from './node_modules/three/build/three.module.js';
 import { FastRoundedBoxGeometry as RoundedBoxGeometry } from './rounded-box-geometry.js';
-import { createHobbyRenderer } from './hobby-renderer.js';
-import { yieldHobbyPreparation } from './hobby-preparation.js';
 
-const button = document.querySelector('#gaming-controller');
+export function buildHobbyModel(button,signal,onFailure) {
+  const model=new THREE.Group();
+  return mountHobbyModel({button,signal,model,Renderer:THREE.WebGLRenderer,maxDensity:2,assemble:buildController,onFailure});
+}
 
-// Initialize once near the viewport, staggered across idle frames.
-deferHobbyModel(button, buildController);
-
-async function buildController() {
-  let renderer;
-  try { renderer = createHobbyRenderer(THREE.WebGLRenderer,button,Math.min(devicePixelRatio,2)); }
-  catch { button.dataset.hobbyModelFailed='true'; return; } // The existing icon remains a clickable gallery fallback.
-  await yieldHobbyPreparation();
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.12;
-  renderer.setClearColor(0, 0);
-  button.append(renderer.domElement);
+async function buildController(model,yieldHobbyPreparation) {
   const scene = new THREE.Scene();
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
   // A straight-on resting view keeps the camera face centered.
@@ -25,7 +15,7 @@ async function buildController() {
   scene.add(new THREE.HemisphereLight(0xffffff, 0x303846, 1.8));
   const light = new THREE.DirectionalLight(0xfff5ed, 2.6); light.position.set(-3, 5, 5); scene.add(light);
   const rim = new THREE.DirectionalLight(0xd5dfec, 2); rim.position.set(4, 1, -2); scene.add(rim);
-  const model = new THREE.Group(); scene.add(model);
+  scene.add(model);
   const material = (color, roughness = .5, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
   const shell = material(0x292a2d,.52), seam = material(0x121316,.65);
   const rubber = material(0x363940,.87), buttonMat = material(0x24272e,.38);
@@ -173,5 +163,7 @@ async function buildController() {
     const screw=disc(.027,.012,side*1.41,-.71,-.55,buttonMat);screw.rotation.x=-Math.PI/2;
   });
   await yieldHobbyPreparation();
-  await connectHobbyMotion({ button, renderer, scene, view, model });
+  return {scene,view, configure(renderer){
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+  }};
 }

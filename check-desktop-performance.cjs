@@ -8,7 +8,7 @@ function badgeFixture(source,touch=false){
   return {attrs,style,events,classList:{contains:k=>classes.has(k),add:k=>classes.add(k),remove:(...ks)=>ks.forEach(k=>classes.delete(k))},addEventListener:(k,fn)=>{if(!events.has(k))events.set(k,[]);events.get(k).push(fn);},setAttribute(){},append(){},insertBefore(){},setPointerCapture:k=>captures.add(k),hasPointerCapture:k=>captures.has(k),releasePointerCapture:k=>captures.delete(k)};
  }
  const glare=element(),face=element(),body=element();
- const hero=Object.assign(element(),{offsetWidth:1440,offsetHeight:900,getBoundingClientRect:()=>{measurements++;return {left:0,top:0,width:1440,height:900};}});
+ const hero=Object.assign(element(),{offsetWidth:1440,offsetHeight:900,querySelector:()=>null,getBoundingClientRect:()=>{measurements++;return {left:0,top:0,width:1440,height:900};}});
  const badge=Object.assign(element(),{offsetLeft:0,offsetTop:130,offsetWidth:320,offsetHeight:450,querySelector:s=>({'.badge-glare':glare,'.badge-face':face})[s]});
  const rig=Object.assign(element(),{offsetLeft:720,offsetTop:0,offsetWidth:320}),strap=Object.assign(element(),{offsetHeight:176});
  const context=vm.createContext({navigator:{platform:'Win32',maxTouchPoints:0},document:{hidden:false,body,querySelector:s=>({'.badge':badge,'.strap':strap,'.badge-rig':rig,'.hero':hero})[s],createElement:element,addEventListener(){}},

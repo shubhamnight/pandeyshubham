@@ -6,7 +6,7 @@ export function createMessageLoader(intro){
   const mount=intro.querySelector('.message-loading-mount');
   const preference=matchMedia('(prefers-reduced-motion: reduce)');
   const controller=new AbortController();
-  let disposed=false,finishing=false,suspended=false,unmount=null,finishPromise=null;
+  let disposed=false,suspended=false,finishPromise=null;
   function sync(){
     // Continue the original waves through the morph; pause only when hidden,
     // disposed or reduced motion is requested.
@@ -19,15 +19,9 @@ export function createMessageLoader(intro){
   window.addEventListener('pagehide',suspend);
   window.addEventListener('pageshow',resume);
   sync();
-  // Optional enhancement, never a readiness gate. The generated component is already
-  // present, including its exact timing and curves, if this request is delayed.
-  import('./assets/ui/message-loading.js').then(module=>{
-    if(disposed||finishing||!mount.isConnected)return;
-    unmount=module.mountMessageLoading(mount);sync();
-  }).catch(()=>{/* Keep the identical first-paint waves when a bundle is unavailable. */});
   function dispose(){
     if(disposed)return;
-    disposed=true;controller.abort();sync();unmount?.();unmount=null;
+    disposed=true;controller.abort();sync();
     document.removeEventListener('visibilitychange',sync);
     preference.removeEventListener('change',sync);
     window.removeEventListener('pagehide',suspend);
@@ -36,7 +30,6 @@ export function createMessageLoader(intro){
   return {dispose,finish(){
     if(disposed)return Promise.resolve();
     if(!finishPromise){
-      finishing=true;
       finishPromise=morphLoadingIntoPlay(intro,preference,controller.signal).catch(error=>{
         console.warn('Loading transition unavailable; opening PLAY.',error);
         if(!disposed){
@@ -45,7 +38,7 @@ export function createMessageLoader(intro){
           intro.querySelector('.flow-play').inert=false;
         }
       }).finally(()=>{
-        loading.hidden=true;sync();unmount?.();unmount=null;
+        loading.hidden=true;sync();mount.replaceChildren();
       });
     }
     return finishPromise;

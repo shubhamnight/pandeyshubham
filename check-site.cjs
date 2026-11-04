@@ -9,7 +9,8 @@ const config = require('./site.config.cjs');
 let checks = 0;
 const check = (condition, message) => { assert.ok(condition, message); checks++; };
 for (const folder of ['.', 'dist']) {
-  const html = fs.readFileSync(path.join(__dirname, folder, 'index.html'), 'utf8');
+  const html = folder === '.' ? require('./apps/portfolio/compose.cjs').composePage()
+    : fs.readFileSync(path.join(__dirname, folder, 'index.html'), 'utf8');
   check((html.match(/<title>/g) || []).length === 1, folder + ': one title');
   check((html.match(/<h1\b/g) || []).length === 1, folder + ': one primary heading');
   check((html.match(/<main\b/g) || []).length === 1, folder + ': one main landmark');
@@ -33,7 +34,8 @@ for (const folder of ['.', 'dist']) {
     const value = reference[1];
     if (/^(?:https?:|data:|mailto:|tel:|#)/.test(value)) continue;
     const file = path.resolve(__dirname, folder, '.' + (value.startsWith('/') ? value : '/' + value));
-    check(fs.existsSync(decodeURIComponent(file)), folder + ': asset/link exists: ' + value);
+    const sectionFile = folder === '.' && path.join(__dirname, 'apps/portfolio/sections', value);
+    check(fs.existsSync(decodeURIComponent(file)) || sectionFile && fs.existsSync(sectionFile), folder + ': asset/link exists: ' + value);
   }
   const graph = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html)[1]);
   check(graph['@context'] === 'https://schema.org', folder + ': Schema.org context');
@@ -58,11 +60,11 @@ for (const folder of ['.', 'dist']) {
     }
     return seen;
   };
-  const uiEntries = ['photography-carousel', 'connect-page', 'gaming-overlay', 'travel-overlay', 'music-overlay', 'skills-icons', 'message-loading'];
+  const uiEntries = ['photography-carousel', 'connect-page', 'gaming-overlay', 'travel-overlay', 'music-overlay'];
   const graphs = uiEntries.map(name => inspectModule(path.join(uiRoot, name + '.js')));
   check([...graphs[0]].some(file => file.includes(path.sep + 'chunks' + path.sep) && graphs.every(graph => graph.has(file))),
     folder + ': all UI entries reuse the same runtime chunk');
-  for (const name of uiEntries.filter(name=>name!=='message-loading')) {
+  for (const name of uiEntries) {
     check(inspectModule(path.join(uiRoot,name+'-recovery.js')).size===1,
       folder+': recovery does not depend on a failed shared chunk: '+name);
   }
@@ -73,6 +75,16 @@ for (const folder of ['.', 'dist']) {
 }
 check(metadata({ preview: true }).includes('noindex, follow'), 'Preview output excluded from indexing');
 check(!fs.existsSync(path.join(__dirname,'dist/vendor/three/examples/jsm/geometries/RoundedBoxGeometry.js')),'legacy geometry implementation excluded from deployment; reference remains a development dependency');
+const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, 'dist/public-files.json'), 'utf8'));
+for (const name of manifest) {
+  check(!/^(?:apps|api|packages|lib)\/|image-manager|travel-locations-editor|\.cjs$/i.test(name), 'Only browser assets ship: ' + name);
+  check(fs.statSync(path.join(__dirname, 'dist', name)).isFile(), 'Manifest file exists: ' + name);
+}
+for (const category of ['PHOTOGRAPHY', 'TRAVEL']) {
+  for (const name of fs.readdirSync(path.join(__dirname, category))) {
+    check(manifest.includes(category + '/' + name), 'Original media URL retained: ' + name);
+  }
+}
 check(metadata({ preview: true }).includes(config.siteUrl), 'Preview canonical still points to production');
 assert.throws(() => productionOrigin({ SITE_URL: 'http://localhost:3000/' })); checks++;
 check(productionOrigin({ SITE_URL: 'https://example.org/' }) === 'https://example.org/', 'Origin override supported');

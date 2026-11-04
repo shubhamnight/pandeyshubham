@@ -6,7 +6,7 @@ require('./compose.cjs').writePage();
 for (const step of [
   'build-intro-loading', 'build-site-assets', 'build-seo',
   'build-photography-carousel', 'build-connect', 'build-gaming-overlay',
-  'build-travel-overlay', 'build-music-overlay', 'build-skills-icons',
+  'build-travel-overlay', 'build-music-overlay',
   'build-shared-ui', 'build-offline', 'build-vercel',
 ]) {
   const result = spawnSync(process.execPath, [step + '.cjs'], { cwd: root, stdio: 'inherit' });

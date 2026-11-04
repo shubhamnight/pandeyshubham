@@ -14,6 +14,11 @@ function runtime(){
  assert.equal(await r.api.warmHobbyRenderer(renderer,{}, {},model,()=>true),true);assert.equal(draws.length,4);assert.ok(draws.slice(0,-1).every(draw=>draw.masks.filter(Boolean).length===1));assert.ok(draws.every((draw,index)=>!index||draw.turns>draws[index-1].turns),'input/paint gets a turn between GPU draws');assert.deepEqual(pieces.map(p=>p.layers.mask),[1,2,7]);assert.equal(canvas.style.visibility,'visible');
  renderer.compileAsync=async()=>{throw Error('Injected shader preparation failure');};await assert.rejects(r.api.warmHobbyRenderer(renderer,{}, {},model,()=>true),/Injected shader/);assert.deepEqual(pieces.map(p=>p.layers.mask),[1,2,7]);assert.equal(canvas.style.visibility,'visible');
  assert.equal(await r.api.warmHobbyRenderer(renderer,{}, {},model,()=>false),false);assert.deepEqual(pieces.map(p=>p.layers.mask),[1,2,7]);
+ r.document.hidden=true;
+ const modelController=new AbortController();
+ const cancelledModel=r.api.yieldHobbyPreparation(modelController.signal);
+ modelController.abort();await assert.rejects(cancelledModel,error=>error.name==='AbortError');
+ r.document.hidden=false;await r.api.yieldHobbyPreparation();
  r.document.hidden=true;const pending=r.api.yieldHobbyPreparation();r.window.dispatchEvent(new Event('pagehide'));await assert.rejects(pending,error=>error.name==='AbortError');await assert.rejects(r.api.yieldHobbyPreparation(),error=>error.name==='AbortError');
  console.log('Cooperative preparation: input/paint yields, hidden-tab pause, isolated hidden GPU draws, layer/visibility restoration, stale preparation and departure cancellation passed.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

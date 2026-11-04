@@ -14,8 +14,13 @@ async function buildSiteAssets() {
   await fs.writeFile(path.join(root,'travel-location-data.js'),
     '// Generated from the user-saved travel-locations.json.\nexport const travelLocationDefaults = '+JSON.stringify(locations,null,2)+';\n');
   for (const size of [64, 480, 640, 960]) {
-    await sharp(path.join(root, 'shub ka photo.png')).resize({ width: size }).webp({ lossless: true, effort: 6 })
+    const portrait = sharp(path.join(root, 'shub ka photo.png')).resize({ width: size });
+    await portrait.clone().webp({ lossless: true, effort: 6 })
       .toFile(path.join(profile, `shubham-pandey-portrait-${size}.webp`));
+    if (size > 64) {
+      await portrait.webp({ quality: 94, alphaQuality: 100, smartSubsample: true, effort: 5 })
+        .toFile(path.join(profile, `shubham-pandey-hero-${size}.webp`));
+    }
   }
   for (const size of [480, 960]) {
     await sharp(path.join(root, 'image-shub-2.jpeg')).rotate().resize({ width: size }).webp({ quality: 94, effort: 5 })

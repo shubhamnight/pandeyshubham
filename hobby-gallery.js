@@ -7,34 +7,25 @@ export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={
   const visibleVideos=new Set();
   const events=new AbortController();
   const eventOptions={signal:events.signal};
-  const bundle={
-    'photography-gallery':'photography-carousel', 'gaming-gallery':'gaming-overlay',
-    'travel-gallery':'travel-overlay', 'music-gallery':'music-overlay',
-  }[gallery.id];
-  const warm=()=>{
-    if(!bundle)return;
-    // Warm likely gallery assets without applying styles or starting media.
-    // Hover/focus may never open the gallery: speculative CSS stays low priority.
-    for(const [extension,rel] of [['js','modulepreload'],['css','prefetch']]){
-      const href=new URL(`./assets/ui/${bundle}.${extension}`,import.meta.url).href;
-      if([...document.querySelectorAll('link[rel="modulepreload"],link[rel="preload"],link[rel="prefetch"]')].some(link=>link.href===href))continue;
-      const link=document.createElement('link');link.rel=rel;link.href=href;
-      if(extension==='css')link.as='style';
-      document.head.append(link);
-    }
-  };
-  button.addEventListener('pointerenter',warm,{...eventOptions,once:true});
-  button.addEventListener('focus',warm,{...eventOptions,once:true});
+  let opening;
+  function load(controller,status) {
+    status.textContent='Opening gallery…';
+    status.hidden=false;
+    Promise.resolve().then(()=>fill(controller.signal)).catch(()=>{
+      if(controller.signal.aborted||!gallery.open)return;
+      status.textContent='The gallery could not load. ';
+      const retry=document.createElement('button');
+      retry.type='button';retry.textContent='Retry';
+      retry.addEventListener('click',()=>load(controller,status),{once:true,signal:controller.signal});
+      status.append(retry);
+    });
+  }
   button.addEventListener('click',()=>{
     if(gallery.open)return;
-    warm();
-    fill?.(gallery);
-    const scene=button.closest('.skills-hobbies-scene.scene-pinned');
-    const viewport=scene?.querySelector('.skills-hobbies-viewport');
-    const top=scene?scene.getBoundingClientRect().top+window.scrollY:0;
-    const height=viewport?.offsetHeight||0;
-    saved={overflow:document.body.style.overflow,padding:document.body.style.paddingRight,
-      scene,viewport,top,height,advance:height?(window.scrollY-top)/height:0};
+    opening?.abort();opening=new AbortController();
+    const status=content.querySelector(':scope > p');
+    status.setAttribute('role','status');
+    saved??={overflow:document.body.style.overflow,padding:document.body.style.paddingRight};
     const gutter=window.innerWidth-document.documentElement.clientWidth;
     const padding=parseFloat(getComputedStyle(document.body).paddingRight)||0;
     gallery.showModal();
@@ -42,6 +33,7 @@ export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={
     if(gutter>0)document.body.style.paddingRight=(padding+gutter)+'px';
     document.body.classList.add('photography-gallery-open');
     closeButton.focus({preventScroll:true});
+    load(opening,status);
   },eventOptions);
   const close=()=>gallery.close();
   closeButton.addEventListener('click',close,eventOptions);
@@ -59,22 +51,12 @@ export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={
   },{...eventOptions,passive:false});
   gallery.addEventListener('click',event=>{if(backdropDown&&outside(event))close();backdropDown=false;},eventOptions);
   gallery.addEventListener('close',()=>{
+    if(gallery.open)return;
+    opening?.abort();
     watchedVideos.forEach(video=>video.pause());
+    content.scrollTop=0;
     if(saved){
       document.body.style.overflow=saved.overflow;document.body.style.paddingRight=saved.padding;
-      // A phone rotation or window resize can change the pinned timeline while
-      // its dialog is open. Restore the same point, rather than an old pixel Y.
-      if(saved.scene?.classList.contains('scene-pinned')&&saved.height&&saved.advance>=0){
-        const top=saved.scene.getBoundingClientRect().top+window.scrollY;
-        const height=saved.viewport.offsetHeight;
-        const target=top+saved.advance*height;
-        if(Math.abs(window.scrollY-target)>.5)window.scrollTo({top:target,behavior:'instant'});
-        // The close event can arrive before or after a rapid second rotation.
-        // Publish the timeline point even if the layout already matches again.
-        window.dispatchEvent(new CustomEvent('portfolio-scroll-restored',{
-          detail:{target,advance:saved.advance},
-        }));
-      }
       saved=null;
     }
     document.body.classList.remove('photography-gallery-open');
@@ -124,6 +106,6 @@ export function connectHobbyGallery(button,gallery,fill,{autoplayVideos=false}={
   window.addEventListener('pagehide',event=>{
     watchedVideos.forEach(video=>video.pause());
     if(event.persisted)return;
-    observer.disconnect();mediaObserver.disconnect();watchedVideos.clear();visibleVideos.clear();events.abort();
+    opening?.abort();observer.disconnect();mediaObserver.disconnect();watchedVideos.clear();visibleVideos.clear();events.abort();
   },eventOptions);
 }

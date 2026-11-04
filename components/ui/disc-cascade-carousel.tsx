@@ -601,7 +601,7 @@ const DiscFace = React.memo(function DiscFace({ item, i, uid, brand, display, ea
         <span className="dcc-roll">
           <span className="dcc-idle" style={{ fontFamily: display }}>
             {item.src ? (
-              <img src={touchPerformance ? undefined : item.src} data-disc-src={touchPerformance ? item.src : undefined}
+              <img data-disc-src={item.src}
                 alt={item.alt ?? item.title} draggable={false}
                 loading={eager ? "eager" : "lazy"} decoding="async" width={600} height={600}
                 style={{ maxWidth: "none" }} />
@@ -725,7 +725,6 @@ export default function DiscCascadeCarousel({
   }
 
   const warmArtwork = (i: number) => {
-    if (!touchPerformance) return
     const image = slideRefs.current[i]?.querySelector('img')
     const source = image?.dataset.discSrc
     if (image && source && !image.hasAttribute('src')) {
@@ -743,11 +742,8 @@ export default function DiscCascadeCarousel({
         surface = { node: el, roll: el.querySelector('.dcc-roll'), sheen: el.querySelector('.dcc-sheen') }
         surfaces.current[i] = surface
       }
-      // Lazy-loading distance is unreliable for hidden, transformed discs:
-      // several mobile engines see all 28 images at the same initial position.
-      // Warm the unchanged covers well before they enter the visible fan.
-      if (touchPerformance && Math.abs(offsetOf(i, E.a, cfg.current.n, cfg.current.loop)) <= 6) warmArtwork(i)
       const t = styleFor(i, E.a, E.b)
+      if (!t.hidden || Math.abs(offsetOf(i, E.a, cfg.current.n, cfg.current.loop)) <= 1) warmArtwork(i)
       // Replaced nodes need a complete first paint even if their pose matches.
       const last = paintedNodes.current[i] === el ? painted.current[i] : undefined
       paintedNodes.current[i] = el
@@ -857,9 +853,10 @@ export default function DiscCascadeCarousel({
   // Warm only the neighbouring artwork, including neighbours across the loop seam.
   React.useEffect(() => {
     if (!visible || !n) return
-    for (const by of [-1, 0, 1, 2]) {
+    for (const by of [-1, 0, 1]) {
       const i = loop ? wrapIndex(active + by, n) : active + by
       if (i < 0 || i >= n) continue
+      warmArtwork(i)
       const image = slideRefs.current[i]?.querySelector('img')
       if (image) {
         image.loading = 'eager'

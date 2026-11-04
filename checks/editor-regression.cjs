@@ -20,7 +20,7 @@ async function frameRatio(page, expected) {
 (async () => {
   assert.ok(['localhost', '127.0.0.1'].includes(new URL(origin).hostname), 'editor simulation stays on loopback');
   const png = await sharp(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><path fill="#f80" d="M0 0h200v300H0z"/><path fill="#08f" d="M200 0h200v300H200z"/><circle fill="white" cx="200" cy="150" r="60"/></svg>')).png().toBuffer();
-  const source = Object.fromEntries(await Promise.all(['image-manager.html', 'image-manager.js', 'image-manager.css', 'media-library.js'].map(async name => [name, await fs.readFile(path.join(root, name.startsWith('image-manager') ? 'apps/media-studio/public' : '', name), 'utf8')])));
+  const source = Object.fromEntries(await Promise.all(['image-manager.html', 'image-manager.js', 'image-manager.css'].map(async name => [name, await fs.readFile(path.join(root, name.startsWith('image-manager') ? 'apps/media-studio/public' : '', name), 'utf8')])));
   const browser = await chromium.launch({ headless: true }), results = [];
   try { for (const [profile, width, height, touch] of profiles) {
     if (process.env.BROWSER_PROFILE && process.env.BROWSER_PROFILE !== profile) continue;
@@ -37,12 +37,9 @@ async function frameRatio(page, expected) {
       return source[name] ? route.fulfill({ contentType: name.endsWith('.html') ? 'text/html' : name.endsWith('.css') ? 'text/css' : 'text/javascript', body: source[name] }) : route.abort();
     });
     await context.route('**/qa-editor.png', route => route.fulfill({ contentType: 'image/png', body: png }));
-    await context.route('**/media-library.js', route => route.fulfill({ contentType: 'text/javascript', body: source['media-library.js'] }));
-    await context.route('**/media-library-data.js', route => route.fulfill({ contentType: 'text/javascript', body: 'export const mediaLibrary = ' + JSON.stringify({ revision: library.revision }) }));
-    await context.route('**/media-library.json', route => route.fulfill({ json: { revision: library.revision } }));
     await context.route('**/qa-editor-site.html', route => {
       siteLoads++;
-      return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Editor notification fixture</title><script type="module">import "/media-library.js"; window.qaReady=true;</script>' });
+      return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Editor notification fixture</title><script type="module">import "/hobby-boot.js"; window.qaReady=true;</script>' });
     });
     // No API request may reach the real server, including a future unexpected route.
     await context.route('**/api/**', async route => {

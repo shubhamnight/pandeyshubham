@@ -5,19 +5,9 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const origin=process.env.AUDIT_URL||'http://localhost:3000';
 const output=path.resolve(process.env.AUDIT_OUTPUT||'output/performance/2026-10-24/regression');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-async function settled(page){try{await page.waitForFunction(()=>!document.querySelector('#projects').inert&&[...document.querySelectorAll('.hobby-orbit-center')].every(e=>e.style.translate.split(' ').every(v=>Math.abs(parseFloat(v))<.01)),undefined,{timeout:25000});}catch(e){console.log(await page.evaluate(()=>({y:scrollY,body:document.body.className,inert:document.querySelector('#projects').inert,models:[...document.querySelectorAll('.hobby-orbit-center')].map(e=>({translate:e.style.translate,visible:e.className,ready:e.querySelector('button').dataset}))})));await page.screenshot({path:path.join(output,'failure.png')});throw e;}}
-async function nav(page,name){await page.getByRole('link',{name,exact:true}).click();await sleep(1800);}
-async function open(page,id){
- await nav(page,'Hobbies');await settled(page);
- const b=await page.locator('#'+id).boundingBox(),v=page.viewportSize();
- // On a short desktop viewport the existing pinned artwork can extend beyond
- // the screen. Click its visible portion rather than an offscreen box centre.
- const left=Math.max(0,b.x),right=Math.min(v.width,b.x+b.width);
- const top=Math.max(0,b.y),bottom=Math.min(v.height,b.y+b.height);
- assert.ok(right>left&&bottom>top,'gallery control intersects viewport');
- await page.mouse.click((left+right)/2,(top+bottom)/2);
-}
-async function scenePoint(page){return page.evaluate(()=>{const s=document.querySelector('.skills-hobbies-scene'),v=s.querySelector('.skills-hobbies-viewport');return (scrollY-s.getBoundingClientRect().top-scrollY)/v.offsetHeight;});}
+const { enter } = require('./helpers/site.cjs');
+async function nav(page,name){ await page.getByRole('link',{name,exact:true}).click(); }
+async function open(page,id){ await nav(page,'Hobbies'); await page.locator('#'+id).click(); }
 (async()=>{
  await fs.mkdir(output,{recursive:true});const browser=await chromium.launch({...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{channel:process.env.BROWSER_CHANNEL||'chrome'}),headless:true}),results=[];
  const profiles=[['phone',390,844,true],['tablet',768,1024,true],['desktop',Number(process.env.DESKTOP_WIDTH||1440),Number(process.env.DESKTOP_HEIGHT||900),false]];
@@ -26,11 +16,12 @@ async function scenePoint(page){return page.evaluate(()=>{const s=document.query
   const context=await browser.newContext({viewport:{width,height},isMobile:touch,hasTouch:touch,deviceScaleFactor:touch?2:1});
   const page=await context.newPage(),errors=[],checks=[];page.on('pageerror',e=>errors.push(e.message));
   page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-  await page.goto(origin+'/?photo-quality=4k#projects',{waitUntil:'load'});
-  await page.getByRole('button',{name:'Enter Shubham Pandey’s portfolio',exact:true}).click({timeout:45000});
-  await page.locator('.portfolio-intro').waitFor({state:'detached'});
-  await page.waitForFunction(()=>!document.body.classList.contains('badge-entering'));
-  assert.ok(await page.evaluate(()=>scrollY<2));checks.push('PLAY resets saved hash to hero');
+  await enter(page,'?photo-quality=4k#projects');
+  await page.waitForFunction(()=>location.hash==='#projects'&&document.querySelector('#projects').getBoundingClientRect().top<140);
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.waitForFunction(()=>location.hash==='#projects'&&document.querySelector('#projects').getBoundingClientRect().top<140);
+  await page.locator('.mini-brand').click();
+  await page.waitForFunction(()=>scrollY<2);checks.push('direct anchor and reload preserve Hobbies, home restores hero');
   const badge=page.locator('.badge'),b=await badge.boundingBox();
   if(touch){
    const cdp=await context.newCDPSession(page);
@@ -40,16 +31,14 @@ async function scenePoint(page){return page.evaluate(()=>{const s=document.query
   }else{await page.mouse.move(b.x+b.width/2,b.y+b.height/2);await page.mouse.down();await page.mouse.move(b.x+b.width/2+60,b.y+b.height/2+25,{steps:12});await page.mouse.up();await page.mouse.move(1,1);}
   await page.waitForFunction(()=>!document.querySelector('.badge').classList.contains('dragging')&&!document.querySelector('.badge-rig').classList.contains('is-moving'));
   assert.ok(await page.locator('.badge-rig').evaluate(e=>!e.style.transform.includes('NaN')));checks.push('ID drag, release, finite settling');
-  await page.evaluate(()=>window.scrollTo(0,document.querySelector('#home').offsetHeight+4));await sleep(700);await nav(page,'Skills');await sleep(5500);
-  assert.equal(await page.locator('.skill-shiny-button').count(),14);
-  assert.equal(await page.locator('.skills-orbit-symbol>img').count(),0);
-  assert.equal(await page.locator('.skill-logo').evaluateAll(es=>es.filter(e=>e.complete&&e.naturalWidth).length),14);
-  const skill=page.locator('.skill-shiny-button').first();await skill.focus();assert.ok(await skill.evaluate(e=>e===document.activeElement));
-  checks.push('14 skill buttons, loaded logos, focus');
-  await nav(page,'Hobbies');await settled(page);assert.equal(await page.locator('.hobby-orbit-center button.camera-ready').count(),4);
-  const before=await scenePoint(page);
-  if(touch){await page.setViewportSize({width:height,height:width});await sleep(700);const after=await scenePoint(page);assert.ok(Math.abs(before-after)<.01);await page.setViewportSize({width,height});await sleep(700);}
-  checks.push('hobby model handoff and rotation');
+  await nav(page,'Skills');
+  assert.equal(await page.locator('.skills-orbit-symbol>svg').count(),14);
+  const skill=page.locator('.skills-orbit-disc').first();await skill.focus();assert.ok(await skill.evaluate(e=>e===document.activeElement));
+  checks.push('14 inline icons and keyboard focus');
+  await nav(page,'Hobbies');assert.equal(await page.locator('.hobby-card').count(),4);
+  assert.equal(await page.locator('.hobby-orbit-center canvas').count(),0);
+  if(touch){await page.setViewportSize({width:height,height:width});await nav(page,'Hobbies');assert.equal(await page.locator('.hobby-card button').count(),8);await page.setViewportSize({width,height});}
+  checks.push('static Hobbies controls and rotation');
   for(const [button,id,root]of [['photography-camera','photography','.photo-carousel'],['travel-plane','travel','.zoom-slider'],['music-walkman','music','.dcc-root'],['gaming-controller','gaming','.gaming-scroll-viewport']]){
    await open(page,button);const dialog=page.locator('#'+id+'-gallery');
    try { await dialog.locator(root).waitFor({state:'visible',timeout:30000}); }
@@ -87,10 +76,10 @@ async function scenePoint(page){return page.evaluate(()=>{const s=document.query
    if(touch&&id==='travel'){
     for(let cycle=0;cycle<3;cycle++){
      if(cycle){await open(page,button);await dialog.locator(root).waitFor({state:'visible'});}
-     const old=await scenePoint(page);await page.setViewportSize({width:height,height:width});await sleep(500);
+     await page.setViewportSize({width:height,height:width});await sleep(500);
      // Keep these adjacent: an extra browser roundtrip can hide the close/resize race.
      await dialog.locator('header button').click();await page.setViewportSize({width,height});await sleep(900);
-     const restored=await scenePoint(page);assert.ok(Math.abs(old-restored)<.015,`${name} rotation ${cycle}: ${old} -> ${restored}`);
+     assert.equal(await page.locator('#'+button).evaluate(e=>document.activeElement===e),true,'focus restored after rotation');
     }
    }else{await dialog.locator('header button').click();}
    await dialog.waitFor({state:'hidden'});assert.equal(await page.locator('dialog[open]').count(),0);

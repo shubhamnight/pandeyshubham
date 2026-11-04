@@ -13,7 +13,6 @@ async function buildSharedUI() {
     'gaming-overlay': 'components/gaming-overlay.tsx',
     'travel-overlay': 'components/travel-overlay.tsx',
     'music-overlay': 'components/music-overlay.tsx',
-    'skills-icons': 'components/skills-icons.tsx',
   };
   const result = await build({
     ...browserOptions, absWorkingDir: __dirname,

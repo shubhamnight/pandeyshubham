@@ -11,6 +11,7 @@ interface PhotographyMedia {
   type: 'image' | 'video';
   src: string;
   original?: string;
+  sourceOriginal?: string;
   srcset?: string;
   poster?: string;
   width: number;
@@ -36,7 +37,8 @@ export async function mountPhotographyCarousel(host: HTMLElement, media: Photogr
     id: item.original ?? item.src,
     title: item.type === 'video' ? 'Moving\nmoments.' : 'Through\nmy lens.',
     image: mobileMediaSource(item.type === 'video' ? item.poster ?? item.src : item.src),
-    fullImage: mobileMediaSource(item.type === 'video' ? item.poster ?? item.src : item.overlayImage ?? item.original ?? item.src),
+    fullImage: mobileMediaSource(item.type === 'video' ? item.poster ?? item.src : item.overlayImage ?? item.src),
+    originalHref: item.sourceOriginal ?? item.original,
     fullSources: item.type === 'image' ? mobileMediaSources(item.overlaySources ?? heroSources[item.original ?? item.src]) : undefined,
     width: item.width,
     height: item.height,
@@ -44,7 +46,7 @@ export async function mountPhotographyCarousel(host: HTMLElement, media: Photogr
     fullHeight: item.overlayHeight ?? item.height,
     desktopSourceWidth: item.type === 'image' && !touchPerformance ? 3840 : undefined,
     srcSet: item.type === 'image'
-      ? mobileMediaSrcset([item.srcset, !item.edited && `${item.original ?? item.src} ${item.width}w`].filter(Boolean).join(', '))
+      ? mobileMediaSrcset(item.srcset ?? '')
       : undefined,
     videoSrc: item.type === 'video' ? mobileMediaSource(item.src) : undefined,
     alt: item.alt,

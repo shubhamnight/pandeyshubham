@@ -53,3 +53,4 @@
 }
 
 @media(prefers-reduced-motion:reduce) { .music-disc-cascade.dcc-root .dcc-idle { animation:none!important; } }
+.music-original-link { display:inline-block; padding:8px 0; color:#fff; font-size:12px; text-decoration:underline; }

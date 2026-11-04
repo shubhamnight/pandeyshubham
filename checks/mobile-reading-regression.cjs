@@ -8,37 +8,18 @@ const titleStyles=Object.fromEntries(require('../music-typography.json').map(son
  try{for(const [width,height]of profiles){
   if(process.env.READING_WIDTH&&width!==Number(process.env.READING_WIDTH))continue;
   const touch=width<=1100,context=await browser.newContext({viewport:{width,height},isMobile:touch,hasTouch:touch,deviceScaleFactor:1}),page=await context.newPage(),errors=[];
-  page.on('pageerror',e=>errors.push(e.message));await page.goto(origin);
-  await page.getByRole('button',{name:'Enter Shubham Pandey’s portfolio',exact:true}).click({timeout:45000});
-  await page.locator('.portfolio-intro').waitFor({state:'detached'});
-  await page.waitForFunction(()=>!document.body.classList.contains('badge-entering'));
-  await page.locator('.floating-nav a[href="#about"]').evaluate(e=>e.click());
-  await page.waitForFunction(()=>document.querySelectorAll('.skill-logo').length===14&&[...document.querySelectorAll('.skills-orbit-slot')].every(e=>getComputedStyle(e).visibility==='visible'),null,{timeout:30000});
-  await page.waitForFunction(()=>{
-   const section=document.querySelector('#about'),stage=section.querySelector('.skills-orbit-stage').getBoundingClientRect(),radius=parseFloat(getComputedStyle(section).getPropertyValue('--skills-ring-radius'));
-   return [...section.querySelectorAll('.skills-orbit-slot')].every(e=>{const r=e.getBoundingClientRect();return Math.abs(Math.hypot(r.x+r.width/2-stage.x-stage.width/2,r.y+r.height/2-stage.y-stage.height/2)-radius)<1;});
-  },null,{timeout:30000});
+  page.on('pageerror',e=>errors.push(e.message));await require('./helpers/site.cjs').enter(page,'#about');
   const body=await page.evaluate(()=>{
    const selectors=['.floating-nav a[href="#about"]','#about .skills-heading h2','#about .skills-heading>p','#projects .project-heading h2','#projects .project-heading p','#profile .personal-copy>p','.connect-person p'];
    const result=Object.fromEntries(selectors.map(s=>{const e=document.querySelector(s),c=getComputedStyle(e);return[s,{font:+parseFloat(c.fontSize),family:c.fontFamily,overflow:e.scrollWidth>e.clientWidth+1}];}));
-   const section=document.querySelector('#about'),stage=section.querySelector('.skills-orbit-stage').getBoundingClientRect(),style=getComputedStyle(section),radius=parseFloat(style.getPropertyValue('--skills-ring-radius'));
-   const disc=section.querySelector('.skills-orbit-slot').getBoundingClientRect().width;
-   let farthest=0;
-   for(const selector of ['.skills-heading h2','.skills-heading>p']){
-    const walker=document.createTreeWalker(section.querySelector(selector),NodeFilter.SHOW_TEXT);
-    while(walker.nextNode()){const range=document.createRange();range.selectNodeContents(walker.currentNode);for(const r of range.getClientRects())for(const x of [r.left,r.right])for(const y of [r.top,r.bottom])farthest=Math.max(farthest,Math.hypot(x-stage.x-stage.width/2,y-stage.y-stage.height/2));}
-   }
-   result.lineClearance=radius-disc/2-farthest;return result;
+   const heading = document.querySelector('#about .skills-heading').getBoundingClientRect();
+   const list = document.querySelector('.skills-orbit-list').getBoundingClientRect();
+   result.lineClearance=list.top-heading.bottom;return result;
   });
-  if(touch){assert.ok(body['#about .skills-heading>p'].font>=12.5);assert.equal(body['#profile .personal-copy>p'].font,16);assert.equal(body['.connect-person p'].font,14);}
-  assert.ok(body.lineClearance>=1,`${width}: reading text clears every position of the Skills ring (${body.lineClearance.toFixed(2)}px)`);
+  if(touch){assert.ok(body['#about .skills-heading>p'].font>=12.5);assert.equal(body['#profile .personal-copy>p'].font,16);assert.ok(body['.connect-person p'].font>=14);}
+  assert.ok(body.lineClearance>=1,`${width}: reading text clears the Skills icons (${body.lineClearance.toFixed(2)}px)`);
   await page.screenshot({path:path.join(output,width+'-skills.png')});
   await page.locator('.floating-nav a[href="#projects"]').evaluate(e=>e.click());
-  await page.waitForFunction(()=>!document.querySelector('#projects').inert&&document.querySelector('#projects').hobbyEntranceProgress===1);
-  await page.waitForFunction(()=>document.querySelectorAll('.music-record-caption').length===3);
-  for(const caption of await page.locator('.music-record-caption').evaluateAll(elements=>elements.map(e=>({title:e.querySelector('strong').textContent,style:e.querySelector('strong').dataset.titleStyle,singer:getComputedStyle(e.querySelector('span')).fontFamily})))){
-   assert.equal(caption.style,titleStyles[caption.title]);assert.match(caption.singer,/Acme/);
-  }
   await page.locator('#music-walkman').click();await page.locator('#music-gallery .music-song-copy').waitFor();
   const copy=page.locator('#music-gallery .music-song-copy');
   const songMetrics=[];

@@ -1,24 +1,27 @@
-(() => {
-  // A fresh visit always starts the portfolio at its hero, including reloads
-  // of a section URL. Prevent native history/fragment restoration behind PLAY.
-  history.scrollRestoration='manual';
-  if(location.hash)history.replaceState(history.state,'',location.pathname+location.search);
-  window.scrollTo({top:0,behavior:'instant'});
-  const intro = document.querySelector('.portfolio-intro') || document.createElement('div');
-  intro.className = 'portfolio-intro';
-  intro.setAttribute('role','dialog');
-  intro.setAttribute('aria-modal','true');
-  intro.setAttribute('aria-label','Enter Shubham’s portfolio');
-  if(!intro.querySelector('.intro-loading'))intro.innerHTML='<div class="intro-loading"><div class="message-loader-stage" role="status"><span class="sr-only">Loading portfolio…</span><div class="message-loading-mount" aria-hidden="true"><div class="intro-loading-fallback"></div></div></div></div>';
-  intro.insertAdjacentHTML('beforeend','<div class="intro-play" hidden><button class="flow-play" type="button" aria-label="Play"><svg class="flow-arrow flow-arrow-left" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><span class="flow-label play-flicker-label" aria-hidden="true"><span>P</span><span>L</span><span>A</span><span>Y</span></span><span class="flow-fill" aria-hidden="true"></span><svg class="flow-arrow flow-arrow-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg></button></div>');
-  const content = [...document.querySelectorAll('body > main, body > nav, body > .skip')];
-  content.forEach(element=>element.inert=true);
-  document.body.classList.add('intro-active');
-  document.body.append(intro);
-  const button = intro.querySelector('button');
+let styles;
+function loadStyles() {
+  return styles ||= new Promise((resolve,reject)=>{
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href=new URL('./intro.css',import.meta.url);
+    const deadline=setTimeout(()=>fail(),8000);
+    function fail(){
+      clearTimeout(deadline);link.remove();styles=null;
+      reject(new Error('Intro stylesheet unavailable'));
+    }
+    link.addEventListener('load',()=>{clearTimeout(deadline);resolve();},{once:true});
+    link.addEventListener('error',fail,{once:true});
+    document.head.append(link);
+  });
+}
+
+export async function replayIntro(){
+  await loadStyles();
+  const intro=document.querySelector('#intro-template').content.firstElementChild.cloneNode(true);
+  const dismiss=intro.querySelector('.intro-dismiss');
+  intro.insertAdjacentHTML('beforeend','<div class="intro-play" hidden><button class="flow-play" type="button" aria-label="Enter Shubham Pandey’s portfolio"><svg class="flow-arrow flow-arrow-left" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><span class="flow-label play-flicker-label" aria-hidden="true"><span>P</span><span>L</span><span>A</span><span>Y</span></span><span class="flow-fill" aria-hidden="true"></span><svg class="flow-arrow flow-arrow-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg></button></div>');
+  const button=intro.querySelector('.flow-play');
   const badgeRig = document.querySelector('#home .badge-rig');
-  if(badgeRig)badgeRig.classList.add('awaiting-entrance');
-  button.setAttribute('aria-label','Enter Shubham Pandey’s portfolio');
   const label = button.querySelector('.play-flicker-label');
   const letters=[...label.children];
   const glows=letters.map(letter=>{
@@ -27,13 +30,9 @@
     glow.setAttribute('aria-hidden','true');letter.append(glow);return glow;
   });
   const flickerReduced=matchMedia('(prefers-reduced-motion: reduce)');
-  let activeLoader=null;
-  const loaderReady=import('./intro-loader.js').then(module=>{
-    activeLoader=module.createMessageLoader(intro);return activeLoader;
-  }).catch(error=>{
-    console.warn('Loading enhancement unavailable; keeping the native PLAY fallback.',error);
-    return {finish:async()=>{intro.querySelector('.intro-loading').hidden=true;}};
-  });
+  let activeLoader, stopCrowd, closed=false, timer;
+  const listeners=new AbortController();
+  const {signal}=listeners;
   let flickerEnabled=false,flickerElapsed=0,flickerAnimations=[];
   function randomAt(lane,step){
     let hash=(Math.imul(lane,374761393)^Math.imul(step,668265263))>>>0;
@@ -74,7 +73,7 @@
       flickerElapsed=Number(flickerAnimations[0]?.currentTime)||0;
       flickerAnimations.forEach(animation=>animation.pause());return;
     }
-    if(!flickerAnimations.length){
+    if(!flickerAnimations.length&&label.animate){
       const timing={duration:16000,iterations:Infinity,easing:'linear'};
       for(const track of flickerTracks){
         flickerAnimations.push(track.letter.animate(track.brightness,timing),track.light.animate(track.glow,timing));
@@ -84,57 +83,75 @@
     const start=Number(document.timeline.currentTime)-flickerElapsed;
     flickerAnimations.forEach(animation=>{animation.play();animation.startTime=start;});
   }
-  document.addEventListener('visibilitychange',syncFlicker);
-  flickerReduced.addEventListener('change',syncFlicker);
-  const started = performance.now();
-  let ready = false;
-  // Decode and clean the sprites during loading instead of the PLAY entrance.
-  let stopCrowd = window.startIntroCrowd?.(intro)||(()=>{});
-  function showPlay() {
-    if (ready) return;
-    ready = true;
-    setTimeout(async()=>{
-      const loader=await loaderReady;
-      await loader.finish();
-      intro.querySelector('.intro-loading').hidden=true;
-      intro.querySelector('.intro-play').hidden=false;
-      intro.classList.add('show-play');
-      // A stationary pointer over the center must not pull the new button
-      // into its hover pose at the exact instant the morph finishes.
-      intro.addEventListener('pointermove',()=>intro.classList.add('play-hover-ready'),{once:true,passive:true});
-      // Begin the people only after the button and blue expansion have landed.
-      requestAnimationFrame(()=>intro.classList.add('crowd-ready'));
-      flickerEnabled=true;
-      syncFlicker();
-      button.focus({preventScroll:true});
-    },Math.max(0,2000-(performance.now()-started)));
+  document.body.append(intro);
+  intro.showModal();
+  document.body.classList.add('intro-active');
+  document.addEventListener('visibilitychange',syncFlicker,{signal});
+  flickerReduced.addEventListener('change',syncFlicker,{signal});
+  const dismissed=new Promise(resolve=>{
+    intro.addEventListener('close',()=>{
+      closed=true;listeners.abort();clearTimeout(timer);
+      flickerEnabled=false;syncFlicker();
+      activeLoader?.dispose();stopCrowd?.();
+      document.body.classList.remove('intro-active');
+      intro.remove();
+      resolve();
+    },{once:true});
+  });
+  dismiss.addEventListener('click',()=>intro.close(),{signal});
+  import('./intro-crowd.js').then(()=>{
+    if(intro.open)stopCrowd=window.startIntroCrowd?.(intro);
+  }).catch(()=>{});
+  const waitForLoader=import('./intro-loader.js').catch(()=>null);
+  async function showPlay(){
+    // A slow or unavailable optional module cannot block PLAY.
+    const module=await Promise.race([waitForLoader,new Promise(resolve=>{
+      timer=setTimeout(()=>resolve(null),3500);
+      signal.addEventListener('abort',()=>resolve(null),{once:true});
+    })]);
+    clearTimeout(timer);
+    if(closed||!intro.open)return;
+    try {
+      if(module){
+        activeLoader=module.createMessageLoader(intro);
+        await activeLoader.finish();
+      }
+    } catch {
+      activeLoader?.dispose();
+    }
+    if(closed||!intro.open)return;
+    intro.querySelector('.intro-loading').hidden=true;
+    intro.querySelector('.message-loading-mount').replaceChildren();
+    intro.querySelector('.intro-play').hidden=false;
+    intro.classList.add('show-play','play-css-surface','crowd-ready');
+    // A stationary pointer over the center must not trigger the new hover pose.
+    intro.addEventListener('pointermove',()=>intro.classList.add('play-hover-ready'),{once:true,passive:true,signal});
+    flickerEnabled=true;
+    syncFlicker();
+    button.focus({preventScroll:true});
   }
-  if(document.readyState==='complete') showPlay();
-  else window.addEventListener('load',showPlay,{once:true});
+  void showPlay();
   // Browser input modality may carry over from the link that opened this
   // page. Show PLAY's focus ring only after keyboard navigation here.
-  intro.addEventListener('pointerdown',()=>intro.classList.remove('keyboard-navigation'),{passive:true});
+  intro.addEventListener('pointerdown',()=>intro.classList.remove('keyboard-navigation'),{passive:true,signal});
   intro.addEventListener('keydown',event=>{
     if(event.key!=='Tab') return;
     intro.classList.add('keyboard-navigation');
-    const items=[...intro.querySelectorAll('button,a')].filter(el=>!el.inert&&el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden');
-    if(!items.length){event.preventDefault();return;}
-    if(event.shiftKey && document.activeElement===items[0]){event.preventDefault();items.at(-1).focus();}
-    else if(!event.shiftKey && document.activeElement===items.at(-1)){event.preventDefault();items[0].focus();}
-  });
+  },{signal});
   button.addEventListener('click',async()=>{
     flickerEnabled=false;
     syncFlicker();
-    document.removeEventListener('visibilitychange',syncFlicker);
-    flickerReduced.removeEventListener('change',syncFlicker);
-    stopCrowd();
+    stopCrowd?.();stopCrowd=null;
     button.disabled=true;
     intro.classList.add('is-zooming');
-    if(location.hash)history.replaceState(history.state,'',location.pathname+location.search);
     // Restore the page's final layout while it is still covered, avoiding a
     // scrollbar/layout jump at the end of the fade. Content remains inert.
     document.body.classList.remove('intro-active');
     window.scrollTo({top:0,behavior:'instant'});
+    const hero = document.querySelector('#home');
+    if(!intro.animate){
+      intro.close();hero.tabIndex=-1;hero.focus({preventScroll:true});return;
+    }
     const duration=flickerReduced.matches?180:1100;
     const bounds=button.getBoundingClientRect();
     const targetScale=Math.max(innerWidth/bounds.width,innerHeight/bounds.height)*1.25;
@@ -159,18 +176,13 @@
         duration:400,easing:'ease-in-out',fill:'forwards'
       }));
     }
-    // Keep the underlying page inert until the visual transition has completed.
+    // The native modal keeps the underlying page inert during the zoom.
     await Promise.allSettled(animations.map(animation=>animation.finished));
-    activeLoader?.dispose?.();
-    content.forEach(element=>element.inert=false);
-    document.body.classList.remove('intro-active');
-    intro.remove();
-    window.dispatchEvent(new Event('portfolio-ready'));
-    const hero = document.querySelector('#home');
+    if(!intro.open)return;
+    intro.close();
     hero.tabIndex=-1;
     hero.focus({preventScroll:true});
     if(badgeRig){
-      badgeRig.classList.remove('awaiting-entrance');
       if(!flickerReduced.matches){
         badgeRig.inert=true;
         document.body.classList.add('badge-entering');
@@ -196,5 +208,6 @@
         }
       }
     }
-  },{once:true});
-})();
+  },{once:true,signal});
+  return dismissed;
+}

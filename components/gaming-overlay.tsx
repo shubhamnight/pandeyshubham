@@ -6,6 +6,7 @@ import { Marquee } from '@/components/ui/3d-testimonails';
 interface GameArtwork {
   src: string;
   srcset?: string;
+  original?: string;
   title: string;
   alt: string;
   width: number;
@@ -28,27 +29,40 @@ function GamingOverlay({ images }: { images: GameArtwork[] }) {
     const sync = () => element.toggleAttribute('data-paused', suspended || !visible || document.hidden || document.body.classList.contains('motion-paused'));
     const intersection = new IntersectionObserver(([entry]) => { visible=entry.isIntersecting; sync(); });
     intersection.observe(element);
+    const artwork = new IntersectionObserver(entries => {
+      for (const { target, isIntersecting } of entries) {
+        if (!isIntersecting) continue;
+        const image = target as HTMLImageElement;
+        if (image.dataset.srcset) image.srcset = image.dataset.srcset;
+        if (image.dataset.src) image.src = image.dataset.src;
+        artwork.unobserve(image);
+      }
+    }, { root: element, rootMargin: '120px' });
+    const observeArtwork = () => element.querySelectorAll('img:not([src])').forEach(image => artwork.observe(image));
+    const cards = new MutationObserver(observeArtwork);
+    cards.observe(element, { childList: true, subtree: true });
+    observeArtwork();
     const suspend = () => { suspended=true; sync(); };
     const resume = () => { suspended=false; sync(); };
     const pause = new MutationObserver(sync);
     pause.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     document.addEventListener('visibilitychange', sync); sync();
     window.addEventListener('pagehide',suspend); window.addEventListener('pageshow',resume);
-    return () => { resize.disconnect(); pause.disconnect(); intersection.disconnect(); document.removeEventListener('visibilitychange', sync); window.removeEventListener('pagehide',suspend); window.removeEventListener('pageshow',resume); };
+    return () => { cards.disconnect(); artwork.disconnect(); resize.disconnect(); pause.disconnect(); intersection.disconnect(); document.removeEventListener('visibilitychange', sync); window.removeEventListener('pagehide',suspend); window.removeEventListener('pageshow',resume); };
   }, []);
   return <div ref={viewport} className="gaming-scroll-viewport" data-lenis-prevent data-paused=""
     role="group" aria-label="Game artwork" data-game-count={images.length}>
     <div className="gaming-marquee-scene">
       <div className="gaming-marquee-plane" style={{ '--columns': columnCount } as CSSProperties}>
-        {columns.map((column, index) => <Marquee key={index} vertical pauseOnHover inertCopies={false} reverse={index % 2 === 1}
+        {columns.map((column, index) => <Marquee key={index} vertical pauseOnHover reverse={index % 2 === 1}
           className="gaming-marquee-column" ariaLabel={`Game artwork column ${index + 1}. Scroll or swipe to browse; hold to pause. Arrow keys browse; Space toggles pause.`}
           style={{ '--duration': `${Math.max(40, column.length * 5)}s` } as CSSProperties}>
           {column.map(image => <figure key={image.src} className="gaming-marquee-card" data-game-title={image.title}>
-            <img className="gaming-marquee-artwork" src={image.src} srcSet={image.srcset}
+            <img className="gaming-marquee-artwork" data-src={image.src} data-srcset={image.srcset}
               sizes="(max-width:600px) 220px, (max-width:900px) 280px, 320px"
               width={image.width} height={image.height} alt={image.alt}
-              loading="lazy" decoding="async" draggable={false} />
-            <figcaption>{image.title}</figcaption>
+              decoding="async" draggable={false} />
+            <figcaption>{image.title}{image.original && <> · <a href={image.original} aria-label={`View original ${image.title} artwork`} target="_blank" rel="noopener" onPointerDown={event => event.stopPropagation()}>View original</a></>}</figcaption>
           </figure>)}
         </Marquee>)}
       </div>

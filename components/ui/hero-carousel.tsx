@@ -30,6 +30,7 @@ export interface HeroCarouselItem {
   image: string
   /** Untouched full-resolution source for the selected photograph. */
   fullImage?: string
+  originalHref?: string
   /** Responsive enhanced viewing copies for full-overlay backgrounds. */
   fullSources?: { src: string; width: number }[]
   width?: number
@@ -488,7 +489,7 @@ export function HeroCarousel({
                 onClick={() => { if (performance.now() - dragFinished.current > 200) go(i) }}
               >
               {/* Both portrait and landscape photographs keep their full frame. */}
-              {Math.abs(i - index) <= Math.ceil(box.w / step / 2) + 2 && <img
+              {Math.abs(i - index) <= Math.ceil(box.w / step / 2) + 1 && <img
                 src={item.image}
                 srcSet={item.srcSet}
                 sizes={`${Math.ceil(cardW)}px`}
@@ -514,8 +515,9 @@ export function HeroCarousel({
         </motion.div>
       </div>
 
-      {active.caption && <p className="photo-active-caption" style={{ top: box.h * STRIP_TOP + fullH + 14 }} aria-live="polite" aria-atomic="true">
+      {(active.caption || active.originalHref) && <p className="photo-active-caption" style={{ top: box.h * STRIP_TOP + fullH + 14 }} aria-live="polite" aria-atomic="true">
         {active.caption}
+        {active.originalHref && <a href={active.originalHref} aria-label={`View original ${active.alt ?? "media"}`} target="_blank" rel="noopener" className="photo-original-link">View original</a>}
       </p>}
 
     </div>

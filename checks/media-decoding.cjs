@@ -10,6 +10,9 @@ const output=path.resolve(process.env.AUDIT_OUTPUT||'output/render-repair-2026-1
   for(const [width,height,touch]of [[390,844,true],[768,1024,true],[1440,900,false]]){
    const page=await browser.newPage({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:touch?2:1});
    const errors=[];page.on('pageerror',error=>errors.push(error.message));
+   // The release bundles this data into Photography rather than shipping a second entry.
+   const heroData=await fs.readFile(path.join(__dirname,'../photography-hero-data.js'),'utf8');
+   await page.route('**/photography-hero-data.js',route=>route.fulfill({contentType:'text/javascript',body:heroData}));
    await page.route('**/qa-media.html',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><title>Read-only media decoding check</title>'}));
    await page.goto(origin+'/qa-media.html');
    const result=await page.evaluate(async()=>{

@@ -2,7 +2,7 @@
 // this verifies real drawing buffers, not physical-device performance claims.
 const assert=require('node:assert/strict');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
-const {enter,hobbies,save}=require('./helpers/site.cjs');
+const {enter,hobbies,model,save}=require('./helpers/site.cjs');
 const cases=[['laptop',1366,768,false,2,8,8],['phone',393,873,true,3,8,8],
  ['unknown-safari-tablet',820,1180,true,2,null,null],['weak-laptop',1366,768,false,2,4,4],
  ['weak-phone',393,873,true,3,4,4],['weak-tablet',820,1180,true,2,4,4]];
@@ -49,13 +49,11 @@ async function idle(page){
    }
    window.qaFrames=0;const raf=requestAnimationFrame;window.requestAnimationFrame=callback=>raf(time=>{window.qaFrames++;callback(time);});
   },{memory,cores,safari:profile.startsWith('unknown')});
-  await page.route('**/hobby-video-card.js',require('./helpers/instrument-source.cjs')('hobby-video-card.js',source=>
-   source.replace("const video=document.createElement('video');","const video=document.createElement('video');(window.qaPreviewVideos??=[]).push(video);")));
   await page.route('**/graphics-quality.js',require('./helpers/instrument-source.cjs')('graphics-quality.js',source=>
    source.replace('export function reportGraphicsFrame(time,active=true){','export function reportGraphicsFrame(time,active=true){window.qaGraphicsReports=(window.qaGraphicsReports||0)+1;')));
   try{
    await enter(page);await hobbies(page);
-   await page.waitForFunction(()=>document.querySelectorAll('.hobby-orbit-center button canvas').length===4&&document.querySelectorAll('.hobby-video-canvas').length>0);
+   await model(page,'photography-camera');
    await footer(page);await idle(page);const before=await snapshot(page),weak=profile.startsWith('weak');
    const scale=Math.sqrt(.70),modelRatio=(weak?1:touch?1.25:1.5)*scale,backgroundRatio=(weak?1:touch?1.25:1.35)*scale;
    for(const model of before.models){
@@ -72,7 +70,6 @@ async function idle(page){
     return window.qaGraphicsReports===before;
    }),'a video-only composite frame cannot be mistaken for slow display refresh');
    await page.evaluate(()=>window.qaFrames=0);
-   const sources=await page.evaluate(()=>window.qaPreviewVideos.map(video=>video.getAttribute('src')));
    const latched=await page.evaluate(async()=>{
     const api=await import('/graphics-quality.js');let changed=false;
     const start=performance.now();for(let index=0;index<140;index++)changed=api.reportGraphicsFrame(start+index*60)||changed;
@@ -82,12 +79,9 @@ async function idle(page){
    await page.waitForTimeout(300);assert.equal(await page.evaluate(()=>window.qaFrames),0,'quality changes do not start offscreen frame loops');
    const lowered=await snapshot(page);
    assert.equal(lowered.background.width,Math.round(before.background.cssWidth*scale),'native pressure reaches the separately bundled footer');
-   if(!weak)assert.ok(lowered.previews.some((canvas,index)=>canvas.width<before.previews[index].width),'existing preview backing stores shrink in place');
-   lowered.previews.forEach((canvas,index)=>{
-    assert.equal(canvas.smoothing,'high');assert.equal(canvas.cssWidth,before.previews[index].cssWidth);assert.equal(canvas.cssHeight,before.previews[index].cssHeight);
-   });
-   assert.deepEqual(await page.evaluate(()=>window.qaPreviewVideos.map(video=>video.getAttribute('src'))),sources,'quality changes never replace video sources');
-   await hobbies(page);const after=await snapshot(page);
+   await page.locator('#photography-camera').scrollIntoViewIfNeeded();
+   await page.waitForFunction(()=>document.querySelector('#photography-camera canvas')?.width===Math.floor(document.querySelector('#photography-camera').clientWidth*Math.sqrt(.70)));
+   const after=await snapshot(page);
    for(const model of after.models){
     assert.equal(model.width,Math.floor(model.cssWidth*scale));assert.equal(model.height,Math.floor(model.cssHeight*scale));assert.equal(model.antialias,true);
     const original=before.models.find(item=>item.id===model.id);assert.equal(model.cssWidth,original.cssWidth);assert.equal(model.cssHeight,original.cssHeight);
@@ -101,7 +95,6 @@ async function idle(page){
    await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:false})));
    await page.waitForTimeout(300);
    assert.ok(await page.locator('.hobby-orbit-center button canvas').evaluateAll(canvases=>canvases.every(canvas=>canvas.getContext('webgl2').isContextLost())),'permanent disposal releases model contexts');
-   assert.ok(await page.evaluate(()=>window.qaPreviewVideos.every(video=>!video.hasAttribute('src')&&video.paused)),'permanent disposal releases video decoders');
    assert.equal(await page.evaluate(()=>globalThis[Symbol.for('portfolio.graphics-quality')].listeners.size),0,'quality subscriptions are released');
    assert.deepEqual(errors,[]);results.push({profile,evidence:'emulated hints and synthetic pressure; real GPU/2D buffers',before,after,latched,offscreenFrames:0,disposed:true,errors});
   }catch(error){results.push({profile,error:error.message,errors});await save('adaptive-graphics',results);throw error;}

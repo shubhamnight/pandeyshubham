@@ -1,21 +1,13 @@
-import { deferHobbyModel, connectHobbyMotion } from './hobby-model-runtime.js';
+import { mountHobbyModel } from './hobby-model-runtime.js';
 import * as THREE from './node_modules/three/build/three.module.js';
 import { FastRoundedBoxGeometry as RoundedBoxGeometry } from './rounded-box-geometry.js';
-import { createHobbyRenderer } from './hobby-renderer.js';
-import { yieldHobbyPreparation } from './hobby-preparation.js';
 
-const button = document.querySelector('#photography-camera');
+export function buildHobbyModel(button,signal,onFailure) {
+  const model=new THREE.Group();
+  return mountHobbyModel({button,signal,model,Renderer:THREE.WebGLRenderer,maxDensity:1.5,assemble:buildCamera,onFailure});
+}
 
-// Initialize once near the viewport, staggered across idle frames.
-deferHobbyModel(button, buildCamera);
-
-async function buildCamera() {
-  let renderer;
-  try { renderer = createHobbyRenderer(THREE.WebGLRenderer,button,Math.min(devicePixelRatio,1.5)); }
-  catch { button.dataset.hobbyModelFailed='true'; return; } // The existing icon remains a clickable gallery fallback.
-  await yieldHobbyPreparation();
-  renderer.setClearColor(0, 0);
-  button.append(renderer.domElement);
+async function buildCamera(model,yieldHobbyPreparation) {
   const scene = new THREE.Scene();
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
   // A straight-on resting view keeps the camera face centered.
@@ -23,7 +15,7 @@ async function buildCamera() {
   scene.add(new THREE.HemisphereLight(0xffffff, 0x4c5565, 2.4));
   const light = new THREE.DirectionalLight(0xffeee0, 3.2); light.position.set(-3, 5, 5); scene.add(light);
   const rim = new THREE.DirectionalLight(0xd5dfec, 1.6); rim.position.set(4, 1, -2); scene.add(rim);
-  const model = new THREE.Group(); scene.add(model);
+  scene.add(model);
   const material = (color, roughness = .5, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
   const cream = material(0x353639), black = material(0x17191d), trim = material(0x36383b), silver = material(0xb7b5ae, .3, .5);
   function box(w, h, d, x, y, z, mat, radius = .05) {
@@ -62,5 +54,5 @@ async function buildCamera() {
   box(.62, .2, .09, .34, -.32, .7, black);
   disc(.065, .025, .52, -.33, .76, trim);
   await yieldHobbyPreparation();
-  await connectHobbyMotion({ button, renderer, scene, view, model });
+  return {scene,view};
 }

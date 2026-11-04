@@ -1,6 +1,5 @@
 import { requestHobbyFrame, cancelHobbyFrame } from './hobby-motion-clock.js';
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
-const floatNav = document.querySelector('.floating-nav');
 let paused = reducedMotion.matches;
 function setMotion(value) {
   paused = value;
@@ -8,22 +7,23 @@ function setMotion(value) {
 }
 setMotion(paused);
 reducedMotion.addEventListener('change', event => setMotion(event.matches));
-const navHero=document.querySelector('.hero');
-let heroIntersecting=true;
-function syncNavVisibility(){
-  // A covered sticky hero still intersects geometrically behind the skills.
-  const show = !heroIntersecting||navHero.classList.contains('hero-covered');
-  floatNav.classList.toggle('visible', show);
-  floatNav.inert = !show;
-}
-const heroObserver = new IntersectionObserver(entries => {
-  heroIntersecting=entries[0].isIntersecting;syncNavVisibility();
-}, {threshold: 0.15});
-heroObserver.observe(navHero);
-const navHeroState=new MutationObserver(syncNavVisibility);
-navHeroState.observe(navHero,{attributes:true,attributeFilter:['class']});
-window.addEventListener('pagehide',event=>{if(!event.persisted){heroObserver.disconnect();navHeroState.disconnect();}});
-floatNav.inert = true;
+// Defining these faces at entry makes Chrome download them for offscreen text.
+const sectionFonts = new IntersectionObserver(entries => {
+  if (!entries.some(entry => entry.intersectionRatio >= .02)) return;
+  sectionFonts.disconnect();
+  function load() {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = new URL('./assets/fonts/section-fonts.css', import.meta.url);
+    link.addEventListener('error', () => {
+      link.remove();
+      window.addEventListener('online', load, {once:true});
+    }, {once:true});
+    document.head.append(link);
+  }
+  load();
+}, {threshold:.02});
+document.querySelectorAll('main > .section').forEach(section => sectionFonts.observe(section));
 document.body.classList.add('motion-enabled');
 const revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
   if (entry.isIntersecting) { entry.target.classList.add('is-visible'); revealObserver.unobserve(entry.target); }

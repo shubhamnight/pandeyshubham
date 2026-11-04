@@ -1,12 +1,7 @@
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path');
 const origin=process.env.AUDIT_URL||'http://localhost:3000',output=path.resolve(process.env.AUDIT_OUTPUT||'output/final-audit/connection');
-async function enter(page){
- await page.goto(origin,{waitUntil:'load'});
- await page.getByRole('button',{name:'Enter Shubham Pandey’s portfolio',exact:true}).click({timeout:45000});
- await page.locator('.portfolio-intro').waitFor({state:'detached'});
- await page.waitForFunction(()=>!document.body.classList.contains('badge-entering'));
-}
+const {enter,hobbies,galleries,open}=require('./helpers/site.cjs');
 async function contactReady(page){
  await page.locator('#contact canvas').waitFor({state:'visible',timeout:30000});
  await page.waitForFunction(()=>document.querySelector('.footer-socials-fallback').hidden);
@@ -25,9 +20,8 @@ async function contactReady(page){
   page.on('pageerror',e=>errors.push(e.message));await enter(page);
   await page.evaluate(async()=>{await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));window.qaDocument=document;});
   assert.ok(await page.evaluate(()=>window.qaLoadTime!==null&&window.qaWorkerTime>=window.qaLoadTime),'offline backup preparation starts after the critical document load');
-  await page.locator('.floating-nav a[href="#projects"]').evaluate(e=>e.click());
-  await page.waitForFunction(()=>!document.querySelector('#projects').inert&&document.querySelector('#projects').hobbyEntranceProgress===1);
-  await page.locator('#music-walkman').click();await page.locator('#music-gallery .dcc-root').waitFor();
+  await hobbies(page);
+  await open(page,galleries.find(([,id])=>id==='music'));
   await page.locator('#music-gallery .music-title').waitFor();
   const title=await page.locator('#music-gallery .music-title').innerText(),url=page.url();
   await page.locator('#music-gallery .music-title').evaluate(e=>window.qaTitle=e);

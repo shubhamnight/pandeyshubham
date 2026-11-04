@@ -1,23 +1,13 @@
-import { deferHobbyModel, connectHobbyMotion } from './hobby-model-runtime.js';
+import { mountHobbyModel } from './hobby-model-runtime.js';
 import * as THREE from './node_modules/three/build/three.module.js';
 import { FastRoundedBoxGeometry as RoundedBoxGeometry } from './rounded-box-geometry.js';
-import { createHobbyRenderer } from './hobby-renderer.js';
-import { yieldHobbyPreparation } from './hobby-preparation.js';
 
-const button = document.querySelector('#music-walkman');
+export function buildHobbyModel(button,signal,onFailure) {
+  const model=new THREE.Group();
+  return mountHobbyModel({button,signal,model,Renderer:THREE.WebGLRenderer,maxDensity:2,assemble:buildWalkman,onFailure});
+}
 
-// Initialize once near the viewport, staggered across idle frames.
-deferHobbyModel(button, buildWalkman);
-
-async function buildWalkman() {
-  let renderer;
-  try { renderer = createHobbyRenderer(THREE.WebGLRenderer,button,Math.min(devicePixelRatio,2)); }
-  catch { button.dataset.hobbyModelFailed='true'; return; } // The existing icon remains a clickable gallery fallback.
-  await yieldHobbyPreparation();
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.12;
-  renderer.setClearColor(0, 0);
-  button.append(renderer.domElement);
+async function buildWalkman(model,yieldHobbyPreparation) {
   const scene = new THREE.Scene();
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
   // A near-frontal, level view keeps the player upright with a little depth.
@@ -25,7 +15,7 @@ async function buildWalkman() {
   scene.add(new THREE.HemisphereLight(0xffffff, 0x303846, 1.8));
   const light = new THREE.DirectionalLight(0xfff5ed, 2.6); light.position.set(-3, 5, 5); scene.add(light);
   const rim = new THREE.DirectionalLight(0xd5dfec, 2); rim.position.set(4, 1, -2); scene.add(rim);
-  const model = new THREE.Group(); scene.add(model);
+  scene.add(model);
   const material = (color, roughness = .5, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
   const navy=material(0x242529,.5), black=material(0x11151a,.55), gray=material(0x69716f,.57,.2);
   const metal=material(0xb1b8b6,.28,.65), orange=material(0x183f73,.94), cassette=material(0xaaa996,.74);
@@ -143,5 +133,7 @@ async function buildWalkman() {
     return settled;
   }
   await yieldHobbyPreparation();
-  await connectHobbyMotion({ button, renderer, scene, view, model, orientModel });
+  return {scene,view, orientModel, configure(renderer){
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+  }};
 }

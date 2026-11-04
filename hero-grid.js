@@ -35,14 +35,9 @@
     layer.style.animationDelay=(-starRandom()*16).toFixed(2)+'s';
     stars.append(layer);
   });
-  host.prepend(stars);
+  const retro = host.querySelector('.hero-retro-grid');
+  retro.after(stars);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  const retro = document.createElement('div');
-  retro.className = 'hero-retro-grid';
-  retro.setAttribute('aria-hidden','true');
-  retro.innerHTML = '<div class="hero-retro-plane"><div class="hero-retro-lines"></div></div>';
-  host.prepend(retro);
-  host.classList.add('kinetic-grid-ready');
 
   const lifecycle = new AbortController();
   const options = {signal:lifecycle.signal};

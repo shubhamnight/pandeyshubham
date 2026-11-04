@@ -1,94 +1,96 @@
-// Package the existing portfolio as a static Vercel deployment.
 const fs = require('node:fs');
 const path = require('node:path');
 const { buildSync, transformSync } = require('esbuild');
 const { renderSeo } = require('./build-seo.cjs');
-function buildVercel() {
-const root = fs.realpathSync(__dirname);
-const dist = path.resolve(root, 'dist');
+const publicFiles = require('./public-files.cjs');
 
-// Only replace this project's generated output, never a linked directory.
-if (path.dirname(dist) !== root || path.basename(dist) !== 'dist') {
-  throw new Error('Build output must be the project dist directory.');
-}
-if (fs.lstatSync(dist, { throwIfNoEntry: false })?.isSymbolicLink()) {
-  throw new Error('Build output must not be a symbolic link.');
-}
-fs.rmSync(dist, { recursive: true, force: true });
-fs.mkdirSync(dist, { recursive: true });
-
-const production = process.env.VERCEL_ENV === 'production';
-if (production) {
-  const config = JSON.stringify(process.env.VERCEL_OBSERVABILITY_CLIENT_CONFIG || '');
-  buildSync({
-    stdin: {
-      contents: `import { inject } from '@vercel/analytics'; inject({ mode: 'production' }, ${config});`,
-      resolveDir: root,
-    },
-    bundle: true,
-    minify: true,
-    target: 'es2020',
-    outfile: path.join(dist, 'web-analytics.js'),
+function packStyles(files) {
+  const index = files.get('index.html');
+  const css = [];
+  index.content = index.content.replace(/<link rel="stylesheet" href="([^"]+\.css)">/g, (link, name, offset, html) => {
+    if (offset > html.indexOf('<noscript>')) return link;
+    const source = files.get(name).content;
+    const folder = path.posix.dirname(name);
+    css.push(folder === '.' ? source : source.replace(/url\(([\w.-]+)\)/g, (_, value) => 'url(' + folder + '/' + value + ')'));
+    files.delete(name);
+    return css.length === 1 ? '<link rel="stylesheet" href="site.css">' : '';
   });
+  files.set('site.css', { content: css.join('\n') });
 }
 
-for (const name of fs.readdirSync(root)) {
-  if (name === 'travel-locations-editor.js' || name.startsWith('image-manager')) continue;
-  if (!/\.(?:js|css)$/.test(name) && ![
-    'index.html', '404.html', 'offline.html', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest', 'favicon.ico',
-    'image-shub-2.jpeg', 'shub ka photo.png', 'travel-locations.json', 'social-links.json', 'media-library.json', 'mobile-media-data.json'
-  ].includes(name)) continue;
-  const source = path.join(root, name);
-  if (!fs.statSync(source).isFile()) continue;
-  const target = path.join(dist, name);
-  if (/\.(?:html|js|css)$/.test(name)) {
-    // Vercel excludes node_modules from public assets. Publish only the
-    // required browser modules under vendor, retaining their directory layout.
-    let content = fs.readFileSync(source, 'utf8').replaceAll('node_modules/', 'vendor/');
-    if (name === 'index.html') {
-      content = renderSeo(content, { preview: process.env.VERCEL_ENV === 'preview' });
-      if (production) content = content.replace('</head>', '<script defer src="/web-analytics.js"></script>\n</head>');
+function buildVercel() {
+  const root = fs.realpathSync(__dirname);
+  const dist = path.join(root, 'dist');
+  const files = publicFiles(root);
+  packStyles(files);
+  if (fs.lstatSync(dist, { throwIfNoEntry: false })?.isSymbolicLink()) {
+    throw new Error('Build output must not be a symbolic link.');
+  }
+  fs.rmSync(dist, { recursive: true, force: true });
+  fs.mkdirSync(dist, { recursive: true });
+
+  const production = process.env.VERCEL_ENV === 'production';
+  if (production) {
+    const config = JSON.stringify(process.env.VERCEL_OBSERVABILITY_CLIENT_CONFIG || '');
+    buildSync({
+      stdin: {
+        contents: `import { inject } from '@vercel/analytics'; inject({ mode: 'production' }, ${config});`,
+        resolveDir: root,
+      },
+      bundle: true,
+      minify: true,
+      target: 'es2020',
+      outfile: path.join(dist, 'web-analytics.js'),
+    });
+  }
+
+  for (const [name, file] of files) {
+    const target = path.join(dist, name);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    if (file.content === null) {
+      fs.copyFileSync(file.source, target);
+      continue;
     }
-    if (name === 'travel-location-label.js') {
-      const localEndpoint = "fetch('/api/travel-locations')";
-      if (!content.includes(localEndpoint)) throw new Error('Travel location endpoint changed; update the static build.');
-      content = content.replace(localEndpoint, "fetch('./travel-locations.json')");
+    let content = file.content;
+    if (!name.includes('/')) {
+      content = content.replaceAll('node_modules/', 'vendor/');
+      if (name === 'index.html') {
+        content = renderSeo(content, { preview: process.env.VERCEL_ENV === 'preview' });
+        if (production) content = content.replace('</head>', '<script defer src="/web-analytics.js"></script>\n</head>');
+      }
+      if (name === 'travel-location-label.js') {
+        const localEndpoint = "fetch('/api/travel-locations'";
+        if (content.includes(localEndpoint)) content = content.replace(localEndpoint, "fetch('./travel-locations.json'");
+      }
+      if (/\.(?:js|css)$/.test(name)) {
+        const moduleScript = name.endsWith('.js') && /^\s*(?:import\s+(?!\()|export\s+)/m.test(content);
+        content = transformSync(content, {
+          loader: name.endsWith('.css') ? 'css' : 'js',
+          target: 'es2020', minifyWhitespace: true, minifySyntax: true,
+          // Classic scripts share globals, so only ES modules can rename bindings.
+          ...(moduleScript ? { format: 'esm', minifyIdentifiers: true } : {}),
+          legalComments: 'eof',
+        }).code;
+      }
     }
-    const moduleScript = name.endsWith('.js') && /^\s*(?:import\s+(?!\()|export\s+)/m.test(content);
-    if (/\.(?:js|css)$/.test(name)) content = transformSync(content, {
-      loader: name.endsWith('.css') ? 'css' : 'js', target: 'es2020',
-      minifyWhitespace: true, minifySyntax: true,
-      // ES modules have private bindings; their public exports keep their names.
-      // Classic scripts share globals (including reducedMotion). Keep those names.
-      ...(moduleScript ? {format:'esm',minifyIdentifiers:true} : {minifyIdentifiers:false}),
-      legalComments: 'eof',
-    }).code;
     fs.writeFileSync(target, content);
-  } else fs.copyFileSync(source, target);
-}
-
-// Keep original media and the existing optimized assets without re-encoding.
-for (const folder of ['assets', 'PHOTOGRAPHY', 'TRAVEL']) {
-  fs.cpSync(path.join(root, folder), path.join(dist, folder), { recursive: true });
-}
-for (const name of [
-  'three/build/three.module.js', 'three/build/three.core.js',
-  'three/examples/jsm/utils/BufferGeometryUtils.js',
-  'lenis/dist/lenis.mjs', 'lenis/dist/lenis.css'
-]) {
-  const target = path.join(dist, 'vendor', name);
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  const content = fs.readFileSync(path.join(root, 'node_modules', name), 'utf8');
-  fs.writeFileSync(target, transformSync(content, {
-    loader: name.endsWith('.css') ? 'css' : 'js', target: 'es2020',
-    // Vendor files are ES modules: their private identifiers do not share
-    // the classic scripts' global scope. Keep exported API/function names
-    // while reducing download, parse, and compile work for the same runtime.
-    minify: true, keepNames: true, legalComments: 'eof',
-  }).code);
-}
-console.log('Vercel portfolio build ready: ' + dist);
-return dist;
+  }
+  const vendor = [
+    'three/build/three.module.js',
+    'three/build/three.core.js',
+    'three/examples/jsm/utils/BufferGeometryUtils.js',
+  ];
+  for (const name of vendor) {
+    const target = path.join(dist, 'vendor', name);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    const content = fs.readFileSync(path.join(root, 'node_modules', name), 'utf8');
+    fs.writeFileSync(target, transformSync(content, {
+      target: 'es2020', minify: true, keepNames: true, legalComments: 'eof',
+    }).code);
+  }
+  fs.writeFileSync(path.join(dist, 'public-files.json'), JSON.stringify([...files.keys(), ...vendor.map(name => 'vendor/' + name), ...(production ? ['web-analytics.js'] : [])].sort()));
+  console.log('Vercel portfolio build ready: ' + dist);
+  return dist;
 }
 
 module.exports = buildVercel;

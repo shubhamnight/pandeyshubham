@@ -1,23 +1,13 @@
-import { deferHobbyModel, connectHobbyMotion } from './hobby-model-runtime.js';
+import { mountHobbyModel } from './hobby-model-runtime.js';
 import * as THREE from './node_modules/three/build/three.module.js';
 import { FastRoundedBoxGeometry as RoundedBoxGeometry } from './rounded-box-geometry.js';
-import { createHobbyRenderer } from './hobby-renderer.js';
-import { yieldHobbyPreparation } from './hobby-preparation.js';
 
-const button = document.querySelector('#travel-plane');
+export function buildHobbyModel(button,signal,onFailure) {
+  const model=new THREE.Group();
+  return mountHobbyModel({button,signal,model,Renderer:THREE.WebGLRenderer,maxDensity:2,assemble:buildPlane,onFailure});
+}
 
-// Initialize once near the viewport, staggered across idle frames.
-deferHobbyModel(button, buildPlane);
-
-async function buildPlane() {
-  let renderer;
-  try { renderer = createHobbyRenderer(THREE.WebGLRenderer,button,Math.min(devicePixelRatio,2)); }
-  catch { button.dataset.hobbyModelFailed='true'; return; } // The existing icon remains a clickable gallery fallback.
-  await yieldHobbyPreparation();
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.12;
-  renderer.setClearColor(0, 0);
-  button.append(renderer.domElement);
+async function buildPlane(model,yieldHobbyPreparation) {
   const scene = new THREE.Scene();
   const view = new THREE.PerspectiveCamera(34, 1, .1, 30);
   // Preserve the reference's three-quarter resting view.
@@ -25,7 +15,7 @@ async function buildPlane() {
   scene.add(new THREE.HemisphereLight(0xffffff, 0x303846, 1.8));
   const light = new THREE.DirectionalLight(0xfff5ed, 2.6); light.position.set(-3, 5, 5); scene.add(light);
   const rim = new THREE.DirectionalLight(0xd5dfec, 2); rim.position.set(4, 1, -2); scene.add(rim);
-  const model = new THREE.Group(); scene.add(model);
+  scene.add(model);
   const material = (color, roughness = .5, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
   const white=material(0x454649,.32,.12), silver=material(0xb0b7be,.27,.55);
   const navy=material(0x17181c,.4), red=material(0x183f73,.4), glass=material(0x16232d,.19,.3), dark=material(0x171c23,.6);
@@ -150,5 +140,7 @@ async function buildPlane() {
     return settled;
   }
   await yieldHobbyPreparation();
-  await connectHobbyMotion({ button, renderer, scene, view, model, orientModel });
+  return {scene,view, orientModel, configure(renderer){
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+  }};
 }

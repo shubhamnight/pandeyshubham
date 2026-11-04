@@ -9,18 +9,16 @@ import { FastRoundedBoxGeometry } from './rounded-box-geometry.js';
 // real rounded-box parameter tuple, without WebGL or substituting geometry.
 const parameters=[];
 class Recorded extends RoundedBoxGeometry{constructor(...args){super(...args);parameters.push(args);}}
-class Renderer{constructor(){this.domElement={};}setPixelRatio(){}setClearColor(){}}
 const context=new Proxy({measureText:text=>({width:text.length*46}),createLinearGradient:()=>({addColorStop(){}})},
   {get:(target,key)=>target[key]||(()=>{})});
 const document={createElement:()=>({width:128,height:128,getContext:()=>context})};
-const button={append(){},classList:{add(){}},dataset:{}};
 for(const [file,name]of [['photography-camera.js','buildCamera'],['gaming-controller.js','buildController'],['travel-plane.js','buildPlane'],['music-walkman.js','buildWalkman']]){
   const source=fs.readFileSync(file,'utf8');
   const start=source.search(new RegExp('(?:async\\s+)?function '+name+'\\('));
   assert.ok(start>=0,'Current model builder exists: '+name);
   const body=source.slice(start);
-  await new Function('THREE','RoundedBoxGeometry','document','button','connectHobbyMotion','devicePixelRatio','createHobbyRenderer','yieldHobbyPreparation',body+'\nreturn '+name+'();')(
-    {...THREE,WebGLRenderer:Renderer},Recorded,document,button,()=>{},2,()=>new Renderer(),()=>Promise.resolve());
+  await new Function('THREE','RoundedBoxGeometry','document','model','yieldHobbyPreparation',body+'\nreturn '+name+'(model,yieldHobbyPreparation);')(
+    THREE,Recorded,document,new THREE.Group(),()=>Promise.resolve());
 }
 for(const args of parameters){
   const before=new RoundedBoxGeometry(...args),after=new FastRoundedBoxGeometry(...args);

@@ -36,3 +36,4 @@
   .photo-carousel .photo-headline { padding-right:max(72px,env(safe-area-inset-right))!important; }
   .photo-carousel .photo-active-caption { font-size:12px; }
 }
+.photo-original-link { display:inline-block; margin-inline:8px; padding:6px 2px; text-decoration:underline; color:#fff; }

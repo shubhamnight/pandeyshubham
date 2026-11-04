@@ -45,3 +45,4 @@
   .marquee-track { animation:none!important; will-change:auto; }
   .marquee-track[aria-hidden=true] { display:none; }
 }
+.gaming-marquee-card figcaption a { text-decoration:underline; }

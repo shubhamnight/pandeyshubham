@@ -1,53 +1,24 @@
-import { createMediaDeck } from './media-deck.js';
 import { musicImages } from './music-data.js';
-import { musicTitleStyles } from './music-title-data.js';
 import { mobileMediaSource } from './mobile-media.js';
 import { importPortfolioModule } from './module-loader.js';
 
-// Load the existing local fonts when the music previews initialize. The overlay
-// shares the font link, and both surfaces use the same title treatment rules.
-for(const [id,path] of [
-  ['music-title-fonts','./assets/fonts/music/fonts.css'],
-  ['music-caption-title-styles','./music-title-styles.css'],
-]){
-  if(document.getElementById(id))continue;
-  const link=document.createElement('link');link.id=id;link.rel='stylesheet';
-  link.href=new URL(path,import.meta.url).href;link.onerror=()=>link.remove();
-  document.head.append(link);
-}
-
-export function createRecord(song,index=0,gallery=false){
+function createRecord(song,index){
   const record=document.createElement('div');record.className='music-record';
   record.style.setProperty('--record-label', ['#0297de','#07334a','#0286c5'][index%3]);
   record.setAttribute('role','img');record.setAttribute('aria-label',song?.title?`${song.title}${song.artist?' — '+song.artist:''}`:'Vinyl record, awaiting song artwork');
   const label=document.createElement('div');label.className='music-record-label';
-  if(song?.src){const image=document.createElement('img');image.src=mobileMediaSource(gallery?song.fullSrc||song.src:song.src);image.alt='';image.loading=gallery?'lazy':'eager';image.decoding='async';label.append(image);}
+  if(song?.src){const image=document.createElement('img');image.src=mobileMediaSource(song.src);image.alt='';image.loading='lazy';image.decoding='async';label.append(image);}
   const hole=document.createElement('span');hole.className='music-record-hole';
   record.append(label,hole);
   return record;
 }
-
-const {next:nextSong}=createMediaDeck(musicImages);
-const slots=[...document.querySelectorAll('.hobby-music .hobby-image-placeholder')].slice(0,3);
-async function fillRecord(slot,index){
-  const song=nextSong(),version=(slot.recordVersion||0)+1;slot.recordVersion=version;
-  const record=createRecord(song,index),image=record.querySelector('img');
-  if(image){try{await image.decode();}catch{}}
-  if(slot.recordVersion!==version)return;
-  const surface=slot.querySelector('.hobby-image-surface');surface.replaceChildren(record);
-  if(song){const caption=document.createElement('span');caption.className='music-record-caption';
-    const title=document.createElement('strong'),artist=document.createElement('span');
-    title.className='music-title';title.dataset.titleStyle=musicTitleStyles[song.title]||'plain';title.dataset.songTitle=song.title;
-    title.textContent=song.title;artist.textContent=song.artist;caption.append(title,artist);surface.append(caption);slot.title=song.title+' — '+song.artist;}
-}
-slots.forEach((slot,index)=>{fillRecord(slot,index);slot.addEventListener('hobby-cycle',()=>fillRecord(slot,index));});
 
 function fillMusicFallback(gallery){
   if(gallery.dataset.recordsFilled)return;gallery.dataset.recordsFilled='true';
   const fragment=document.createDocumentFragment();
   for(let i=0;i<Math.max(6,musicImages.length);i++){
     const song=musicImages[i],frame=document.createElement('figure');frame.className='music-record-frame';
-    frame.append(createRecord(song,i,true));
+    frame.append(createRecord(song,i));
     if(song?.title){const caption=document.createElement('figcaption');caption.textContent=song.title+(song.artist?' — '+song.artist:'');frame.append(caption);}
     fragment.append(frame);
   }
@@ -57,43 +28,28 @@ function fillMusicFallback(gallery){
   else description.hidden=true;
 }
 
-let overlayModule=null,overlayData=null,disposeOverlay=null,overlayAbort=null;
-let galleryVersion=0,galleryConnected=false,disposed=false;
-export async function fillMusicGallery(gallery){
-  const version=++galleryVersion;
-  overlayAbort?.abort();
-  const controller=new AbortController();overlayAbort=controller;
-  disposeOverlay?.();disposeOverlay=null;
+let overlayModule=null,overlayData=null;
+export async function fillMusicGallery(gallery,signal){
+  if(signal.aborted)return;
   const content=gallery.querySelector('.hobby-gallery-content');
   const status=content.querySelector(':scope>p'),grid=content.querySelector('.music-gallery-grid');
   status.textContent='Opening music…';status.hidden=false;grid.hidden=true;
   let mount=content.querySelector('.music-cascade-mount');
   if(!mount){mount=document.createElement('div');mount.className='music-cascade-mount';mount.hidden=true;content.append(mount);}
-  if(!galleryConnected){
-    galleryConnected=true;
-    gallery.addEventListener('close',()=>{
-      galleryVersion++;overlayAbort?.abort();overlayAbort=null;
-      disposeOverlay?.();disposeOverlay=null;
-    });
-  }
   try{
     overlayModule??=importPortfolioModule('./assets/ui/music-overlay.js').catch(error=>{overlayModule=null;throw error;});
     overlayData??=importPortfolioModule('./music-overlay-data.js').catch(error=>{overlayData=null;throw error;});
     const [{mountMusicOverlay},{musicCards}]=await Promise.all([overlayModule,overlayData]);
-    if(disposed||version!==galleryVersion||!gallery.open)return;
-    const songs=musicCards.map(song=>({...song,src:mobileMediaSource(song.src),fullSrc:mobileMediaSource(song.fullSrc)}));
-    const dispose=await mountMusicOverlay(mount,songs,controller.signal);
-    if(disposed||version!==galleryVersion||!gallery.open){dispose();return;}
-    disposeOverlay=dispose;status.hidden=true;
+    if(signal.aborted||!gallery.open)return;
+    const songs=musicCards.map(song=>({...song,src:mobileMediaSource(song.src),fullSrc:song.fullSrc,artworkSrc:mobileMediaSource(song.fullSrc)}));
+    const dispose=await mountMusicOverlay(mount,songs,signal);
+    if(signal.aborted||!gallery.open){dispose();return;}
+    signal.addEventListener('abort',dispose,{once:true});status.hidden=true;
     grid.replaceChildren();delete gallery.dataset.recordsFilled;
   }catch(error){
-    if(disposed||version!==galleryVersion||!gallery.open)return;
+    if(signal.aborted||!gallery.open)return;
     gallery.classList.remove('music-cascade-active');mount.hidden=true;grid.hidden=false;
     fillMusicFallback(gallery);status.hidden=true;
     console.error('Music disc carousel could not load; showing the record grid.',error);
   }
 }
-window.addEventListener('pagehide',event=>{
-  if(event.persisted)return;
-  disposed=true;galleryVersion++;overlayAbort?.abort();disposeOverlay?.();
-});

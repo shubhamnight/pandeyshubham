@@ -4,11 +4,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=r
 const origin=process.env.AUDIT_URL||'http://localhost:3000';
 const output=path.resolve(process.env.AUDIT_OUTPUT||'output/visibility-compression/offscreen');
 async function nav(page,id){await page.evaluate(id=>document.querySelector(`.floating-nav a[href="#${id}"]`).click(),id);}
-async function hobbies(page){
-  await nav(page,'projects');
-  await page.waitForFunction(()=>!document.querySelector('#projects').inert&&document.querySelector('#projects').hobbyEntranceProgress===1&&
-    [...document.querySelectorAll('.hobby-orbit-center button')].every(e=>e.dataset.hobbyCompiling==='false'),null,{timeout:45000});
-}
+const {enter,hobbies,model}=require('./helpers/site.cjs');
 (async()=>{
   await fs.mkdir(output,{recursive:true});
   const browser=await chromium.launch({channel:process.env.BROWSER_CHANNEL||'chrome',headless:true});
@@ -20,14 +16,9 @@ async function hobbies(page){
     await page.addInitScript(()=>{window.qaFrames=0;const raf=requestAnimationFrame;window.requestAnimationFrame=cb=>raf(time=>{window.qaFrames++;cb(time);});});
     const cdp=await context.newCDPSession(page);
     await cdp.send('Emulation.setCPUThrottlingRate',{rate:touch?Number(process.env.AUDIT_CPU||4):1});
-    await page.goto(origin);
-    await page.getByRole('button',{name:'Enter Shubham Pandey’s portfolio',exact:true}).click({timeout:45000});
-    await page.locator('.portfolio-intro').waitFor({state:'detached'});
-    await page.waitForFunction(()=>!document.body.classList.contains('badge-entering'));
-    await hobbies(page);
-    await page.waitForFunction(()=>[...document.querySelectorAll('.hobby-orbit')].every(e=>e.querySelectorAll('.hobby-image-surface:not(:empty)').length===3));
+    await enter(page);await hobbies(page);await model(page,'photography-camera');
     await nav(page,'playground');await page.waitForTimeout(2200);
-    assert.equal(await page.locator('#projects').evaluate(e=>e.classList.contains('orbits-running')),false,'rounded anchor sliver cannot run Hobbies');
+    assert.ok(await page.locator('#photography-camera canvas').count(),'the active model remains mounted while scrolled away');
     await page.evaluate(()=>window.qaFrames=0);await page.waitForTimeout(350);
     assert.equal(await page.evaluate(()=>window.qaFrames),0,'no hidden Hobbies/model frame loop at Projects');
     const spins=page.locator('.kinetic-object span');

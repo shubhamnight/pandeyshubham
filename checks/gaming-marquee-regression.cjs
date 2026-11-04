@@ -3,14 +3,11 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path');
 const origin=process.env.AUDIT_URL||'http://localhost:3000',out=path.resolve(process.env.AUDIT_OUTPUT||'output/gaming-marquee');
 async function open(page){
- await page.evaluate(()=>document.querySelector('.floating-nav a[href="#projects"]').click());
- await page.waitForFunction(()=>!document.querySelector('#projects').inert&&document.querySelector('#projects').hobbyEntranceProgress===1&&document.querySelector('#gaming-controller').dataset.hobbyCompiling==='false');
- const b=await page.locator('#gaming-controller').boundingBox(),v=page.viewportSize();
- await page.mouse.click((Math.max(0,b.x)+Math.min(v.width,b.x+b.width))/2,(Math.max(0,b.y)+Math.min(v.height,b.y+b.height))/2);
+ await page.locator('#gaming-controller').click();
  await page.locator('#gaming-gallery .gaming-marquee-column').first().waitFor({state:'visible'});
 }
 async function point(column){return column.evaluate(e=>{const host=e.getRootNode().host,r=host.getBoundingClientRect(),root=e.getRootNode();
- for(let y=r.y+r.height*.3;y<r.y+r.height*.8;y+=12)for(let x=r.x+8;x<r.right-8;x+=12)if(root.elementFromPoint(x,y)?.closest('.marquee')===e)return {x,y};throw Error('No visible marquee input surface');});}
+ for(let y=r.y+r.height*.3;y<r.y+r.height*.8;y+=12)for(let x=r.x+8;x<r.right-8;x+=12){const hit=root.elementFromPoint(x,y);if(hit?.closest('.marquee')===e&&!hit.closest('a'))return {x,y};}throw Error('No visible marquee input surface');});}
 const time=column=>column.evaluate(e=>Number(e.firstElementChild.getAnimations()[0]?.currentTime));
 const playState=column=>column.evaluate(e=>getComputedStyle(e.firstElementChild).animationPlayState);
 (async()=>{await fs.mkdir(out,{recursive:true});const browser=await chromium.launch({channel:process.env.BROWSER_CHANNEL||'chrome',headless:true}),rows=[];
@@ -19,14 +16,18 @@ try{for(const [width,height,touch]of [[1440,900,false],[320,568,true],[390,844,t
  const context=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:1}),page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
  try{
-  await page.goto(origin);await page.getByRole('button',{name:'Enter Shubham Pandey’s portfolio',exact:true}).click({timeout:45000});await page.locator('.portfolio-intro').waitFor({state:'detached'});await open(page);await page.mouse.move(1,1);await page.waitForTimeout(1000);
+  await page.goto(origin+'/#projects');await open(page);await page.mouse.move(1,1);await page.waitForTimeout(1000);
   const gallery=page.locator('#gaming-gallery'),viewport=gallery.locator('.gaming-scroll-viewport'),columns=gallery.locator('.gaming-marquee-column'),column=columns.first(),box=await viewport.boundingBox(),expectedColumns=box.width<600?2:box.width<900?3:4;
   assert.equal(await columns.count(),expectedColumns);
   const titles=await gallery.locator('.marquee-track:not([aria-hidden]) .gaming-marquee-card').evaluateAll(es=>es.map(e=>e.dataset.gameTitle));assert.equal(titles.length,33);assert.equal(new Set(titles).size,33);
   assert.ok(await gallery.locator('.marquee-track[aria-hidden]').evaluateAll(es=>es.every(e=>e.inert||!e.querySelector('a,button,input,select,textarea,[tabindex]'))),'artwork copies have no focusable controls');
-  assert.equal(await gallery.locator('a').count(),0);
-  assert.ok(await gallery.locator('.gaming-marquee-artwork').evaluateAll(es=>es.every(e=>e.width&&e.height&&e.getAttribute('alt')&&e.getAttribute('srcset'))));
-  assert.ok((await gallery.locator('.gaming-marquee-artwork').evaluateAll(es=>es.filter(e=>e.complete&&e.naturalWidth).length))>=4,'visible artwork decodes');
+  assert.equal(await gallery.locator('.marquee-track:not([aria-hidden]) a[target="_blank"]').count(),33);
+  assert.ok(await gallery.locator('.gaming-marquee-artwork').evaluateAll(es=>es.every(e=>e.width&&e.height&&e.getAttribute('alt')&&e.dataset.srcset)));
+  const loaded=await gallery.locator('.gaming-marquee-artwork').evaluateAll(es=>({
+   visible:es.filter(e=>e.complete&&e.naturalWidth).length, deferred:es.filter(e=>!e.hasAttribute('src')).length,
+  }));
+  assert.ok(loaded.visible>=4,'visible artwork decodes');
+  assert.ok(loaded.deferred>0,'distant marquee artwork stays deferred');
   assert.equal(await playState(column),'running');const moving=await time(column);await page.waitForTimeout(350);assert.ok(await time(column)>moving);
   const directions=await columns.evaluateAll(es=>es.map(e=>getComputedStyle(e.firstElementChild).animationDirection));assert.deepEqual(directions,Array.from({length:expectedColumns},(_,i)=>i%2?'reverse':'normal'));
   await page.screenshot({path:path.join(out,width+'-gaming.png')});

@@ -10,6 +10,7 @@ const origin=process.env.AUDIT_URL||'http://localhost:3000',output=path.resolve(
     const page=await browser.newPage({viewport:{width,height},isMobile:width<1100,hasTouch:width<1100});
     const errors=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto(origin,{waitUntil:'domcontentloaded'});
+    await page.getByRole('button',{name:'Replay intro'}).click();
     await page.waitForFunction(()=>document.querySelector('.portfolio-intro')?.dataset.loadingPhase==='merge');
     await page.waitForTimeout(230);
     assert.equal(await page.locator('.gooey-loader').evaluate(e=>getComputedStyle(e).borderTopWidth),'0px','no box outline around the moving waves');

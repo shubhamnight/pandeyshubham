@@ -19,3 +19,4 @@
   .zoom-caption p { white-space:normal; overflow-wrap:break-word; }
   .zoom-caption [data-desc] { font-size:12px; }
 }
+.travel-original-link { position:absolute; inset:10px 10px auto auto; z-index:30; padding:8px 12px; border-radius:6px; background:#02070ae8; color:#fff; font-size:13px; text-decoration:underline; cursor:pointer; }

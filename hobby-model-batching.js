@@ -26,6 +26,8 @@ function* batchRigidModelSteps(model) {
     buckets.get(key).push({node,matrix:relative.clone()});
   });
   let after=before;
+  const pendingGeometry=new Set();
+  try {
   for(const pieces of buckets.values()){
     if(pieces.length<2)continue;
     // The merger can remap compatible index buffers itself. Expanding an
@@ -38,11 +40,12 @@ function* batchRigidModelSteps(model) {
       // copying its buffers (including Tube/Lathe/Sphere defaults). Copy into
       // a plain buffer instead; all attributes/groups/transforms are retained.
       const geometry=!indexed&&node.geometry.index?node.geometry.toNonIndexed():new BufferGeometry().copy(node.geometry);
+      pendingGeometry.add(geometry);
       geometries.push(geometry.applyMatrix4(matrix));
       yield;
     }
     const geometry=mergeGeometries(geometries,false);
-    geometries.forEach(part=>part.dispose());
+    geometries.forEach(part=>{pendingGeometry.delete(part);part.dispose();});
     if(!geometry)continue;
     geometry.computeBoundingBox();geometry.computeBoundingSphere();
     const original=pieces[0].node,mesh=new Mesh(geometry,original.material);
@@ -52,9 +55,12 @@ function* batchRigidModelSteps(model) {
     model.add(mesh);after-=pieces.length-1;
     yield;
   }
+  } finally {
+  pendingGeometry.forEach(geometry=>geometry.dispose());
   // Shared geometry that is still used by a label or an unbatched piece stays.
   model.traverse(node=>{if(node.geometry)removedGeometry.delete(node.geometry);});
   removedGeometry.forEach(geometry=>geometry.dispose());
+  }
   return {before,after};
 }
 
@@ -65,9 +71,11 @@ export function batchRigidModel(model) {
 }
 export async function batchRigidModelAsync(model,yieldTask) {
   const task=batchRigidModelSteps(model);let start=performance.now(),step;
+  try {
   do{
     step=task.next();
     if(!step.done&&performance.now()-start>=5){await yieldTask();start=performance.now();}
   }while(!step.done);
   return step.value;
+  } finally { task.return(); }
 }

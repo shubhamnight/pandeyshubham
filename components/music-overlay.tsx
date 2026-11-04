@@ -14,6 +14,7 @@ export interface MusicCard {
   album: string;
   src: string;
   fullSrc: string;
+  artworkSrc?: string;
   background: string;
   accent: string;
   typography: string;
@@ -27,7 +28,7 @@ export function MusicOverlay({ songs }: { songs: MusicCard[] }) {
     if (copyRef.current) copyRef.current.scrollTop = 0;
   }, [index]);
   const items = useMemo(() => songs.map(song => ({
-    title: song.title, src: song.fullSrc, label: '', fine: '',
+    title: song.title, src: song.artworkSrc ?? song.fullSrc, label: '', fine: '',
     alt: `${song.album} — ${song.artist} artwork on a disc`,
   })), [songs]);
   const song = songs[index];
@@ -45,6 +46,7 @@ export function MusicOverlay({ songs }: { songs: MusicCard[] }) {
       <blockquote cite={song.lyricSource} className="music-song-lyric">
         <span className="music-song-lyric-text">{song.lyric}</span>
       </blockquote>
+      <a className="music-original-link" href={song.fullSrc} target="_blank" rel="noopener">View original artwork</a>
     </article>
   </div>;
 }

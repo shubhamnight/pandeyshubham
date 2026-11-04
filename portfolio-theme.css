@@ -6,14 +6,6 @@
 :is(#skills-heading,#hobbies-heading,#playground .play-heading h2,#profile-heading,#dialog-title,dialog.hobby-gallery>header h2) em{font-family:inherit;font-weight:inherit}
 
 /* Hero-to-skills transition: preserve the full height of the skills content. */
-.hero-skills-transition{position:relative;isolation:isolate;background:#02070a;overflow:clip}
-.hero-skills-transition>#home{position:sticky;top:var(--hero-sticky-top,0px);transform:scale(var(--exit-scale,1)) rotate(var(--exit-rotation,0deg));transform-origin:50% 50%;z-index:0}
-.hero-skills-transition>#about{position:sticky;top:var(--skills-sticky-top,0px);z-index:1;transform:scale(var(--enter-scale,.8)) rotate(var(--enter-rotation,5deg));transform-origin:50% 0;--paper:#e7ebf0;--ink:#fafafa;--blue:#0297de;--accent:#0297de;padding-block:clamp(72px,8vw,128px)}
-.hero-skills-transition>#about{border-radius:32px;box-shadow:0 -12px 36px #00000024}
-@media(max-width:700px){.hero-skills-transition>#about{border-radius:22px}}
-.hero-skills-transition.transition-running>#home,.hero-skills-transition.transition-running>#about{will-change:transform}
-.hero-skills-transition>#projects{position:relative;z-index:2;border-radius:0;box-shadow:0 -18px 45px #0005;transform:translateZ(0)}
-@media(prefers-reduced-motion:reduce){.hero-skills-transition>#home{position:relative;top:auto;transform:none}.hero-skills-transition>#about{position:relative;top:auto;transform:none}}
 /* The canvas replaces only the hero grid, retaining its spacing and texture. */
 #home.kinetic-grid-ready{background-image:none;background-color:#02070a}
 #home .hero-kinetic-grid{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
@@ -63,45 +55,6 @@ main>.section :focus-visible{outline:3px solid #0297de;outline-offset:5px}
   .personal .personal-layout{gap:60px}
 }
 
-/* Open edge-to-edge paths, following the four curves in the blueprint. */
-#projects{position:relative;min-height:860px;height:calc(100dvh + 48px);max-height:none;padding:0;overflow:hidden;overflow:clip;contain:paint;isolation:isolate}
-#projects .project-heading{display:block;position:absolute;left:50%;top:50%;width:34%;transform:translate(-50%,-50%);text-align:center;border:0;padding:0;margin:0;z-index:2;pointer-events:none}
-#projects .project-heading h2{font-size:clamp(28px,3.4vw,54px);line-height:1.08}
-#projects .project-heading p{max-width:24ch;margin:20px auto 0;font-size:13px;line-height:1.7;color:#969994}
-.hobby-orbits,.hobby-orbit,.hobby-arc-stream{position:absolute;inset:0;pointer-events:none}
-.hobby-orbits{overflow:hidden;overflow:clip;contain:paint}
-.hobby-orbit-center{position:absolute;width:96px;display:flex;align-items:center;flex-direction:column;gap:12px}
-.hobby-orbit-center svg{width:43.7px;height:43.7px;color:#0297de}
-.hobby-orbit-center .hobby-camera-icon{display:block;width:70px;height:43.7px;object-fit:contain}
-.hobby-orbit-center h3{margin:0;max-width:13ch;text-align:center;font-size:12px;font-weight:500;letter-spacing:.04em;color:#e7ebf0}
-.hobby-photography .hobby-orbit-center{left:11%;top:11%;transform:translate(-50%,-50%)}
-.hobby-travel .hobby-orbit-center{right:11%;top:11%;transform:translate(50%,-50%)}
-.hobby-gaming .hobby-orbit-center{left:11%;bottom:11%;transform:translate(-50%,50%)}
-.hobby-music .hobby-orbit-center{right:11%;bottom:11%;transform:translate(50%,50%)}
-.hobby-image-placeholder{position:absolute;left:0;top:0;width:clamp(132px,15.6vw,211.2px);aspect-ratio:4/3;pointer-events:auto;opacity:1;transform:translate3d(-400px,-400px,0)}
-.hobby-image-surface{position:absolute;inset:0;background:#242526;border:1px solid #ffffff24;border-radius:7px;box-shadow:0 8px 14px #0007,0 20px 32px #0005;overflow:hidden;pointer-events:none;transform:scale(1);transition:transform .38s cubic-bezier(.22,1,.36,1)}
-@media(hover:hover) and (pointer:fine){
- .hobby-image-placeholder:hover{z-index:5}
- .hobby-image-placeholder:hover .hobby-image-surface{transform:scale(1.265)}
-}
-@media(prefers-reduced-motion:reduce){.hobby-image-surface{transition:none}}
-.hobby-image-placeholder img{display:block;width:100%;height:100%;object-fit:cover}
-#projects.orbits-running .hobby-image-placeholder:not([hidden]){will-change:transform}
-@media(max-width:900px){
- #projects{height:calc(100dvh + 48px);min-height:780px}
- #projects .project-heading{width:72%}
- #projects .project-heading h2{font-size:32px}
- #projects .project-heading p{font-size:12px;margin-top:12px}
- .hobby-image-placeholder{width:clamp(79.2px,22.8vw,132px)}
- .hobby-orbit-center{width:64px;gap:8px}
- .hobby-orbit-center svg{width:31.05px;height:31.05px}
- .hobby-orbit-center .hobby-camera-icon{width:50px;height:31.05px}
- .hobby-orbit-center h3{font-size:10px;max-width:10ch}
- .hobby-photography .hobby-orbit-center,.hobby-gaming .hobby-orbit-center{left:12%}
- .hobby-travel .hobby-orbit-center,.hobby-music .hobby-orbit-center{right:12%}
- .hobby-photography .hobby-orbit-center,.hobby-travel .hobby-orbit-center{top:10%}
- .hobby-gaming .hobby-orbit-center,.hobby-music .hobby-orbit-center{bottom:10%}
-}
 
 /* A flush white fourth page, with no section translation at the shared edge. */
 #playground{position:relative;z-index:3;background:#fff;color:#171717;--ink:#171717;--accent:#0297de;transform:none;will-change:auto}
@@ -111,47 +64,11 @@ main>.section :focus-visible{outline:3px solid #0297de;outline-offset:5px}
 #playground .play-stage{background:#f5f7fa;border:1px solid #172d4914;color:#171717;--mood:#0297de}
 #playground .stage-label{color:#171717}
 #playground .stage-label em{color:#0297de}
-#photography-camera{display:block;position:relative;width:126px;height:106px;padding:0;border:0;background:transparent;pointer-events:auto;cursor:pointer;touch-action:manipulation;border-radius:12px}
-#photography-camera canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
-#photography-camera .hobby-camera-icon{margin:auto}
-#photography-camera.camera-ready .hobby-camera-icon{display:none}
-#photography-camera:focus-visible{outline:2px solid #0297de;outline-offset:3px}
 .photography-empty-frame{aspect-ratio:4/3;background:#101f29;border:1px solid #ffffff20;border-radius:8px}
-@media(max-width:900px){#photography-camera{width:90px;height:76px}}
-
-/* The controller shares the camera interaction footprint and gallery layout. */
-#gaming-controller{display:block;position:relative;width:126px;height:106px;padding:0;border:0;background:transparent;pointer-events:auto;cursor:pointer;touch-action:manipulation;border-radius:12px}
-#gaming-controller canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
-#gaming-controller .gaming-controller-fallback{margin:auto}
-#gaming-controller.camera-ready .gaming-controller-fallback{display:none}
-#gaming-controller:focus-visible{outline:2px solid #0297de;outline-offset:3px}
-.gaming-empty-frame{aspect-ratio:4/3;background:#101f29;border:1px solid #ffffff20;border-radius:8px}
-@media(max-width:900px){#gaming-controller{width:90px;height:76px}}
 #gaming-controller .gaming-controller-fallback svg{margin:auto}
-
-/* Traveling aircraft uses the same interaction footprint. */
-#travel-plane{display:block;position:relative;width:151.2px;height:127.2px;padding:0;border:0;background:transparent;pointer-events:auto;cursor:pointer;touch-action:manipulation;border-radius:12px}
-#travel-plane canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
-#travel-plane .travel-plane-fallback{margin:auto}
-#travel-plane.camera-ready .travel-plane-fallback{display:none}
-#travel-plane:focus-visible{outline:2px solid #0297de;outline-offset:3px}
-.travel-empty-frame{aspect-ratio:4/3;background:#101f29;border:1px solid #ffffff20;border-radius:8px}
-@media(max-width:900px){#travel-plane{width:108px;height:91.2px}}
-#travel-plane .travel-plane-fallback svg{margin:auto}
-
-/* Music player preserves the shared hobby interaction footprint. */
-#music-walkman{display:block;position:relative;width:126px;height:106px;padding:0;border:0;background:transparent;pointer-events:auto;cursor:pointer;touch-action:manipulation;border-radius:12px}
-#music-walkman canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
-#music-walkman .music-walkman-fallback{margin:auto}
-#music-walkman.camera-ready .music-walkman-fallback{display:none}
-#music-walkman:focus-visible{outline:2px solid #0297de;outline-offset:3px}
-.music-empty-frame{aspect-ratio:4/3;background:#101f29;border:1px solid #ffffff20;border-radius:8px}
-@media(max-width:900px){#music-walkman{width:90px;height:76px}}
-#music-walkman .music-walkman-fallback svg{margin:auto}
 
 /* Alpha-based shadows follow the rendered silhouette through orbit and hover.
    Keep the filter on each small canvas so no extra WebGL shadow pass is needed. */
-#projects :is(#photography-camera,#gaming-controller,#travel-plane,#music-walkman){overflow:visible}
 #projects :is(#photography-camera,#gaming-controller,#travel-plane,#music-walkman)>canvas,
 #projects #photography-camera>.hobby-camera-icon,
 #projects :is(.gaming-controller-fallback,.travel-plane-fallback,.music-walkman-fallback){filter:drop-shadow(0 10px 8px #000c)}
@@ -240,28 +157,13 @@ dialog#photography-gallery.photo-carousel-fallback .photography-gallery-grid{dis
 
 
 
-/* Scroll entrance uses compositor transforms on the existing model containers. */
-#projects:not(.hobbies-intro-ready) .hobby-orbit-center{visibility:hidden}
-#projects .hobby-arc-stream{opacity:1}
-#projects:not(.hobby-images-entering) .hobby-image-placeholder{visibility:hidden!important;pointer-events:none}
-body.hobbies-intro-active #projects .hobby-orbit-center button{pointer-events:none}
-@media(prefers-reduced-motion:reduce){#projects .hobby-arc-stream{opacity:1}}
-
-/* Keep the approaching orbit behind the central heading. */
-#projects .hobby-orbit-center{z-index:1}
-
-/* Lenis owns scroll easing; avoid combining it with native CSS smoothing. */
-html.lenis{scroll-behavior:auto!important}
-
-/* Sticky hero layers can still intersect while covered by the next page. */
-#home.hero-covered .hero-star-layer,#home.hero-covered .hero-retro-lines,#home.hero-covered .name-track,#home.hero-idle .name-track{animation-play-state:paused}
 
 .ambient-paused,.ambient-paused *{animation-play-state:paused!important}
 
 /* Midnight base, electric blue accents and a deliberately rare warm accent.
    Surface tints retain depth without adding layers or changing motion. */
 :root{--midnight:#02070a;--electric:#0297de;--cantaloupe:#fc734d;--surface:#09131a;--surface-raised:#101f29;--bg:var(--midnight);--ink:#e7ebf0;--muted:#a4aab3;--accent:var(--electric);--paper:var(--surface);--blue:var(--electric);--lime:var(--electric);--line:#0297de12}
-main>.section,main>dialog,.hero-skills-transition>#about{--paper:#09131a;--ink:#e7ebf0;--blue:#0297de;--lime:#0297de;--accent:#0297de;--surface-black:#02070a;--surface-white:#101f29}
+main>.section,main>dialog{--paper:#09131a;--ink:#e7ebf0;--blue:#0297de;--lime:#0297de;--accent:#0297de;--surface-black:#02070a;--surface-white:#101f29}
 .floating-nav{display:flex;align-items:center;justify-content:center;width:max-content;gap:clamp(16px,2.8vw,26px);padding:9px 16px;max-width:calc(100% - 24px);white-space:nowrap;background:#09131aed;border-color:#0297de26;box-shadow:0 8px 20px #0006,0 20px 48px #0005,0 0 24px #0297de1a}
 .floating-nav a{flex-shrink:0;font-family:Ramabhadra,Inter,Helvetica,sans-serif;font-weight:400}
 .floating-nav .mini-brand{padding-right:0}
@@ -272,7 +174,7 @@ main>.section,main>dialog,.hero-skills-transition>#about{--paper:#09131a;--ink:#
 .badge-bottom{background:#17181c;color:#5685c1;justify-content:center}
 .badge-bottom>span{font-size:1.2em;font-weight:700}
 #home .badge>img,#home .badge>picture>img{filter:url('#badge-soft-shadow')}
-#about,.hero-skills-transition>#about{background:#09131a;color:#e7ebf0}
+#about{background:#09131a;color:#e7ebf0}
 #about .skills-heading{border-color:#e7ebf024}
 #about .skills-heading>p,.personal .personal-copy p{color:#a4aab3}
 #projects,#contact{background:#02070a}
@@ -295,46 +197,6 @@ dialog.hobby-gallery:focus-visible{outline:none}
 .hobby-gallery-content{scrollbar-color:#07334a #02070a}
 .hobby-gallery-content figure{border-color:#0297de18}
 
-/* The existing skill icons travel from above into one complete circular orbit. */
-#about,.hero-skills-transition>#about{position:relative;height:calc(100dvh + 48px);min-height:740px;padding:0;overflow:hidden;overflow:clip;--skills-disc-size:clamp(64px,7vw,96px)}
-#about .skills-heading{position:absolute;left:50%;top:50%;width:min(340px,calc(var(--skills-ring-radius,240px)*1.4));display:block;transform:translate(-50%,-50%);text-align:center;gap:0;padding:0;margin:0;border:0;z-index:2;pointer-events:none}
-#about .skills-heading h2{font-size:clamp(23px,3.8vw,52px);line-height:1.08}
-#about .skills-heading>p{font-size:clamp(11px,1vw,14px);line-height:1.65;max-width:none;margin:18px auto 0}
-#about .skills-orbit-stage{position:absolute;inset:0;isolation:isolate}
-#about .skills-orbit-list{position:absolute;inset:0;padding:0;margin:0;list-style:none}
-#about .skills-orbit-slot{position:absolute;left:0;top:0;width:var(--skills-disc-size);height:var(--skills-disc-size);visibility:hidden}
-#about.skills-orbit-running .skills-orbit-slot{will-change:transform}
-#about .skills-orbit-slot:has(.skills-orbit-disc:is(:hover,:focus-visible)){z-index:3}
-#about .skills-orbit-disc{position:relative;display:grid;place-items:center;width:100%;height:100%;padding:0;border:1px solid #0297de66;border-radius:50%;background:radial-gradient(circle at 30% 20%,#2a3a50,#0a2433 65%,#0a1c27);color:#dbe7f5;box-shadow:inset 0 1px 1px #ffffff20,0 8px 14px #0006,0 20px 30px #0004;outline-offset:5px;transition:transform .3s cubic-bezier(.22,1,.36,1),border-color .3s,box-shadow .3s;cursor:default}
-#about .skills-orbit-disc>:is(svg,img){display:block;width:48%;height:48%;object-fit:contain}
-#about .skills-orbit-disc>span[aria-hidden]{font-size:calc(var(--skills-disc-size)*.45);line-height:1}
-#about .skills-orbit-name{position:absolute;top:calc(100% + 10px);left:50%;width:max-content;max-width:120px;padding:6px 8px;border:1px solid #0297de4d;border-radius:7px;background:#0a2738;color:#e7ebf0;font:500 11px/1.4 Inter,Helvetica,sans-serif;text-align:center;opacity:0;transform:translate(-50%,-4px);transition:opacity .2s,transform .2s;pointer-events:none}
-#about .skills-orbit-disc:is(:hover,:focus-visible){transform:scale(1.1);border-color:#66c8f5;box-shadow:inset 0 1px 1px #ffffff30,0 10px 18px #0007,0 24px 36px #0005}
-#about .skills-orbit-disc:is(:hover,:focus-visible) .skills-orbit-name{opacity:1;transform:translate(-50%,0)}
-#about .skills-orbit-disc:focus-visible{outline:2px solid #66c8f5}
-@media(max-width:700px){#about,.hero-skills-transition>#about{min-height:680px}#about .skills-heading>p{margin-top:14px}}
-@media(max-width:380px){#about,.hero-skills-transition>#about{--skills-disc-size:clamp(40px,14vw,54px)}#about .skills-heading h2{font-size:20px}#about .skills-heading>p{font-size:10px;line-height:1.5;margin-top:12px}}
-@media(prefers-reduced-motion:reduce){#about .skills-orbit-disc,#about .skills-orbit-name{transition:none}#about .skills-orbit-disc:is(:hover,:focus-visible){transform:none}}
-
-/* Skills and hobbies share one viewport: no covering panel or section boundary. */
-.skills-hobbies-scene{position:relative;background:#02070a}
-.skills-hobbies-viewport{position:relative;transform-origin:50% 0}
-.hero-skills-transition.transition-running .skills-hobbies-viewport{will-change:transform}
-.scene-pinned{height:calc(max(860px,100dvh + 48px)*var(--scene-scroll-length,3.56398625))}
-.scene-pinned .skills-hobbies-viewport{position:sticky;top:var(--scene-sticky-top,-48px);height:max(860px,calc(100dvh + 48px));overflow:clip;isolation:isolate;transform:scale(var(--enter-scale,1)) rotate(var(--enter-rotation,0deg))}
-.scene-pinned #about,.scene-pinned #projects{position:absolute;inset:0;height:100%;min-height:0;max-height:none;padding:0;border:0;border-radius:0;box-shadow:none;background:transparent;transform:none;pointer-events:none}
-.scene-pinned #about{z-index:2}
-.scene-pinned #projects{z-index:1}
-.scene-pinned #about .skills-orbit-disc{pointer-events:auto}
-.scene-pinned #about .skills-heading{opacity:var(--scene-skills-copy,1)}
-.scene-pinned #projects .project-heading{opacity:var(--scene-hobbies-copy,0)}
-.scene-pinned :is(.skills-heading,.project-heading){transition:none}
-.scene-pinned #projects .hobby-orbit-center{opacity:var(--scene-model-opacity,0);visibility:hidden;pointer-events:none}
-.scene-pinned #projects .hobby-orbit-center.scene-model-visible{visibility:visible}
-.scene-pinned #projects .hobby-orbits{overflow:clip}
-.scene-pinned #projects .hobby-arc-stream{opacity:var(--scene-hobby-media,0)}
-@media(max-width:900px){.scene-pinned{height:calc(max(780px,100dvh + 48px)*var(--scene-scroll-length,3.56398625))}.scene-pinned .skills-hobbies-viewport{height:max(780px,calc(100dvh + 48px))}}
-@media(prefers-reduced-motion:reduce){.skills-hobbies-viewport{transform:none}.skills-hobbies-scene #about,.skills-hobbies-scene #projects{transform:none;border-radius:0;box-shadow:none;background:#02070a}}
 
 /* The games island owns its scroll viewport; retain the native grid if loading fails. */
 #gaming-gallery.gaming-tilted-active .hobby-gallery-content{overflow:hidden;padding:0;scrollbar-gutter:auto;background:#02070a}
@@ -360,31 +222,6 @@ dialog#music-gallery h2{font-size:clamp(21px,3vw,31.5px)}
 /* Apply the supplied SocialTooltip interaction to the native orbit holders.
    The inner circle clips the fill; the tooltip stays outside that clipping area.
    Slot transforms and dimensions remain owned by the existing motion clock. */
-#about .skills-orbit-disc{--skill-fill:#0297de;--skill-tooltip-ink:#fff;display:block;isolation:isolate;border:0;background:none;box-shadow:none;transition:none}
-#about .skills-orbit-disc>.skills-orbit-symbol{position:relative;display:grid;place-items:center;width:100%;height:100%;border-radius:50%;overflow:hidden;background:#09131a;box-shadow:0 8px 16px #0006;transition:box-shadow .3s ease-in-out}
-#about .skills-orbit-symbol:before{content:"";position:absolute;inset:0;background:var(--skill-fill);opacity:0;transform:translateY(calc(100% + 2px));pointer-events:none;transition:transform .3s ease-in-out,opacity .3s ease-in-out}
-#about .skills-orbit-symbol>img{position:relative;z-index:1;display:block;width:58.333%;height:58.333%;object-fit:contain;filter:none}
-#about .skills-orbit-disc>.skills-orbit-name{top:calc(100% + 16px);padding:6px 10px;max-width:none;border:0;border-radius:6px;background:var(--skill-fill);color:var(--skill-tooltip-ink);font:500 14px/1.4 Inter,Helvetica,sans-serif;white-space:nowrap;opacity:0;visibility:hidden;transform:translate(-50%,-10px);transition:opacity .3s ease-in-out,transform .3s ease-in-out,visibility .3s ease-in-out;pointer-events:none}
-#about .skills-orbit-disc:is(:hover,:focus-visible){transform:none;border:0;box-shadow:none}
-#about .skills-orbit-disc:is(:hover,:focus-visible)>.skills-orbit-symbol{box-shadow:0 10px 22px #0008}
-#about .skills-orbit-disc:is(:hover,:focus-visible)>.skills-orbit-symbol:before{opacity:1;transform:translateY(0)}
-#about .skills-orbit-disc:is(:hover,:focus-visible)>.skills-orbit-name{opacity:1;visibility:visible;transform:translate(-50%,0)}
-#about .skills-orbit-disc[aria-label="Figma"]{--skill-fill:#663da6}
-#about .skills-orbit-disc[aria-label="Sketch"]{--skill-fill:#8f6109}
-#about .skills-orbit-disc[aria-label="HTML"]{--skill-fill:#be3c1d}
-#about .skills-orbit-disc[aria-label="CSS"]{--skill-fill:#1765a0}
-#about .skills-orbit-disc[aria-label="JavaScript"]{--skill-fill:#f7df1e;--skill-tooltip-ink:#171717}
-#about .skills-orbit-disc[aria-label="Python"]{--skill-fill:#3776ab}
-#about .skills-orbit-disc[aria-label="DBMS"]{--skill-fill:#155e75}
-#about .skills-orbit-disc[aria-label="React"]{--skill-fill:#08677c}
-#about .skills-orbit-disc[aria-label="Autodesk Maya"]{--skill-fill:#14777d}
-#about .skills-orbit-disc[aria-label="Claude"]{--skill-fill:#a85235}
-#about .skills-orbit-disc[aria-label="ChatGPT"]{--skill-fill:#106e52}
-#about .skills-orbit-disc[aria-label="Communication"]{--skill-fill:#4f46a5}
-#about .skills-orbit-disc[aria-label="Problem solving"]{--skill-fill:#7642ad}
-@media(max-width:700px){#about .skills-orbit-disc>.skills-orbit-name{font-size:12px}}
-#about .skills-orbit-disc>.skills-orbit-name{font-family:Ramabhadra,Inter,Helvetica,sans-serif;font-weight:400}
-@media(prefers-reduced-motion:reduce){#about .skills-orbit-disc>.skills-orbit-symbol,#about .skills-orbit-symbol:before,#about .skills-orbit-disc>.skills-orbit-name{transition:none}}
 
 /* Warm accents stay confined to the navigation and signature. */
 .floating-nav a[aria-current="location"]{color:var(--cantaloupe);text-shadow:none}
@@ -392,3 +229,5 @@ dialog#music-gallery h2{font-size:clamp(21px,3vw,31.5px)}
 /* Midnight ink keeps small type legible on saturated electric fills. */
 ::selection{background:var(--electric);color:var(--midnight)}
 main>.section ::selection{background:var(--electric);color:var(--midnight)}
+
+#home.hero-idle .name-track{animation-play-state:paused}

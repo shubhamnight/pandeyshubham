@@ -1,93 +1,95 @@
-// Keep Three.js and the model builders out of the initial loading screen.
 import { importPortfolioModule } from './module-loader.js';
 import { connectHobbyGallery } from './hobby-gallery.js';
-const section=document.querySelector('#projects');
-function prepareModels(){
-  if(!section)return;
-  let approaching=false,started=false,frame=0;
-  const rig=document.querySelector('.badge-rig');
-  let disposed=false;
-  const entries=[['photography-camera','photography-camera.js','photography-media.js','fillPhotographyGallery','photography'],
-    ['gaming-controller','gaming-controller.js','gaming-media.js','fillGamingGallery','gaming'],
-    ['travel-plane','travel-plane.js','travel-media.js','fillTravelGallery','travel'],
-    ['music-walkman','music-walkman.js','music-records.js','fillMusicGallery','music']].map(([id,path,media,fill,gallery])=>({
-      button:document.getElementById(id),path,media,fill,gallery,loaded:false,mediaReady:false,pending:null,mediaPending:null,
-    }));
-  const detachRetry=entry=>{if(entry.loaded&&entry.mediaReady)entry.button.removeEventListener('click',entry.retryClick,true);};
-  function loadMedia(entry){
-    if(disposed||entry.mediaReady)return Promise.resolve(entry.mediaReady);
-    if(entry.mediaPending)return entry.mediaPending;
-    entry.mediaPending=importPortfolioModule('./'+entry.media).then(module=>{
-      if(disposed)return false;
-      connectHobbyGallery(entry.button,document.getElementById(entry.gallery+'-gallery'),module[entry.fill],
-        {autoplayVideos:entry.gallery==='travel'});
-      entry.mediaReady=true;detachRetry(entry);return true;
-    }).catch(error=>{console.error('Hobby media could not load: '+entry.media,error);return false;})
-      .finally(()=>{entry.mediaPending=null;});
-    return entry.mediaPending;
+
+const entries=[
+  ['photography-camera','photography-media.js','fillPhotographyGallery','photography'],
+  ['gaming-controller','gaming-media.js','fillGamingGallery','gaming'],
+  ['travel-plane','travel-media.js','fillTravelGallery','travel'],
+  ['music-walkman','music-records.js','fillMusicGallery','music'],
+];
+let active=null;
+
+function dismissModel() {
+  const session=active;
+  if(!session)return;
+  active=null;
+  clearTimeout(session.timeout);
+  session.controller.abort();
+  session.toggle.setAttribute('aria-pressed','false');
+  session.setLabel();
+}
+
+for(const [id,media,fill,galleryName] of entries){
+  const button=document.getElementById(id);
+  const gallery=document.getElementById(galleryName+'-gallery');
+  const toggle=document.querySelector('[data-hobby-model="'+id+'"]');
+  if(!button||!gallery)continue;
+  connectHobbyGallery(button,gallery,async signal=>{
+    const module=await importPortfolioModule('./'+media);
+    if(!signal.aborted&&gallery.open)await module[fill](gallery,signal);
+  },{autoplayVideos:galleryName==='travel'});
+  if(!toggle)continue;
+
+  const label=toggle.textContent;
+  const accessibleLabel=toggle.getAttribute('aria-label');
+  const name=gallery.querySelector('h2').textContent;
+  function setLabel(text=label){
+    toggle.textContent=text;
+    toggle.setAttribute('aria-label',text===label&&accessibleLabel?accessibleLabel:text+' — '+name);
   }
-  function load(entry){
-    if(disposed||entry.loaded)return Promise.resolve(entry.loaded);
-    if(entry.pending)return entry.pending;
-    entry.pending=importPortfolioModule('./'+entry.path).then(()=>{
-      entry.loaded=true;detachRetry(entry);return true;
-    }).catch(error=>{
-      // One unavailable model must not keep the other three and the whole
-      // heading/media sequence permanently invisible. Its native icon remains.
-      entry.button.dataset.hobbyModelFailed='true';
-      console.error('Hobby module could not load: '+entry.path,error);return false;
-    }).finally(()=>{entry.pending=null;});
-    return entry.pending;
-  }
-  entries.forEach(entry=>{
-    entry.retryClick=event=>{
-      if(disposed)return;
-      if(!entry.loaded)void load(entry);
-      if(entry.mediaReady)return;
-      event.preventDefault();event.stopImmediatePropagation();
-      loadMedia(entry).then(loaded=>{if(loaded&&!disposed)entry.button.click();});
+  let status;
+  toggle.setAttribute('aria-pressed','false');
+  toggle.addEventListener('click',async()=>{
+    status?.remove();
+    if(active?.toggle===toggle){dismissModel();return;}
+    dismissModel();
+    const controller=new AbortController();
+    const session={toggle,setLabel,controller,timeout:0};
+    active=session;
+    toggle.setAttribute('aria-pressed','true');
+    setLabel('Cancel 3D');
+    delete button.dataset.hobbyModelFailed;
+    const fail=()=>{
+      if(active!==session)return;
+      dismissModel();
+      button.dataset.hobbyModelFailed='true';
+      setLabel('Retry 3D');
+      status=document.createElement('span');
+      status.setAttribute('role','status');
+      status.textContent='3D is unavailable. You can still open the gallery.';
+      toggle.after(status);
     };
-    entry.button.addEventListener('click',entry.retryClick,true);
-  });
-  const retryFailed=()=>{if(started&&!disposed)entries.forEach(entry=>{void load(entry);void loadMedia(entry);});};
-  window.addEventListener('online',retryFailed);
-  const detach=()=>{
-    observer.disconnect();cancelAnimationFrame(frame);frame=0;
-    rig?.removeEventListener('badge-entrance-complete',queue);
-    window.removeEventListener('scroll',queue);
-  };
-  const attempt=()=>{
-    frame=0;
-    if(started||!approaching)return;
-    if(document.body.classList.contains('badge-entering')&&
-      !document.querySelector('#home')?.classList.contains('hero-covered'))return;
-    started=true;detach();
-    // Media/gallery access is independent of the 3D module's network or GPU
-    // readiness. Keep the original native icons usable if a model is unavailable.
-    importPortfolioModule('./hobby-intro.js').catch(error=>console.error('Hobby positioning could not load',error));
-    entries.forEach(entry=>{void loadMedia(entry);void load(entry);});
-  };
-  const queue=()=>{if(approaching&&!started&&!frame)frame=requestAnimationFrame(attempt);};
-  const observer=new IntersectionObserver(entries=>{
-    if(!entries.some(entry=>entry.isIntersecting))return;
-    approaching=true;
-    // Delay the import as well as geometry work: parsing Three.js must not
-    // interrupt the unchanged entrance on phone, tablet or laptop CPUs.
-    queue();
-  },{rootMargin:'650px'});
-  rig?.addEventListener('badge-entrance-complete',queue);
-  window.addEventListener('scroll',queue,{passive:true});
-  // The section itself is transformed/clipped until the handoff. Observe its
-  // stable scroll track so preparation can finish before the models enter.
-  observer.observe(section.closest('.skills-hobbies-scene')||section);
-  window.addEventListener('pagehide',event=>{
-    if(event.persisted)return;
-    disposed=true;detach();window.removeEventListener('online',retryFailed);
-    entries.forEach(entry=>entry.button.removeEventListener('click',entry.retryClick,true));
+    session.timeout=setTimeout(fail,20000);
+    try {
+      const {buildHobbyModel}=await importPortfolioModule('./'+id+'.js');
+      if(active!==session)return;
+      await buildHobbyModel(button,controller.signal,fail);
+      if(active===session)setLabel('Close 3D');
+    } catch {
+      fail();
+    } finally {
+      clearTimeout(session.timeout);
+    }
   });
 }
-// The pinned scene sits near the viewport while the intro covers it. Wait for
-// PLAY to finish before allocating four additional WebGL contexts.
-if(document.querySelector('.portfolio-intro')){
-  window.addEventListener('portfolio-ready',prepareModels,{once:true});
-}else prepareModels();
+
+window.addEventListener('pagehide',event=>{
+  if(!event.persisted)dismissModel();
+});
+
+if(['localhost','127.0.0.1'].includes(location.hostname)){
+  const key='shub-media-revision';
+  const read=()=>{try{return localStorage.getItem(key);}catch{return null;}};
+  const revision=read(),channel=window.BroadcastChannel?new BroadcastChannel('shub-media-library'):null;
+  let reloading=false;
+  const update=value=>{
+    if(!reloading&&value&&value!==revision){reloading=true;location.reload();}
+  };
+  const events=new AbortController(),options={signal:events.signal};
+  channel?.addEventListener('message',event=>update(event.data?.revision),options);
+  window.addEventListener('storage',event=>{if(event.key===key)update(event.newValue);},options);
+  window.addEventListener('pageshow',event=>{if(event.persisted)update(read());},options);
+  window.addEventListener('pagehide',event=>{
+    if(!event.persisted){channel?.close();events.abort();}
+  },options);
+}

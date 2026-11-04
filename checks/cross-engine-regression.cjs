@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),pw=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const fs=require('node:fs'),path=require('node:path');
-const {profiles,galleries,enter,hobbies,open,close,save}=require('./helpers/site.cjs');
+const {profiles,galleries,enter,hobbies,open,model,close,save}=require('./helpers/site.cjs');
 (async()=>{const results=[],failures=[];
  const apps=[['chrome','chromium',process.env.CHROME_EXECUTABLE||'C:/Program Files/Google/Chrome/Application/chrome.exe'],['edge','chromium',process.env.EDGE_EXECUTABLE||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'],['opera','chromium',process.env.OPERA_EXECUTABLE||path.join(process.env.LOCALAPPDATA||'C:/Users/Hp/AppData/Local','Programs/Opera GX/opera.exe')],['firefox','firefox'],['webkit','webkit']];
  for(const [app,engine,executablePath]of apps){
@@ -15,10 +15,17 @@ const {profiles,galleries,enter,hobbies,open,close,save}=require('./helpers/site
    const page=await browser.newPage({viewport:{width,height},hasTouch:touch,...(engine==='firefox'?{}:{isMobile:touch})}),errors=[],consoleErrors=[];currentPage=page;currentProfile=name;await page.bringToFront();page.on('pageerror',error=>errors.push(error.message));page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
    if(process.env.HISTORY_MUTATE_IMPORTMAP==='1')await page.route('**/',async route=>{const response=await route.fetch(),html=await response.text(),map=html.match(/<script type="importmap">.*?<\/script>/)[0];await route.fulfill({response,body:html.replace(map,'').replace('</body>',map+'</body>')});});
    if(process.env.HISTORY_MUTATE_FONT==='1'){const body=require('node:child_process').execFileSync('git',['show','2b6022d1513d53115ee078745b2832ecc29a4a03:assets/fonts/batman-forever-alternate.woff2']);await page.route('**/assets/fonts/batman-forever-alternate.woff2',route=>route.fulfill({contentType:'font/woff2',body}));}
-   await enter(page,'#projects');assert.ok(await page.evaluate(()=>scrollY<2));
-   await page.locator('.floating-nav a[href="#about"]').evaluate(e=>e.click());await page.waitForFunction(()=>document.querySelectorAll('.skill-shiny-button').length===14&&[...document.querySelectorAll('.skill-logo')].every(e=>e.complete&&e.naturalWidth));
-   await hobbies(page);await page.waitForFunction(()=>[...document.querySelectorAll('.hobby-orbit')].every(e=>e.querySelectorAll('.hobby-image-surface:not(:empty)').length===3));
-   const models=await page.locator('.hobby-orbit-center button').evaluateAll(es=>es.map(e=>({id:e.id,ready:e.dataset.hobbyCompiling==='false',fallback:e.dataset.hobbyModelFailed==='true'})));assert.ok(models.every(model=>model.ready&&!model.fallback),'normal browser journeys must render all four 3D models; fallback behavior is tested by the fault-injection suite');
+   await enter(page,'#projects');assert.ok(await page.evaluate(()=>location.hash==='#projects'&&scrollY>0));
+   await page.locator('.floating-nav a[href="#about"]').evaluate(e=>e.click());assert.equal(await page.locator('svg.skill-logo').count(),14);
+   await hobbies(page);
+   const models=[];
+   for (const [id] of galleries) {
+    try { await model(page,id); }
+    catch { throw Error('normal browser journeys must render all four 3D models ('+id+')'); }
+    assert.equal(await page.locator('.camera-ready canvas').count(),1);
+    models.push({id,ready:true});
+   }
+   await page.locator('[data-hobby-model="music-walkman"]').click();
    for(const entry of galleries){const dialog=await open(page,entry);const b=await dialog.boundingBox();assert.ok(b.x>=-1&&b.y>=-1&&b.x+b.width<=width+1&&b.y+b.height<=height+1);await close(page,dialog);}
    await page.locator('#contact').scrollIntoViewIfNeeded();await page.locator('#contact .social-link').first().waitFor();assert.equal(await page.locator('#contact .social-link').count(),5);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));assert.equal(await page.evaluate(async()=>(await document.fonts.load('14px "Batman Forever"','BATMAN')).length),1,'the original Batman typeface decodes');assert.deepEqual(errors,[]);assert.deepEqual(consoleErrors,[],'normal browser journeys must not hide caught runtime or font errors');
    assert.equal(await page.locator('#contact a[aria-label="LinkedIn"]').getAttribute('href'),'https://www.linkedin.com/in/shubham-prakhar-pandey-54b002321/');

@@ -11,6 +11,35 @@ for(let depth=1;depth<=5;depth++){
 }
 rig.insertBefore(badgeShell,badge);
 const hero = document.querySelector('.hero');
+const replayControl = hero.querySelector('.intro-replay');
+if (replayControl && typeof window.HTMLDialogElement?.prototype.showModal === 'function') {
+  const replayButton = replayControl.querySelector('button');
+  const replayStatus = replayControl.querySelector('[role="status"]');
+  let replaying = false;
+  replayControl.hidden = false;
+  replayButton.addEventListener('click', async () => {
+    if (replaying) return;
+    replaying = true;
+    replayButton.setAttribute('aria-disabled', 'true');
+    replayStatus.textContent = 'Preparing intro…';
+    let deadline;
+    try {
+      const load = import('./module-loader.js')
+        .then(({ importPortfolioModule }) => importPortfolioModule('./intro.js'));
+      const { replayIntro } = await Promise.race([load, new Promise((_, reject) => {
+        deadline = setTimeout(() => reject(new Error('Intro module unavailable')), 8000);
+      })]);
+      replayStatus.textContent = '';
+      await replayIntro();
+    } catch {
+      replayStatus.textContent = 'Intro unavailable. Try again.';
+    } finally {
+      clearTimeout(deadline);
+      replaying = false;
+      replayButton.removeAttribute('aria-disabled');
+    }
+  });
+}
 const touchBadge=window.matchMedia('(pointer: coarse)').matches ||
   (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 // Keep drag lighting local to the two surfaces that actually paint it.

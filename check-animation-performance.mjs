@@ -33,19 +33,6 @@ for(const hz of [30,60,75,90,120,144,165,240]){
   assert.ok(Math.abs(moving.current-reference.current)<1e-8,'refresh-independent momentum');
 }
 
-// A slow visible Hobbies scene must still reach the card reveal threshold.
-const hobbySource=fs.readFileSync('hobby-intro.js','utf8');
-const hobbyDelta=hobbySource.match(/const dt=(.*?);last=time;/)[1];
-const frameDelta=new Function('time','last',`return ${hobbyDelta}`);
-const clock=fs.readFileSync('hobby-motion-clock.js','utf8');
-const advanceHobby=vm.runInNewContext(clock.slice(clock.indexOf('export function advanceProgress')).replace('export ','')+'\nadvanceProgress',{
-  clampMotionProgress:value=>Math.max(0,Math.min(1,value))
-});
-const spread={value:0,velocity:0};
-for(let time=250;time<=5000;time+=250)advanceHobby(spread,1,frameDelta(time+1000,time+750),.95,18);
-assert.equal(spread.value,1,'Hobbies must finish spreading within five seconds at four visible frames per second');
-assert.equal(frameDelta(3000,1000),.25,'a long stall has bounded catch-up');
-
 // Video slides must resume only playback that was active before suspension.
 const photo=fs.readFileSync('components/ui/hero-carousel.tsx','utf8');
 const videoStart=photo.indexOf("    const video = stageRef.current?.querySelector('video')");

@@ -122,6 +122,7 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
     const normalizedOffset = ((offset % loopWidth) + loopWidth) % loopWidth;
     const startIndex = Math.floor(normalizedOffset / cardStep);
     const fractionalOffset = (normalizedOffset % cardStep) / cardStep;
+    let featuredIndex = startIndex, featuredArea = 0;
     for (let index = 0; index < images.length; index++) {
       const cardIndex = (startIndex + index) % images.length;
       const card = cardRefs.current[cardIndex], wrap = imageWrapRefs.current[cardIndex];
@@ -149,6 +150,9 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       if (!previous || previous.width !== frameWidthStyle) wrap.style.width = frameWidthStyle;
       if (!previous || previous.height !== frameHeightStyle) wrap.style.height = frameHeightStyle;
       const shown = frameWidth > 24 && frameX < box.w && frameX + frameWidth > 0;
+      if (shown && frameX + frameWidth <= box.w && frameWidth * frameHeight > featuredArea) {
+        featuredIndex = cardIndex; featuredArea = frameWidth * frameHeight;
+      }
       if (touchPerformance) {
         // Keep only approaching frames promoted. Distant media still retain
         // their original geometry and can return without rebuilding the strip.
@@ -170,14 +174,16 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       }
       const video = videoRefs.current[cardIndex];
       if (video) {
-        if (x < box.w + cardStep && !video.hasAttribute('src')) {
+        const poster = images[cardIndex].poster;
+        if (poster && x < box.w + cardStep && !video.hasAttribute('poster')) video.poster = poster;
+        if (shown && !video.hasAttribute('src')) {
           video.preload = 'metadata'; video.src = images[cardIndex].src;
         }
         setVideoPlaying(video, shown && viewportVisibleRef.current && !document.hidden);
       }
     }
-    if (startIndex !== announcedIndexRef.current) {
-      announcedIndexRef.current = startIndex; setActiveIndex(startIndex);
+    if (featuredIndex !== announcedIndexRef.current) {
+      announcedIndexRef.current = featuredIndex; setActiveIndex(featuredIndex);
     }
   }, [box, cardHeightMax, cardHeightMin, cardStep, cardWidthMax, images, easingPercentage, setVideoPlaying]);
 
@@ -235,7 +241,7 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       wake();
     };
     const onPointerDown = (event: PointerEvent) => {
-      if (!event.isPrimary || event.button !== 0 || (touchPerformance && state.isDragging)) return;
+      if ((event.target instanceof Element && event.target.closest('a')) || !event.isPrimary || event.button !== 0 || (touchPerformance && state.isDragging)) return;
       pointerId = event.pointerId;
       state.isDragging = true; state.dragged = false; state.dragDistance = 0; state.velocity = 0;
       state.lastX = event.clientX; state.lastY = event.clientY;
@@ -276,6 +282,7 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
       state.velocity = 0; state.dragged = false; wake();
     };
     const onClick = (event: MouseEvent) => {
+      if (event.target instanceof Element && event.target.closest('a')) return;
       if (event.detail > 0 && state.dragged) {
         state.dragged = false; event.preventDefault(); return;
       }
@@ -391,6 +398,8 @@ export function ZoomSliderComp({ sliderData: images, title, subheading,
     <div className="sr-only" aria-live="polite" aria-atomic="true">
       {images[activeIndex]?.title ? `${images[activeIndex].title}, ` : ''}{images[activeIndex]?.type === 'video' ? 'video' : 'photograph'} {activeIndex + 1} of {images.length}
     </div>
+    {images[activeIndex]?.original && <a className="travel-original-link" href={images[activeIndex].original}
+      target="_blank" rel="noopener">View original</a>}
     {title && <div className="pointer-events-none absolute left-1/2 top-10 z-20 -translate-x-1/2 px-4 text-center">
       <h2 className="text-4xl max-md:text-2xl">{title}</h2>
       {subheading && <p className="mt-3 text-sm">{subheading}</p>}

@@ -5,10 +5,9 @@ const origin=process.env.AUDIT_URL||'http://localhost:3000';
  const browser=await chromium.launch({channel:'chrome',headless:true});
  try{
   const context=await browser.newContext({viewport:{width:320,height:480},hasTouch:true,isMobile:true}),page=await context.newPage();
-  await page.goto(origin);await page.getByRole('button',{name:'Enter Shubham Pandey’s portfolio',exact:true}).click({timeout:45000});
+  await require('./helpers/site.cjs').enter(page,'#projects');
   await page.locator('.portfolio-intro').waitFor({state:'detached'});await page.waitForFunction(()=>!document.body.classList.contains('badge-entering'));
   await page.locator('.floating-nav a[href="#projects"]').evaluate(e=>e.click());
-  await page.waitForFunction(()=>!document.querySelector('#projects').inert&&document.querySelector('#projects').hobbyEntranceProgress===1);
   await page.locator('#music-walkman').click();await page.locator('#music-gallery .music-song-copy').waitFor();
   const gallery=page.locator('#music-gallery'),copy=gallery.locator('.music-song-copy'),cdp=await context.newCDPSession(page);
   async function select(index){await gallery.getByRole('button',{name:'Songs',exact:true}).click();await gallery.locator('.dcc-opt').nth(index).click();}

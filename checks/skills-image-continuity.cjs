@@ -1,49 +1,55 @@
-// Verify decoded images survive enhancement, plus actual failed-request recovery.
-const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
-const assert=require('node:assert/strict'),fs=require('node:fs/promises');
-const origin=process.env.AUDIT_URL||'http://localhost:3000';
-(async()=>{const browser=await chromium.launch({channel:'chrome',headless:true}),results=[];
- try{for(const [profile,width,height,touch]of [['phone',425,887,true],['tablet',768,1024,true],['laptop',1440,900,false]]){
-  if(process.env.BROWSER_PROFILE&&process.env.BROWSER_PROFILE!==profile)continue;
-  const page=await browser.newPage({viewport:{width,height},isMobile:touch,hasTouch:touch});
-  let release,failures=0;const gate=new Promise(r=>release=r),errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.route('**/assets/ui/skills-icons.js',async route=>{await gate;await route.continue();});
-  if(touch)await page.route('**/assets/skills/figma.svg*',r=>failures++===0?r.fulfill({status:503,body:'deliberate temporary icon outage'}):r.continue());
-  await page.goto(origin,{waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>document.querySelectorAll('#about .skill-logo').length===14&&[...document.querySelectorAll('#about .skill-logo')].every(e=>e.complete&&e.naturalWidth));
-  await page.evaluate(()=>{window.qaNativeIcons=[...document.querySelectorAll('#about .skill-logo')];});
-  release();await page.waitForFunction(()=>document.querySelectorAll('.skill-shiny-button').length===14);
-  assert.ok(await page.evaluate(()=>window.qaNativeIcons.every(e=>e.isConnected&&e.closest('.skill-shiny-button')&&e.complete&&e.naturalWidth)),'the original decoded images are reused inside every enhanced button');
-  if(touch)assert.equal(failures,2,'only the failed SVG was retried once');
-  await page.getByRole('button',{name:'Enter Shubham Pandey’s portfolio',exact:true}).click();
-  await page.locator('.portfolio-intro').waitFor({state:'detached'});
-  await page.evaluate(()=>document.querySelector('.floating-nav a[href="#about"]').click());
-  await page.waitForFunction(()=>[...document.querySelectorAll('.skills-orbit-slot')].every(e=>getComputedStyle(e).visibility==='visible'));
-  assert.ok(await page.evaluate(()=>window.qaNativeIcons.every(e=>e.isConnected&&e.complete&&e.naturalWidth)));
-  let exhaustedRecovery='desktop bypass',outageRequests=0;
-  if(touch){
-   let outage=true;
-   await page.route('**/assets/skills/html5.svg*',route=>{
-    outageRequests++;
-    return outage?route.fulfill({status:503,body:'deliberate extended icon outage'}):route.continue();
-   });
-   await page.reload({waitUntil:'domcontentloaded'});
-   await page.evaluate(()=>{window.qaOutageIcon=document.querySelector('.skill-logo[src*="html5.svg"]');});
-   await page.waitForFunction(()=>window.qaOutageIcon.complete&&!window.qaOutageIcon.naturalWidth&&new URL(window.qaOutageIcon.src).searchParams.get('skill-retry')==='2');
-   assert.equal(outageRequests,3,'extended outage exhausts exactly two automatic retries');
-   await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
-   await page.waitForTimeout(2000);
-   assert.equal(outageRequests,3,'visibility and time cannot turn exhausted recovery into polling');
-   outage=false;await page.context().setOffline(true);await page.context().setOffline(false);
-   try{
-    await page.waitForFunction(()=>window.qaOutageIcon.isConnected&&window.qaOutageIcon.complete&&window.qaOutageIcon.naturalWidth>0,null,{timeout:5000});
-    assert.equal(outageRequests,4,'a real online event renews the failed icon budget once');
-    assert.ok(await page.evaluate(()=>document.querySelector('.skill-logo[src*="html5.svg"]')===window.qaOutageIcon),'reconnection repairs the same original image');
-    exhaustedRecovery=true;
-   }catch(error){exhaustedRecovery=false;console.error(profile+' exhausted Skills retry budget never recovered: '+error.message);}
-  }
-  assert.deepEqual(errors,[]);results.push({profile,touch,decodedImageIdentity:true,icons:14,failedRequestRecovered:touch,exhaustedRecovery,outageRequests,errors});await page.close();
- }}finally{await browser.close();}
- const out=process.env.AUDIT_OUTPUT||'output/oneplus-12r';await fs.mkdir(out,{recursive:true});await fs.writeFile(require('node:path').join(out,'icon-continuity.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results));
- assert.ok(results.length&&results.every(result=>result.exhaustedRecovery!==false),'exhausted Skills recovery regressions failed');
-})().catch(e=>{console.error(e);process.exitCode=1;});
+const assert = require('node:assert/strict');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core');
+const { enter, profiles, save } = require('./helpers/site.cjs');
+
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+  const results = [];
+  try {
+    for (const [profile, width, height, touch] of profiles) {
+      if (process.env.BROWSER_PROFILE && process.env.BROWSER_PROFILE !== profile) continue;
+      const page = await browser.newPage({ viewport: { width, height }, hasTouch: touch, isMobile: touch });
+      let iconRequests = 0;
+      await page.route('**/assets/skills/*.svg', route => {
+        iconRequests++;
+        return route.abort();
+      });
+      if (process.env.PHONE_REFERENCE) await page.route('**/', async route => {
+        const response = await route.fetch();
+        const body = (await response.text()).replace('</head>', '<style>#about .skills-orbit-slot:nth-child(2){visibility:hidden}</style></head>');
+        await route.fulfill({ response, body });
+      });
+      await enter(page);
+      if (touch) {
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+        const x = 8, start = height * .9;
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: start }] });
+        for (let step = 1; step <= 10; step++) {
+          await cdp.send('Input.dispatchTouchEvent', {
+            type: 'touchMove', touchPoints: [{ x, y: start - height * .72 * step / 10 }],
+          });
+        }
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      } else await page.mouse.wheel(0, height * .85);
+      await page.waitForFunction(() => scrollY > 300);
+      await page.evaluate(() => scrollBy(0, -1));
+      // Test native input during entry, then freeze any entry reveal for inspection.
+      const skills = page.locator('.skills-orbit-disc');
+      await skills.first().focus();
+      assert.equal(await skills.count(), 14);
+      assert.ok(await skills.evaluateAll(discs => discs.every(disc => {
+        const icon = disc.querySelector('svg.skill-logo');
+        const bounds = icon?.getBoundingClientRect();
+        const { visibility, opacity } = getComputedStyle(disc);
+        return icon?.getBBox().width > 0 && bounds.width > 20 && bounds.height > 20 &&
+          visibility === 'visible' && opacity === '1';
+      })), 'all Skills icons are visible immediately despite blocked icon downloads');
+      assert.equal(iconRequests, 0);
+      await page.screenshot({ path: require('node:path').join(process.env.AUDIT_OUTPUT || 'output', profile + '-skills.png') });
+      results.push({ profile, icons: 14, iconRequests });
+      await page.close();
+    }
+  } finally { await browser.close(); }
+  await save('skills-image-continuity', results);
+})().catch(error => { console.error(error); process.exitCode = 1; });

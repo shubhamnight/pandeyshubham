@@ -15,12 +15,26 @@ const output=path.resolve(process.env.AUDIT_OUTPUT||'output/intro-gooey-preview'
     const page=await context.newPage(),errors=[],requests=[];
     page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r.url()));
     page.on('console',m=>{if(m.type()==='error'&&/hydration|Minified React/i.test(m.text()))errors.push(m.text());});
-    if(fallback)await page.route('**/assets/ui/message-loading.js',r=>r.fulfill({status:503,body:'deliberate QA failure'}));
+    if(reduce)await page.route('**/intro-loader.js',async route=>{
+      await new Promise(resolve=>setTimeout(resolve,1200));await route.continue();
+    });
     await page.addInitScript(()=>{
       window.qaWebGL=0;const get=HTMLCanvasElement.prototype.getContext;
       HTMLCanvasElement.prototype.getContext=function(type,...args){if(/webgl/.test(type))window.qaWebGL++;return get.call(this,type,...args);};
     });
     await page.goto(origin,{waitUntil:'domcontentloaded'});
+    await page.locator('.badge img').waitFor({state:'visible'});
+    const replay=page.getByRole('button',{name:'Replay intro'});
+    await replay.waitFor({state:'visible'});
+    assert.equal(await page.locator('.portfolio-intro').count(),0,'the hero renders without a gate');
+    assert.equal(requests.some(url=>/intro-(?:loader|crowd|liquid)|\/intro\.(?:js|css)/.test(url)),false,'intro assets are not requested on entry');
+    if(fallback){
+      await page.route('**/intro.css',r=>r.fulfill({status:503,body:'deliberate CSS failure'}),{times:1});
+      await replay.click();
+      await page.getByRole('status').filter({hasText:'Intro unavailable. Try again.'}).waitFor();
+      assert.equal(await page.locator('.portfolio-intro').count(),0,'a failed replay leaves the hero usable');
+    }
+    await replay.click();
     const wave=page.locator('.message-loading-mount .gooey-loader');
     const pose=()=>wave.evaluate(e=>{const s=getComputedStyle(e.querySelector('.gooey-loader-waves'),'::before');return `${s.rotate}|${s.translate}`;});
     await wave.waitFor({state:'visible'});
@@ -34,7 +48,12 @@ const output=path.resolve(process.env.AUDIT_OUTPUT||'output/intro-gooey-preview'
     else assert.ok(samples.some(s=>s!==samples[0]),'the supplied rotating wave animation runs');
     await page.screenshot({path:path.join(output,name+'-loading.png')});
     if(fallback){
-      await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
+      await page.waitForFunction(()=>document.querySelector('.portfolio-intro')?.classList.contains('play-css-surface'));
+      await page.evaluate(async()=>{
+        Object.defineProperty(document,'hidden',{configurable:true,value:true});
+        document.dispatchEvent(new Event('visibilitychange'));
+        await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      });
       const transform=await pose();await page.waitForTimeout(100);
       assert.equal(await pose(),transform,'hidden-tab wave clock pauses');
       await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});
@@ -54,8 +73,24 @@ const output=path.resolve(process.env.AUDIT_OUTPUT||'output/intro-gooey-preview'
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
     assert.deepEqual(errors,[]);
     await page.screenshot({path:path.join(output,name+'-hero.png')});
+    await replay.click();
+    await page.getByRole('button',{name:'Skip intro'}).waitFor();
+    await page.keyboard.press('Escape');
+    await page.locator('.portfolio-intro').waitFor({state:'detached'});
+    assert.equal(await replay.evaluate(button=>button===document.activeElement),true,'Escape returns focus to Replay intro');
     results.push({profile:name,gooeyWaves:true,reducedMotion:reduce,nativeFallback:fallback,noOpeningWebGL:true,playAndHeroPreserved:true,errors});
     await context.close();
-  }}finally{await browser.close();}
+  }
+    const page=await browser.newPage({javaScriptEnabled:false});
+    await page.goto(origin+'/#about');
+    assert.equal(new URL(page.url()).hash,'#about');
+    assert.equal(await page.locator('#skills-heading').isVisible(),true);
+    await page.getByRole('link',{name:'Back to hero'}).click();
+    assert.equal(new URL(page.url()).hash,'#home');
+    await page.locator('.badge img').waitFor({state:'visible'});
+    assert.equal(await page.locator('.hero-retro-grid').isVisible(),true);
+    assert.equal(await page.getByRole('button',{name:'Replay intro'}).count(),0);
+    await page.close();
+  }finally{await browser.close();}
   await fs.writeFile(path.join(output,'results.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results));
 })().catch(error=>{console.error(error);process.exitCode=1;});
