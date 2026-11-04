@@ -9,7 +9,7 @@ npm test
 ```
 
 The complete run builds the production files, starts its own loopback preview,
-runs 46 named cases sequentially, writes the real exit codes and evidence to
+runs 43 named cases sequentially, writes the real exit codes and evidence to
 `output/regressions/<timestamp>/`, and stops its preview. It does not stop the
 owner's preview or publish anything. Expect a substantial run: rendering stress
 and the five-browser journeys are deliberately sequential to avoid competing
@@ -55,7 +55,7 @@ those variables; their evidence must be described as focused coverage.
 | ID card jumping, clipping, stuck drag or needless frames | `id-card`: native mouse/touch drag, cancellation, blur, keyboard, rotation, settled paint and idle loop; `desktop-algorithms`: original pose comparisons |
 | Skills icons stranded, late, absent or undecodable | `touch-skills`: native CDP touch scrolling at 360/393/768 widths, touch focus and actual paint; `skills-images`: delayed/failed image replacement; `stationary-hover`: five laptop sizes |
 | Hobbies models incomplete or preparation blocks input | `cooperative-preparation`, `renderer`, `model-batching`, `rounded-box`, `rendering-stress`: staged work, GPU loss, retry, disposal, geometry/material preservation |
-| Jitter, excess graphics work, high-refresh caps | `scroll-intent`, `animation-algorithms`, `cursor-physics`, `graphics-density`, `graphics-buffers`, `particle-paints`, `runtime-budget` |
+| Jitter, excess graphics work, high-refresh caps | `scroll-intent`, `animation-algorithms`, `graphics-density`, `graphics-buffers`, `particle-paints`, `runtime-budget` |
 | Offscreen or hidden-tab animation/video keeps running | `offscreen`, `animation-algorithms`, `gaming`: viewport exit, dialog pause, hidden tab and persisted page lifecycle |
 | Missing previews, videos or wrong mobile assets | `media`, `asset-decoding`, `preview-quality`, `manifest-recovery`: all media decode, failed/stalled optional metadata, source selection, SSIM and video frame counts |
 | Hung metadata body or initially failed hobby preview stays empty | `media-recovery`: deterministic deadlines, shared retry, same-item recovery, stale decode rejection and disposal; actual source modules in an isolated VM |
@@ -65,7 +65,6 @@ those variables; their evidence must be described as focused coverage.
 | Overlay keyboard focus and video selection | `overlay-keyboard`: native Tab/Space/Enter/Escape, Songs focus return, visible Travel focus and actual featured-card movement |
 | Photography/Travel crop editor journeys | `image-editor`: isolated synthetic media and routed API contracts across three viewport/input profiles; actual backend persistence/encoding stays covered separately by `backend-stress` |
 | Gaming accessibility, seams, missing games | `gaming`: five profiles, wheel, touch swipe, keyboard, reduced-motion access and unmount cleanup |
-| Cursor outline, drift or replacement of normal pointer | `cursor-follower`, `cursor-magnetism`, `cursor-physics`: hover/press/edge targets, shadow cards, top-layer dialogs and no touch cursor loop |
 | Connection drop discards already-loaded page | `connection`: laptop, phone, tablet, failed contact bundle and retry, cold offline navigation |
 | Mobile text tiny, ring/text collision or overflow | `reading`: 13 viewports, 320px through 2560px, portrait and landscape; `browser-engines`: all five apps at three profiles |
 | Resume/project placeholders accidentally removed | `site`, `historical-contracts`: existing placeholders retained |

@@ -90,12 +90,8 @@
 #home .hero-retro-grid.is-paused .hero-retro-lines{animation-play-state:paused;will-change:auto}
 @keyframes hero-retro-travel{from{transform:translateY(-60px)}to{transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){#home .hero-retro-lines{animation:none;will-change:auto}}
-/* The interactive canvas renders the perspective mesh and its blue hover glow together. */
 #home.kinetic-grid-ready .hero-retro-grid{display:block}
 #home.kinetic-grid-ready .hero-kinetic-grid{display:none}
-#home .hero-retro-hover{position:absolute;inset:0;perspective:200px;pointer-events:none;opacity:var(--retro-hover,0);transition:opacity .25s ease;mask-image:radial-gradient(circle 220px at var(--retro-x,50%) var(--retro-y,50%),#000 0%,#000a 35%,transparent 100%)}
-#home .hero-retro-hover .hero-retro-lines{background:linear-gradient(135deg,#0297de,#d5dfec 55%,#0297de)}
-@media(prefers-reduced-motion:reduce){#home .hero-retro-hover{display:none}}
 /* Fade the compressed horizon before its subpixel lines shimmer. */
 #home .hero-retro-grid{mask-image:linear-gradient(to bottom,transparent 0%,transparent 42%,#000 57%,#000 78%,transparent 100%)}
 #home .hero-retro-plane{backface-visibility:hidden;transform-style:flat}

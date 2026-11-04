@@ -99,8 +99,6 @@
       intro.querySelector('.intro-loading').hidden=true;
       intro.querySelector('.intro-play').hidden=false;
       intro.classList.add('show-play');
-      document.body.classList.add('batman-follower-active');
-      window.dispatchEvent(new Event('portfolio-pointer-ready'));
       // A stationary pointer over the center must not pull the new button
       // into its hover pose at the exact instant the morph finishes.
       intro.addEventListener('pointermove',()=>intro.classList.add('play-hover-ready'),{once:true,passive:true});

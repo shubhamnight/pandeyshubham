@@ -101,9 +101,6 @@ body.badge-entering #home .badge-rig{will-change:transform,opacity;transform-ori
 .intro-crowd{z-index:1;opacity:0;translate:0 36px;transition:opacity .75s ease,translate .75s cubic-bezier(.22,1,.36,1)}
 .portfolio-intro.crowd-ready .intro-crowd{opacity:1;translate:0 0}
 @media(prefers-reduced-motion:reduce){.intro-crowd{transition:none;translate:0 0}}
-.batman-follower{position:fixed;top:0;left:0;width:40px;height:24px;z-index:2147483647;pointer-events:none!important;user-select:none;contain:layout style;will-change:transform;line-height:0;perspective:220px;filter:drop-shadow(0 2px 3px #0007)}
-.batman-follower[hidden]{display:none!important}
-.batman-follower img{display:block;width:40px;height:24px;max-width:none;pointer-events:none!important;user-select:none;transform-origin:50% 50%;backface-visibility:hidden}
 
 /* The supplied two-wave loader and its handoff to the original PLAY surface. */
 .message-loader-stage{display:grid;place-items:center;position:relative;flex:none;width:min(224px,75vw);height:96px;color:var(--electric,#0297de)}

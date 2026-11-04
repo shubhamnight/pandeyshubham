@@ -10,6 +10,8 @@
 - Preserve required behavior, design, animations, media quality, accessibility,
   error recovery and meaningful regression coverage. Keep necessary safeguards;
   do not remove them merely to shorten code.
+- Leave the theme open for new creative work. Ask the user when a design needs
+  a theme or direction, and avoid Batman as a creative reference.
 - Apply the requested 30% decorative backing-buffer pixel reduction on every
   device, including the existing adaptive tiers. Preserve original media, model
   geometry, layout and animation timing.
