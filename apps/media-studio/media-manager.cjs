@@ -4,9 +4,10 @@ const crypto = require('node:crypto');
 const sharp = require('sharp');
 const { enhancePhotographyCrop } = require('./photography-quality.cjs');
 const readJson = require('./read-json.cjs');
-const writeAtomicFiles = require('./write-build-files.cjs');
+const writeAtomicFiles = require('../../packages/media/write-atomic-files.cjs');
 
-const root = path.resolve(__dirname, '..');
+const { parseMediaItems, serializeMediaLibrary } = require('../../packages/media/library.cjs');
+const root = path.resolve(__dirname, '../..');
 const statePath = path.join(root, 'media-library.json');
 let queue = Promise.resolve();
 const categories = { photography: ['photography-data.js', 'PHOTOGRAPHY'], travel: ['travel-data.js', 'TRAVEL'] };
@@ -15,7 +16,7 @@ const fail = (message, status = 400) => Object.assign(new Error(message), { stat
 async function readState() { try{return JSON.parse(await fs.readFile(statePath, 'utf8'));}catch{throw fail('Could not read the saved image library',500);} }
 async function baseItems(category) {
   const text = await fs.readFile(path.join(root, categories[category][0]), 'utf8');
-  return JSON.parse(text.slice(text.indexOf('['), text.lastIndexOf(']') + 1));
+  return parseMediaItems(text);
 }
 function resolveSource(url, category) {
   const decoded = decodeURIComponent(url);
@@ -47,11 +48,11 @@ async function catalog(state) {
 async function writeState(state) {
   state.revision = crypto.randomUUID();
   // Immutable asset URLs let open tabs keep displaying their previous image while saving.
-  const json = JSON.stringify(state, null, 2);
+  const library = serializeMediaLibrary(state);
   const modulePath = path.join(root, 'media-library-data.js');
   const previousModule = await fs.readFile(modulePath);
-  await writeAtomicFiles([{path:modulePath,contents:'// Updated by the local image manager.\nexport const mediaLibrary = ' + json + ';\n'}]);
-  try{await writeAtomicFiles([{path:statePath,contents:json+'\n'}]);}
+  await writeAtomicFiles([{path:modulePath,contents:library.module}]);
+  try{await writeAtomicFiles([{path:statePath,contents:library.json}]);}
   catch(error){await writeAtomicFiles([{path:modulePath,contents:previousModule}]).catch(rollback=>console.error('Image library rollback failed:',rollback.code));throw error;}
 }
 async function mutate(input) {

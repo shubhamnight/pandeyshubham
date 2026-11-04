@@ -148,12 +148,13 @@ from the descriptive alternatives used by assistive technology.
 
 ## Project layout
 
-- `index.html`: website sections and galleries.
-- Root CSS and JavaScript files: styling, animation, smooth scrolling and model interactions.
+- `apps/portfolio/page.html` and `apps/portfolio/sections/` compose the static site. Edit these sources; the build and local server generate the root `index.html`.
+- `apps/media-studio/` owns the local editor UI and Node APIs. `npm start` preserves the existing URLs.
+- `packages/media/` owns the media manifest helpers shared by the public build and editor.
+- Root CSS and JavaScript files support existing static URLs, gallery islands and model interactions.
 - `assets/`: optimized media, artwork and icons.
 - `PHOTOGRAPHY/` and `TRAVEL/`: original media.
 - `photography-data.js`, `travel-data.js`, `gaming-data.js`, `music-data.js`: gallery content.
-- `server.cjs`: local server with video range support and compression.
 
 ## Travel location labels
 

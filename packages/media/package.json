@@ -1,0 +1,9 @@
+{
+  "name": "@shub/media",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    "./library": "./library.cjs",
+    "./write-atomic-files": "./write-atomic-files.cjs"
+  }
+}

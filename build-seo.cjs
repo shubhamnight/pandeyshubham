@@ -1,4 +1,5 @@
 const fs = require('node:fs');
+const { parseMediaItems } = require('./packages/media/library.cjs');
 const path = require('node:path');
 const config = require('./site.config.cjs');
 
@@ -57,7 +58,7 @@ function generate() {
   const indexPath = path.join(root, 'index.html');
   fs.writeFileSync(indexPath, renderSeo(fs.readFileSync(indexPath, 'utf8')));
   const mediaSource = fs.readFileSync(path.join(root, 'photography-data.js'), 'utf8');
-  const photos = JSON.parse(mediaSource.slice(mediaSource.indexOf('['), mediaSource.lastIndexOf(']') + 1));
+  const photos = parseMediaItems(mediaSource);
   const fallback = '<div class="photo-fallback" aria-label="Photography without JavaScript">' + photos.filter(item => item.type === 'image').map(item =>
     `<figure><a href="${htmlEscape(item.original)}"><img src="${htmlEscape(item.src)}" width="${item.width}" height="${item.height}" loading="lazy" alt="${htmlEscape(item.alt)}"><figcaption>${htmlEscape(item.alt)}</figcaption></a></figure>`).join('\n') + '</div>';
   fs.writeFileSync(indexPath, fs.readFileSync(indexPath, 'utf8').replace(/<!-- PHOTO-FALLBACK:START -->[\s\S]*?<!-- PHOTO-FALLBACK:END -->/, '<!-- PHOTO-FALLBACK:START -->' + fallback + '<!-- PHOTO-FALLBACK:END -->'));

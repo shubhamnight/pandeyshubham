@@ -20,7 +20,7 @@ async function frameRatio(page, expected) {
 (async () => {
   assert.ok(['localhost', '127.0.0.1'].includes(new URL(origin).hostname), 'editor simulation stays on loopback');
   const png = await sharp(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><path fill="#f80" d="M0 0h200v300H0z"/><path fill="#08f" d="M200 0h200v300H200z"/><circle fill="white" cx="200" cy="150" r="60"/></svg>')).png().toBuffer();
-  const source = Object.fromEntries(await Promise.all(['image-manager.html', 'image-manager.js', 'image-manager.css', 'media-library.js'].map(async name => [name, await fs.readFile(path.join(root, name), 'utf8')])));
+  const source = Object.fromEntries(await Promise.all(['image-manager.html', 'image-manager.js', 'image-manager.css', 'media-library.js'].map(async name => [name, await fs.readFile(path.join(root, name.startsWith('image-manager') ? 'apps/media-studio/public' : '', name), 'utf8')])));
   const browser = await chromium.launch({ headless: true }), results = [];
   try { for (const [profile, width, height, touch] of profiles) {
     if (process.env.BROWSER_PROFILE && process.env.BROWSER_PROFILE !== profile) continue;

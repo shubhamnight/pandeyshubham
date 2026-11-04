@@ -2,7 +2,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { enhancePhotographyCrop } = require('./lib/photography-quality.cjs');
+const { enhancePhotographyCrop } = require('./apps/media-studio/photography-quality.cjs');
 const root = __dirname;
 
 (async () => {

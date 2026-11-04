@@ -55,7 +55,7 @@ function paintCadence(source,hz,touch){
 // Compare particles against the accepted palette, rather than failing on the
 // earlier pre-palette colors while checking unchanged physics and cadence.
 const oldParticles=cp.execFileSync('git',['show','49f92b2:components/ui/aether-flow-hero.tsx'],{encoding:'utf8'}),newParticles=fs.readFileSync('components/ui/aether-flow-hero.tsx','utf8');
-const particleDraw=source=>source.slice(source.indexOf('function draw('),source.indexOf('function tick('));
+const particleDraw=source=>source.slice(source.indexOf('function draw('),source.indexOf('function tick(')).replace(/\r\n/g,'\n');
 assert.equal(particleDraw(newParticles),particleDraw(oldParticles),'particle physics, dots and connections unchanged');
 const cadence=[];
 for(const hz of [60,75,120,144,165,240]){

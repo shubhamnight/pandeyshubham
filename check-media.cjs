@@ -94,7 +94,7 @@ async function run() {
   const req = Readable.from([JSON.stringify({ category: 'travel', id: travel[0].original, action: 'save', alt: 'Test', crop: { x: 0, y: 0, width: 2, height: 1 } })]);
   req.method = 'POST'; req.headers = { host: 'localhost:3000', origin: 'http://localhost:3000', 'content-type': 'application/json' }; req.socket = { remoteAddress: '127.0.0.1' };
   const res = { writeHead(status) { this.status = status; }, end(value) { this.body = value; } };
-  await require('./lib/media-manager.cjs')(req, res);
+  await require('./apps/media-studio/media-manager.cjs')(req, res);
   check(res.status === 400, 'Out-of-bounds crops are rejected');
   check(fs.readFileSync(path.join(root, 'media-library.json'), 'utf8') === before, 'Rejected edits leave the library untouched');
   const handlers = {}, offlinePage = { offline: true };

@@ -3,7 +3,7 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const { build } = require('esbuild');
 const { browserOptions } = require('./lib/build-ui.cjs');
-const writeBuildFiles = require('./lib/write-build-files.cjs');
+const writeBuildFiles = require('./packages/media/write-atomic-files.cjs');
 
 async function buildSharedUI() {
   const entryPoints={
