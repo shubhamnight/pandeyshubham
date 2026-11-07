@@ -4,8 +4,8 @@ const {chromium}=require('playwright-core');
 const localServer=require('./helpers/local-server.cjs');
 const path=require('node:path');
 const mode=process.argv[2]||'after';
-assert.ok(['before','after'].includes(mode),'Choose before or after for the installed dist build.');
-const output=path.resolve('output/regressions/portfolio-performance');
+assert.ok(['before','baseline','after'].includes(mode),'Choose before, baseline or after for the installed dist build.');
+const output=path.resolve(process.env.AUDIT_OUTPUT||'output/regressions/portfolio-performance');
 fs.mkdirSync(output,{recursive:true});
 (async()=>{
  const server=await localServer({cwd:process.cwd(),logFile:path.join(output,mode+'-server.log')});
@@ -25,7 +25,9 @@ fs.mkdirSync(output,{recursive:true});
    await cdp.send('Network.setCacheDisabled',{cacheDisabled:true});
    await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:200000,uploadThroughput:93750});
    await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
-   await page.addInitScript(()=>new PerformanceObserver(list=>{window.latestLcp=list.getEntries().at(-1)?.startTime;}).observe({type:'largest-contentful-paint',buffered:true}));
+   await page.addInitScript(()=>{
+    new PerformanceObserver(list=>{window.latestLcp=list.getEntries().at(-1)?.startTime;}).observe({type:'largest-contentful-paint',buffered:true});
+   });
    await page.goto(server.origin,{waitUntil:'commit'});
    if(mode==='before')await page.locator('.portfolio-intro.show-play button').first().waitFor({state:'visible',timeout:40000});
    else await page.waitForFunction(()=>{const badge=document.querySelector('#home .badge img');return badge?.complete&&badge.naturalWidth&&document.elementFromPoint(innerWidth/2,innerHeight/2)?.closest('#home');});

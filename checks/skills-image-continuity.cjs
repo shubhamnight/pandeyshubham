@@ -16,7 +16,7 @@ const { enter, profiles, save } = require('./helpers/site.cjs');
       });
       if (process.env.PHONE_REFERENCE) await page.route('**/', async route => {
         const response = await route.fetch();
-        const body = (await response.text()).replace('</head>', '<style>#about .skills-orbit-slot:nth-child(2){visibility:hidden}</style></head>');
+        const body = (await response.text()).replace('</head>', '<style>#about [data-skills-primary] .skills-orbit-slot:nth-child(2){visibility:hidden}</style></head>');
         await route.fulfill({ response, body });
       });
       await enter(page);
@@ -35,7 +35,7 @@ const { enter, profiles, save } = require('./helpers/site.cjs');
       await page.waitForFunction(() => scrollY > 300);
       await page.evaluate(() => scrollBy(0, -1));
       // Test native input during entry, then freeze any entry reveal for inspection.
-      const skills = page.locator('.skills-orbit-disc');
+      const skills = page.locator('[data-skills-primary] .skills-orbit-disc');
       await skills.first().focus();
       assert.equal(await skills.count(), 14);
       assert.ok(await skills.evaluateAll(discs => discs.every(disc => {
@@ -46,7 +46,9 @@ const { enter, profiles, save } = require('./helpers/site.cjs');
           visibility === 'visible' && opacity === '1';
       })), 'all Skills icons are visible immediately despite blocked icon downloads');
       assert.equal(iconRequests, 0);
-      await page.screenshot({ path: require('node:path').join(process.env.AUDIT_OUTPUT || 'output', profile + '-skills.png') });
+      const output = require('node:path').resolve(process.env.AUDIT_OUTPUT || 'output');
+      await require('node:fs/promises').mkdir(output, { recursive: true });
+      await page.screenshot({ path: require('node:path').join(output, profile + '-skills.png') });
       results.push({ profile, icons: 14, iconRequests });
       await page.close();
     }

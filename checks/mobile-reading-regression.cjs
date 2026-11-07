@@ -13,7 +13,7 @@ const titleStyles=Object.fromEntries(require('../music-typography.json').map(son
    const selectors=['.floating-nav a[href="#about"]','#about .skills-heading h2','#about .skills-heading>p','#projects .project-heading h2','#projects .project-heading p','#profile .personal-copy>p','.connect-person p'];
    const result=Object.fromEntries(selectors.map(s=>{const e=document.querySelector(s),c=getComputedStyle(e);return[s,{font:+parseFloat(c.fontSize),family:c.fontFamily,overflow:e.scrollWidth>e.clientWidth+1}];}));
    const heading = document.querySelector('#about .skills-heading').getBoundingClientRect();
-   const list = document.querySelector('.skills-orbit-list').getBoundingClientRect();
+   const list = document.querySelector('.skills-marquee').getBoundingClientRect();
    result.lineClearance=list.top-heading.bottom;return result;
   });
   if(touch){assert.ok(body['#about .skills-heading>p'].font>=12.5);assert.equal(body['#profile .personal-copy>p'].font,16);assert.ok(body['.connect-person p'].font>=14);}

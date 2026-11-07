@@ -37,45 +37,30 @@ decoding, cycling, visibility-aware playback and departure cleanup. Travel keeps
 its existing one-video-per-three preview schedule and its separate video player;
 music keeps its record markup and captions.
 
-## Opening gooey loader
+## Direct hero entry
 
-The supplied `components/ui/loader-10.tsx` and its demo in
-`components/demos/gooey-loader-demo.tsx` use the existing React/TypeScript
-setup without extra packages, providers or image assets. Its two rotating waves
-and stagger come from the supplied component. Continuous 4-second full turns
-retain its 2-second half-turn speed; eased horizontal sway removes the old reset.
-The fixed SVG goo filter processes the wave pool inside a separate rounded clip.
-It never processes the button border, and no hard SourceGraphic composite is
-drawn back over the liquid. This prevents inset rectangles and blur-kernel jitter.
-`components/message-loading.tsx` provides the blue palette and hydrates the
-opening screen; `intro.css` owns its centered responsive sizing. Each component
-instance has its own filter ID. Retired three-dot and opening WebGL loader code
-has been removed; the offline Batman page remains a separate active feature.
+The public page opens directly on the hero. The loading overlay, replay control,
+session gate and loader build command have been removed. Existing loader
+components remain available as standalone source demos.
 
-Run `npm run build:intro` after changing it. `build-intro-loading.cjs` renders
-the same component into the initial HTML, so delayed or failed React downloads
-cannot leave a blank loader. Hydration preserves the actual wave elements and
-their current animation phase. `intro-loader.js` handles visibility, reduced
-motion and the handoff to PLAY. The opening no longer imports the Batman
-WebGL loader. PLAY retains its existing CSS beveled surface, crowd, letter
-flicker and hero entry; the remaining Batman branding is unchanged.
+Run the entry checks with `npm test -- --no-build --case=loading` after building.
+They verify direct entry, keyboard focus and anchors across laptop, phone and
+tablet viewports, including JavaScript-disabled pages and stalled portrait requests.
 
-Once loading completes, `intro-liquid.js` expands the actual wave container
-into the measured capsule. The waves continue rotating while they rise and
-blend into the button color. The filtered wave layer fades out while the clean
-capsule fills; its border appears only once the liquid has become solid. The
-matched capsule stays opaque underneath as the button's bevel and letters
-blend in. The component then unmounts. Resize, hidden-tab, persisted page lifecycle
-and reduced-motion handling preserve the final button's styling and animations.
+## Skills marquee
 
-The regression check is `node checks/intro-message-regression.cjs`, using the
-pinned local Playwright dependency and installed Chrome. `PLAYWRIGHT_MODULE`
-can override the dependency location; see `checks/README.md` for the full suite.
-`checks/intro-liquid-regression.cjs` checks the liquid stages, verifies the actual
-surface/button bounds at handoff, and compares the finished button with its
-pre-morph style fixture.
-`checks/gooey-wave-regression.cjs` samples a complete native wave cycle and
-compares rendered pixels across its seam, alongside filter/border separation.
+`components/ui/marquee-logo-scroller.tsx` is rendered at build time by
+`apps/portfolio/render-skills.cjs`, using the original Skills copy and ordered
+local icons in `apps/portfolio/sections/skills.html`. Composition inlines every
+SVG and namespaces its paint IDs. This section downloads no client React.
+
+`apps/portfolio/sections/skills.css` owns the two opposite 40-second loops.
+`skills-marquee.js` handles automatic pause state, touch selection, horizontal seeking,
+keyboard visibility, offscreen suspension and teardown. Colored names appear on icon hover, keyboard focus or tap
+and wrap to two lines; pointer hover is limited to the circular icon. Reduced motion and
+JavaScript-disabled pages use two native horizontally scrollable lists.
+
+After building, run `npm test -- --no-build --case=skills-marquee,skills-images`.
 
 ## Decorative graphics density
 
@@ -380,3 +365,25 @@ centered crosses and static raised shadows. Dialog frames use layered shadows
 with a translucent blurred backdrop. Viewport outlines are suppressed while
 individual controls retain their keyboard focus indicators. Photography only
 displays explicit captions; generated Photograph-number labels are suppressed.
+
+## Hero ID lanyard
+
+The original card face stays in the hero HTML. Its single suspension uses a woven
+blue strap, top ring, reel, extending cord and clip, with no rail or back face.
+The existing script.js spring loop drives rig swing, hanger tilt/pull and cord
+scaling; it stops when settled or unavailable. Strap motion uses the supplied
+28/2.2 pendulum, 0.12-second body lag and 220/0.5 reel spring, with a single
+opening sway. Re-grabbing preserves the current angle and interrupts that cue. Hardware is CSS-only, so the hero
+adds no React download, physics dependency, model or image request.
+
+Run the id-card and desktop-algorithms regression cases after building. They
+cover preserved front styling, connected hardware, pull/retraction, drag
+cancellation, rotation, keyboard access and finite motion across refresh rates.
+
+## Navigation visibility
+
+The existing floating navigation appears from Skills onward, and hides on return
+to the hero. A boundary observer updates visibility and keyboard access without
+continuous scroll work. Direct lower-section links and history restore synchronize
+the same state. With JavaScript disabled, the navigation sits after the hero and
+uses sticky positioning so native section links remain available.

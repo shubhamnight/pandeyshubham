@@ -7,6 +7,25 @@ function setMotion(value) {
 }
 setMotion(paused);
 reducedMotion.addEventListener('change', event => setMotion(event.matches));
+// Navigation starts at Skills; keep the hero's suspension unobstructed.
+const navigation = document.querySelector('.floating-nav');
+const heroBoundary = document.querySelector('#home');
+function syncNavigation() {
+  const visible = heroBoundary.getBoundingClientRect().bottom < 72;
+  navigation.classList.toggle('visible', visible);
+  navigation.inert = !visible;
+}
+const navigationObserver = new IntersectionObserver(syncNavigation, { rootMargin: '-72px 0px 0px', threshold: 0 });
+navigationObserver.observe(heroBoundary);
+navigation.setAttribute('data-enhanced', '');
+syncNavigation();
+window.addEventListener('pageshow', syncNavigation);
+window.addEventListener('pagehide', event => {
+  if (event.persisted) return;
+  navigationObserver.disconnect();
+  window.removeEventListener('pageshow', syncNavigation);
+});
+
 // Defining these faces at entry makes Chrome download them for offscreen text.
 const sectionFonts = new IntersectionObserver(entries => {
   if (!entries.some(entry => entry.intersectionRatio >= .02)) return;

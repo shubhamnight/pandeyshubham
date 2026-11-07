@@ -1,6 +1,8 @@
 const badge = document.querySelector('.badge');
 const strap = document.querySelector('.strap');
 const rig = document.querySelector('.badge-rig');
+const hanger = document.querySelector('.badge-hanger');
+const cord = document.querySelector('.lanyard-cord');
 const badgeShell = document.createElement('div');
 badgeShell.className = 'badge-shell';
 badgeShell.setAttribute('aria-hidden','true');
@@ -9,37 +11,8 @@ for(let depth=1;depth<=5;depth++){
   layer.style.transform=`translateZ(-${depth}px)`;
   badgeShell.append(layer);
 }
-rig.insertBefore(badgeShell,badge);
+hanger.insertBefore(badgeShell,badge);
 const hero = document.querySelector('.hero');
-const replayControl = hero.querySelector('.intro-replay');
-if (replayControl && typeof window.HTMLDialogElement?.prototype.showModal === 'function') {
-  const replayButton = replayControl.querySelector('button');
-  const replayStatus = replayControl.querySelector('[role="status"]');
-  let replaying = false;
-  replayControl.hidden = false;
-  replayButton.addEventListener('click', async () => {
-    if (replaying) return;
-    replaying = true;
-    replayButton.setAttribute('aria-disabled', 'true');
-    replayStatus.textContent = 'Preparing intro…';
-    let deadline;
-    try {
-      const load = import('./module-loader.js')
-        .then(({ importPortfolioModule }) => importPortfolioModule('./intro.js'));
-      const { replayIntro } = await Promise.race([load, new Promise((_, reject) => {
-        deadline = setTimeout(() => reject(new Error('Intro module unavailable')), 8000);
-      })]);
-      replayStatus.textContent = '';
-      await replayIntro();
-    } catch {
-      replayStatus.textContent = 'Intro unavailable. Try again.';
-    } finally {
-      clearTimeout(deadline);
-      replaying = false;
-      replayButton.removeAttribute('aria-disabled');
-    }
-  });
-}
 const touchBadge=window.matchMedia('(pointer: coarse)').matches ||
   (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 // Keep drag lighting local to the two surfaces that actually paint it.
@@ -54,20 +27,13 @@ const pose = {...restingPose};
 const targetPose = {...pose};
 const velocity = Object.fromEntries(Object.keys(pose).map(key=>[key,0]));
 const poseKeys = Object.keys(pose);
-const ribbon = {bend:0,velocity:0};
-const ribbonWeights=Array.from({length:9},(_,index)=>Math.sin(index*Math.PI/8));
-const ribbonSegments=Array.from({length:8},(_,index)=>{
-  const segment=document.createElement('span');
-  segment.className='strap-segment';
-  segment.style.top=(index*12.5)+'%';
-  strap.append(segment);return segment;
-});
-strap.classList.add('is-flexible');
+// Single-card pendulum values from the supplied lanyard component.
+const ribbon = {angle:0, velocity:0, lag:0, previousVelocity:0};
 let frame = 0, geometryFrame = 0, lastTime = 0, dragging = false, pointerId = null;
-let startX = 0, startY = 0, originX = 0, originY = 0;
+let startX = 0, startY = 0, originX = 0, originY = 0, originSwing = 0, originAngle = 0;
 let bounds;
 let badgeBoundsDirty=true;
-let hoveringBadge=false, pointerPending=false;
+let hoveringBadge=false, pointerPending=false, initialSway=true;
 const latestPointer={x:0,y:0};
 const paintedStyles=new WeakMap();
 function writeBadgeStyle(element,property,value){
@@ -82,13 +48,23 @@ function measureBadge() {
   badgeBoundsDirty=false;
   const rect = hero.getBoundingClientRect();
   // Pointer coordinates must use the hero's layout space, rather than its
-  // rotated bounding rectangle during the skills transition. Keep the moving
+  // transformed bounding rectangle. Keep the moving
   // rig out of this measurement so tilting cannot feed back into the next tilt.
   const inverse=new DOMMatrix(getComputedStyle(hero).transform).inverse();
   bounds = {left:rig.offsetLeft-rig.offsetWidth/2+badge.offsetLeft,
     top:rig.offsetTop+badge.offsetTop,width:badge.offsetWidth,height:badge.offsetHeight,
     strapLength:strap.offsetHeight,centerX:rect.left+rect.width/2,centerY:rect.top+rect.height/2,
     heroWidth:hero.offsetWidth,heroHeight:hero.offsetHeight,inverse};
+  bounds.maxPull=Math.max(0,Math.min(64,bounds.heroHeight-bounds.top-bounds.height-16));
+  const reach=bounds.top+bounds.height+bounds.maxPull, half=bounds.width*.56;
+  bounds.maxSwing=Math.min(18,Math.max(0,Math.asin(Math.min(1,Math.max(0,bounds.heroWidth/2-12)/Math.hypot(reach,half)))-Math.atan2(half,reach))*180/Math.PI);
+  bounds.maxX=Math.min(85,Math.tan(bounds.maxSwing*Math.PI/180)*(bounds.strapLength+bounds.height*.45));
+  const size=clamp(bounds.width*.1,14,28), slot=badge.querySelector('.slot');
+  const attach=badge.offsetTop+badge.clientTop+slot.offsetTop+slot.offsetHeight/2;
+  const clipTop=attach-size*.65;
+  bounds.cordLength=size*.42;
+  for(const [name,value] of Object.entries({size,'clip-top':clipTop,'cord-length':bounds.cordLength,'cord-top':clipTop-bounds.cordLength,'reel-top':clipTop-bounds.cordLength-size}))
+    writeBadgeStyle(rig,'--lanyard-'+name,value+'px');
   writeBadgeStyle(badgeShell,'top',badge.offsetTop+'px');
   writeBadgeStyle(badgeShell,'width',bounds.width+'px');
   writeBadgeStyle(badgeShell,'height',bounds.height+'px');
@@ -98,10 +74,12 @@ function badgePointer(x,y){
   return {x:m.a*dx+m.c*dy+bounds.heroWidth/2,y:m.b*dx+m.d*dy+bounds.heroHeight/2};
 }
 function paintBadge() {
-  // One transform keeps the ribbon, slot, face and rim rigidly attached.
-  const suspensionLength=bounds.strapLength+bounds.height*.45;
-  const swing=pose.rz-Math.atan2(pose.x,Math.max(1,suspensionLength))*180/Math.PI;
-  writeBadgeStyle(rig,'transform',`translateX(-50%) perspective(1000px) rotateX(${pose.rx.toFixed(3)}deg) rotateY(${pose.ry.toFixed(3)}deg) rotateZ(${swing.toFixed(3)}deg) scale3d(${pose.scale.toFixed(4)},${pose.scale.toFixed(4)},${pose.scale.toFixed(4)})`);
+  // A fixed top pivot swings the suspension; the card tilts at its clip.
+  const swing=clamp(ribbon.angle,-bounds.maxSwing,bounds.maxSwing);
+  const bodyAngle=clamp(ribbon.lag+pose.rz,-bounds.maxSwing,bounds.maxSwing);
+  writeBadgeStyle(rig,'transform',`translateX(-50%) rotateZ(${swing.toFixed(3)}deg)`);
+  writeBadgeStyle(hanger,'transform',`translateY(${pose.y.toFixed(3)}px) rotateZ(${(bodyAngle-swing).toFixed(3)}deg) rotateX(${pose.rx.toFixed(3)}deg) rotateY(${pose.ry.toFixed(3)}deg) scale(${pose.scale.toFixed(4)})`);
+  writeBadgeStyle(cord,'transform',`scaleY(${(1+pose.y/bounds.cordLength).toFixed(4)})`);
   writeBadgeStyle(glareSurface,'--glare-x',`${(50 + pose.ry * 2.5).toFixed(2)}%`);
   writeBadgeStyle(glareSurface,'--glare-y',`${(50 - pose.rx * 2.5).toFixed(2)}%`);
   writeBadgeStyle(glareSurface,'--glare-opacity',pose.light.toFixed(3));
@@ -113,15 +91,6 @@ function paintBadge() {
   writeBadgeStyle(badge,'--tilt-shadow-x',(pose.ry*.5).toFixed(2)+'px');
   writeBadgeStyle(badge,'--tilt-shadow-y',(pose.rx*.5).toFixed(2)+'px');
   writeBadgeStyle(badge,'--tilt-shadow-blur',(40+Math.abs(pose.rx+pose.ry)*.5).toFixed(2)+'px');
-  writeBadgeStyle(strap,'--strap-light',clamp(.18+pose.ry*.014,.04,.34).toFixed(3));
-  // A bowed ribbon keeps both attachment points fixed while its middle flexes.
-  const bend=ribbon.bend;
-  ribbonSegments.forEach((segment,index)=>{
-    const start=ribbonWeights[index]*bend;
-    const end=ribbonWeights[index+1]*bend;
-    const skew=Math.atan2(end-start,bounds.strapLength/8)*180/Math.PI;
-    writeBadgeStyle(segment,'transform',`translateX(${start.toFixed(3)}px) skewX(${skew.toFixed(3)}deg)`);
-  });
 
 }
 function animateBadge(time) {
@@ -135,45 +104,60 @@ function animateBadge(time) {
     pointerPending=false;
     const pointer=badgePointer(latestPointer.x,latestPointer.y);
     if(dragging){
-      const x=clamp(originX+(pointer.x-startX)*.6,-85,85);
-      const y=clamp(originY+(pointer.y-startY)*.4,-24,40);
+      const maxPull=bounds.maxPull;
+      const x=clamp(originX+(pointer.x-startX)*.6,-bounds.maxX,bounds.maxX);
+      const pull=Math.max(0,originY+(pointer.y-startY)*.8), knee=maxPull*.75;
+      const y=maxPull>0 ? pull<=knee ? pull : knee+(maxPull-knee)*(1-Math.exp(-(pull-knee)/(maxPull-knee))) : 0;
       Object.assign(targetPose,{x,y,rx:-y*.13,ry:x*.16,rz:0,z:0,light:.16,scale:1.02});
     }else{
       const nx=(pointer.x-bounds.left-bounds.width/2)/(bounds.width/2);
       const ny=(pointer.y-bounds.top-bounds.height/2)/(bounds.height/2);
       hoveringBadge=Math.abs(nx)<=2.2&&ny<=1.5&&pointer.y>=bounds.top-bounds.strapLength;
-      if(hoveringBadge)Object.assign(targetPose,{x:clamp(nx,-1,1)*7,y:clamp(ny,-1,1)*2,
+      if(hoveringBadge)Object.assign(targetPose,{x:clamp(nx,-1,1)*7,y:0,
         rx:-clamp(ny,-1,1)*15,ry:clamp(nx,-1,1)*15,rz:clamp(nx,-1,1)*1.2,
         z:0,light:.12,scale:1.02});
       else Object.assign(targetPose,restingPose);
     }
   }
   const elapsed = Math.min((time - (lastTime || time - 16.67)) / 1000, .05);
-  const steps = Math.max(1,Math.ceil(elapsed/(1/120)));
+  const steps = Math.max(3,Math.ceil(elapsed/.006));
   const dt = elapsed/steps;
   lastTime = time;
   let unsettled = false;
   for (const key of poseKeys) {
     for(let step=0;step<steps;step++){
       // Firm grip while dragging; a lightly damped pendulum when released.
-      const stiffness=key==='light'?100:key==='scale'?180:dragging?150:hoveringBadge?180:60;
-      const damping=key==='light'?20:key==='scale'?26:dragging?23:hoveringBadge?26:11;
+      const stiffness=key==='light'?100:key==='scale'?180:dragging?150:key==='y'?220:hoveringBadge?180:60;
+      const damping=key==='light'?20:key==='scale'?26:dragging?23:key==='y'?Math.sqrt(220):hoveringBadge?26:11;
       const acceleration = (targetPose[key] - pose[key]) * stiffness - velocity[key] * damping;
       velocity[key] += acceleration * dt;
       pose[key] += velocity[key] * dt;
+      if(key==='y' && pose.y < -bounds.cordLength*.85){pose.y=-bounds.cordLength*.85;velocity.y=Math.max(0,velocity.y);}
     }
     const threshold=key==='scale'?.0002:.015;
     if (Math.abs(targetPose[key] - pose[key]) > threshold || Math.abs(velocity[key]) > threshold) unsettled = true;
   }
-  const ribbonTarget=clamp(-velocity.x*.025-velocity.ry*.05,-5,5);
-  for(let step=0;step<steps;step++){
-    ribbon.velocity+=((ribbonTarget-ribbon.bend)*100-ribbon.velocity*14)*dt;
-    ribbon.bend+=ribbon.velocity*dt;
+  const length=bounds.top+bounds.height/2;
+  if(dragging){
+    const angle=clamp(originSwing-Math.atan2(pose.x,length+pose.y)*180/Math.PI-originAngle,-18,18);
+    ribbon.velocity=clamp((angle-ribbon.angle)/elapsed*.5,-90,90);
+    ribbon.angle=angle;
   }
-  if(Math.abs(ribbon.bend)>.015||Math.abs(ribbon.velocity)>.015)unsettled=true;
+  for(let step=0;step<steps;step++){
+    if(!dragging){
+      // The reference's inertial kick, mapped to a fixed top attachment.
+      if(step===0)ribbon.velocity=clamp(ribbon.velocity-(.25*57.3/length)*clamp(velocity.x-ribbon.previousVelocity,-900,900),-90,90);
+      ribbon.velocity+=(-28*ribbon.angle-2.2*ribbon.velocity)*dt;
+      ribbon.angle=clamp(ribbon.angle+ribbon.velocity*dt,-18,18);
+    }
+    ribbon.lag+=(ribbon.angle-ribbon.lag)*Math.min(1,dt/.12);
+  }
+  ribbon.previousVelocity=velocity.x;
+  if(Math.abs(ribbon.angle)>.02||Math.abs(ribbon.velocity)>.05||Math.abs(ribbon.lag-ribbon.angle)>.01)unsettled=true;
   if (unsettled) { paintBadge(); frame = requestAnimationFrame(animateBadge); }
   else { Object.assign(pose, targetPose); for(const key of poseKeys)velocity[key]=0;
-    ribbon.bend=ribbon.velocity=0;paintBadge(); frame = 0; lastTime = 0; rig.classList.remove('is-moving'); }
+    Object.assign(ribbon,{angle:0,velocity:0,lag:0,previousVelocity:0});
+    paintBadge(); frame = 0; lastTime = 0; rig.classList.remove('is-moving'); }
 }
 function setPose(next) {
   if(!frame && poseKeys.every(key=>next[key]===undefined || Math.abs(next[key]-pose[key])<.001))return;
@@ -199,22 +183,32 @@ function stopBadge() {
   cancelAnimationFrame(frame); frame = 0; lastTime = 0;
   for (const key of poseKeys){pose[key]=targetPose[key]=restingPose[key];velocity[key]=0;}
   hoveringBadge=false;pointerPending=false;
+  Object.assign(ribbon,{angle:0,velocity:0,lag:0,previousVelocity:0});
   badge.style.transform = ''; badgeShell.style.transform=''; strap.style.transform = ''; glareSurface.style.setProperty('--glare-opacity', 0);
   rig.style.transform='';rig.classList.remove('is-moving');
-  ribbon.bend=0;ribbon.velocity=0;ribbonSegments.forEach(segment=>{segment.style.transform='';paintedStyles.delete(segment);});
+  hanger.style.transform='';cord.style.transform='';
   ['--edge-x','--edge-y','--tilt-shadow-x','--tilt-shadow-y','--tilt-shadow-blur'].forEach(property=>badge.style.removeProperty(property));
   ['--ticket-pattern-x','--ticket-pattern-y'].forEach(property=>patternSurface.style.removeProperty(property));
   ['--glare-x','--glare-y'].forEach(property=>glareSurface.style.removeProperty(property));
-  [rig,badge,strap,glareSurface,patternSurface].forEach(element=>paintedStyles.delete(element));
+  [rig,hanger,cord,badge,strap,glareSurface,patternSurface].forEach(element=>paintedStyles.delete(element));
   badge.classList.remove('is-moving', 'dragging');
   strap.classList.remove('is-moving');
-  strap.style.removeProperty('--strap-light');
   dragging = false;
   if (pointerId !== null && badge.hasPointerCapture(pointerId)) badge.releasePointerCapture(pointerId);
   pointerId = null;
 }
 function settleBadge() { hoveringBadge=false;pointerPending=false;setPose(restingPose); }
+function startInitialSway() {
+  if(!initialSway || !motionAllowed()) return;
+  if(badgeBoundsDirty)measureBadge();
+  const top=bounds.centerY-bounds.heroHeight/2;
+  if(top>=(window.innerHeight||bounds.heroHeight) || top+bounds.heroHeight<=0)return;
+  initialSway=false;
+  ribbon.velocity=30;
+  requestBadgeFrame();
+}
 measureBadge();
+requestAnimationFrame(startInitialSway);
 function invalidateBadgeBounds(){
   badgeBoundsDirty=true;
   // Update the backing layers even when the spring is idle or the hero is
@@ -238,6 +232,13 @@ badge.addEventListener('pointerdown', event => {
   if (!motionAllowed() || event.button !== 0 || dragging || event.isPrimary===false) return;
   if(badgeBoundsDirty)measureBadge();
   pointerPending=false;hoveringBadge=false;
+  initialSway=false;
+  originSwing=clamp(ribbon.angle,-bounds.maxSwing,bounds.maxSwing);
+  ribbon.lag=clamp(ribbon.lag+pose.rz,-bounds.maxSwing,bounds.maxSwing)-pose.rz;
+  ribbon.angle=originSwing;ribbon.velocity=0;
+  Object.assign(targetPose,pose);
+  for(const key of poseKeys)velocity[key]=0;
+  originAngle=-Math.atan2(pose.x,bounds.top+bounds.height/2+pose.y)*180/Math.PI;
   dragging = true; pointerId = event.pointerId;
   const pointer=badgePointer(event.clientX,event.clientY);
   startX = pointer.x; startY = pointer.y; originX = pose.x; originY = pose.y;
@@ -263,10 +264,10 @@ badge.addEventListener('keydown', event => {
 badge.addEventListener('keyup', event => { if (event.key.startsWith('Arrow')) settleBadge(); });
 badge.addEventListener('blur', () => { releaseBadge(); settleBadge(); });
 window.addEventListener('blur', stopBadge);
-document.addEventListener('visibilitychange', () => { if (document.hidden) stopBadge(); });
-reducedMotion.addEventListener('change', () => { if (!motionAllowed()) stopBadge(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopBadge(); else startInitialSway(); });
+reducedMotion.addEventListener('change', () => { if (!motionAllowed()) stopBadge(); else startInitialSway(); });
 new MutationObserver(() => { if (!motionAllowed() && (frame || dragging || poseKeys.some(key=>pose[key]!==restingPose[key]))) stopBadge(); }).observe(document.body, {attributes:true, attributeFilter:['class']});
-new MutationObserver(() => { if (!motionAllowed() && (frame || dragging)) stopBadge(); }).observe(hero, {attributes:true, attributeFilter:['class']});
+new MutationObserver(() => { if (!motionAllowed() && (frame || dragging)) stopBadge(); else startInitialSway(); }).observe(hero, {attributes:true, attributeFilter:['class']});
 
 
 

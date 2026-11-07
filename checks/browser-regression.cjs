@@ -5,8 +5,8 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const origin=process.env.AUDIT_URL||'http://localhost:3000';
 const output=path.resolve(process.env.AUDIT_OUTPUT||'output/performance/2026-10-24/regression');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const { enter } = require('./helpers/site.cjs');
-async function nav(page,name){ await page.getByRole('link',{name,exact:true}).click(); }
+const { enter, navigation } = require('./helpers/site.cjs');
+async function nav(page,name){ await navigation(page); await page.getByRole('link',{name,exact:true}).click(); }
 async function open(page,id){ await nav(page,'Hobbies'); await page.locator('#'+id).click(); }
 (async()=>{
  await fs.mkdir(output,{recursive:true});const browser=await chromium.launch({...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{channel:process.env.BROWSER_CHANNEL||'chrome'}),headless:true}),results=[];
@@ -32,8 +32,8 @@ async function open(page,id){ await nav(page,'Hobbies'); await page.locator('#'+
   await page.waitForFunction(()=>!document.querySelector('.badge').classList.contains('dragging')&&!document.querySelector('.badge-rig').classList.contains('is-moving'));
   assert.ok(await page.locator('.badge-rig').evaluate(e=>!e.style.transform.includes('NaN')));checks.push('ID drag, release, finite settling');
   await nav(page,'Skills');
-  assert.equal(await page.locator('.skills-orbit-symbol>svg').count(),14);
-  const skill=page.locator('.skills-orbit-disc').first();await skill.focus();assert.ok(await skill.evaluate(e=>e===document.activeElement));
+  assert.equal(await page.locator('[data-skills-primary] .skills-orbit-symbol>svg').count(),14);
+  const skill=page.locator('[data-skills-primary] .skills-orbit-disc').first();await skill.focus();assert.ok(await skill.evaluate(e=>e===document.activeElement));
   checks.push('14 inline icons and keyboard focus');
   await nav(page,'Hobbies');assert.equal(await page.locator('.hobby-card').count(),4);
   assert.equal(await page.locator('.hobby-orbit-center canvas').count(),0);

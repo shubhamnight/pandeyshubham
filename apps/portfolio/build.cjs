@@ -4,7 +4,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 require('./compose.cjs').writePage();
 for (const step of [
-  'build-intro-loading', 'build-site-assets', 'build-seo',
+  'build-site-assets', 'build-seo',
   'build-photography-carousel', 'build-connect', 'build-gaming-overlay',
   'build-travel-overlay', 'build-music-overlay',
   'build-shared-ui', 'build-offline', 'build-vercel',

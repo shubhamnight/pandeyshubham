@@ -16,7 +16,7 @@ const {profiles,galleries,enter,hobbies,open,model,close,save}=require('./helper
    if(process.env.HISTORY_MUTATE_IMPORTMAP==='1')await page.route('**/',async route=>{const response=await route.fetch(),html=await response.text(),map=html.match(/<script type="importmap">.*?<\/script>/)[0];await route.fulfill({response,body:html.replace(map,'').replace('</body>',map+'</body>')});});
    if(process.env.HISTORY_MUTATE_FONT==='1'){const body=require('node:child_process').execFileSync('git',['show','2b6022d1513d53115ee078745b2832ecc29a4a03:assets/fonts/batman-forever-alternate.woff2']);await page.route('**/assets/fonts/batman-forever-alternate.woff2',route=>route.fulfill({contentType:'font/woff2',body}));}
    await enter(page,'#projects');assert.ok(await page.evaluate(()=>location.hash==='#projects'&&scrollY>0));
-   await page.locator('.floating-nav a[href="#about"]').evaluate(e=>e.click());assert.equal(await page.locator('svg.skill-logo').count(),14);
+   await page.locator('.floating-nav a[href="#about"]').evaluate(e=>e.click());assert.equal(await page.locator('[data-skills-primary] svg.skill-logo').count(),14);
    await hobbies(page);
    const models=[];
    for (const [id] of galleries) {

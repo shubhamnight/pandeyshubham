@@ -6,7 +6,7 @@ const parent=path.join(root,'tmp');fs.mkdirSync(parent,{recursive:true});
 const checkout=fs.mkdtempSync(path.join(parent,'legacy-share-check-'));
 try{
  const dist=buildShare({identity:{project_id:'local-test'},outputRoot:checkout,build:()=>path.join(root,'dist')});
- for(const name of ['index.html','intro.js','hobby-preparation.js','offline.html','offline-sw.js','social-links.json','mobile-media-data.json','vendor/three/examples/jsm/utils/BufferGeometryUtils.js','assets/ui/photography-carousel-recovery.js']){
+ for(const name of ['index.html','hobby-boot.js','hobby-preparation.js','offline.html','offline-sw.js','social-links.json','mobile-media-data.json','vendor/three/examples/jsm/utils/BufferGeometryUtils.js','assets/ui/photography-carousel-recovery.js']){
   assert.deepEqual(fs.readFileSync(path.join(dist,name)),fs.readFileSync(path.join(root,'dist',name)),name+' stays current in the shared package');
  }
  for(const name of ['batman-loader.js','contour-nearest.js','vendor/three/examples/jsm/geometries/RoundedBoxGeometry.js'])assert.equal(fs.existsSync(path.join(dist,name)),false,'retired code is not repackaged');

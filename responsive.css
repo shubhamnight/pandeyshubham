@@ -25,7 +25,6 @@
     width:var(--fit-badge-width); height:var(--fit-badge-height);
     top:var(--fit-badge-top);
   }
-  #home .strap { height:calc(var(--fit-badge-top) + 24px); }
   #home .badge-title { font-size:calc(var(--fit-badge-width)*.129); }
   #home .badge-name { width:calc(var(--fit-badge-width) - 48px); }
 
@@ -64,7 +63,6 @@
 
 @media (max-width:700px) {
   #home { --fit-badge-width:min(220px,60vw,34svh); --fit-badge-height:calc(var(--fit-badge-width)*16/11); --fit-badge-top:min(190px,26svh); }
-  #home .strap { width:calc(var(--fit-badge-width)*8/55); left:calc(50% - var(--fit-badge-width)*4/55); }
   #home .badge-title { font-size:calc(var(--fit-badge-width)*29/220); }
   #home .badge-name { width:calc(var(--fit-badge-width) - 42px); font-size:clamp(7px,2.2vw,9px); letter-spacing:clamp(1px,.5vw,2px); }
   #home .name-track { font-size:clamp(80px,22vw,142.5px); }

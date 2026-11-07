@@ -29,8 +29,7 @@
     "build:skills": "node build-skills-icons.cjs && node build-shared-ui.cjs",
     "build:offline": "node build-offline.cjs",
     "enhance:photography": "node enhance-photography-ai.cjs",
-    "enhance:photography-crops": "node enhance-photography-crops.cjs",
-    "build:intro": "node apps/portfolio/compose.cjs && node build-intro-loading.cjs && node build-shared-ui.cjs && node build-vercel.cjs"
+    "enhance:photography-crops": "node enhance-photography-crops.cjs"
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.3.0",
