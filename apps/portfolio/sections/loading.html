@@ -1,0 +1,68 @@
+<style>
+  body:has(#page-loading[open]) { overflow: hidden }
+  #page-loading { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; overflow: hidden; background: #02070a }
+  #page-loading[open] { display: grid; place-items: center }
+  #page-loading::backdrop { background: transparent; backdrop-filter: none }
+</style>
+<dialog id="page-loading" aria-label="Loading portfolio"><div class="loading-zoom" aria-hidden="true"><!-- loading-waves --></div></dialog>
+<script>
+(() => {
+  const loader = document.querySelector('#page-loading');
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  const sessionKey = 'portfolio-waves-seen';
+  let seen = false;
+  try { seen = sessionStorage.getItem(sessionKey) === '1'; } catch {}
+  if (seen || location.hash || motion.matches || !loader.showModal) {
+    loader.remove();
+    return;
+  }
+
+  loader.showModal();
+  const earliestReveal = performance.now() + 2500;
+  document.body.classList.add('intro-active');
+  const listeners = new AbortController();
+  const { signal } = listeners;
+  let revealTimer = setTimeout(reveal, 12000);
+
+  function finish() {
+    if (signal.aborted) return;
+    clearTimeout(revealTimer);
+    listeners.abort();
+    document.body.classList.remove('intro-active');
+    loader.close();
+    loader.remove();
+    try { sessionStorage.setItem(sessionKey, '1'); } catch {}
+  }
+
+  function reveal() {
+    if (signal.aborted) return;
+    clearTimeout(revealTimer);
+    if (motion.matches || document.hidden || !loader.animate) { finish(); return; }
+    if (loader.classList.contains('intro-loader-paused')) return;
+    loader.classList.add('intro-loader-paused');
+    document.body.classList.remove('intro-active');
+    const duration = 500;
+    loader.firstElementChild.animate(
+      [{ transform: 'scale(1)' }, { transform: 'scale(9)' }],
+      { duration, easing: 'cubic-bezier(.42,0,.8,1)', fill: 'forwards' }
+    );
+    loader.animate([{ opacity: 1 }, { opacity: 1, offset: .2 }, { opacity: 0 }], { duration, fill: 'forwards' })
+      .finished.then(finish, finish);
+  }
+
+  loader.addEventListener('cancel', event => { event.preventDefault(); finish(); }, { signal });
+  addEventListener('pagehide', finish, { signal });
+  addEventListener('hashchange', finish, { signal });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && loader.classList.contains('intro-loader-paused')) finish();
+  }, { signal });
+  motion.addEventListener('change', () => { if (motion.matches) finish(); }, { signal });
+  addEventListener('load', async () => {
+    const portrait = document.querySelector('#home .badge img');
+    await Promise.allSettled([portrait?.decode(), document.fonts.ready]);
+    if (signal.aborted || loader.classList.contains('intro-loader-paused')) return;
+    clearTimeout(revealTimer);
+    revealTimer = setTimeout(reveal, Math.max(0, earliestReveal - performance.now()));
+  }, { once: true, signal });
+})();
+</script>

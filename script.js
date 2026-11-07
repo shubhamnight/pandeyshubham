@@ -266,7 +266,7 @@ badge.addEventListener('blur', () => { releaseBadge(); settleBadge(); });
 window.addEventListener('blur', stopBadge);
 document.addEventListener('visibilitychange', () => { if (document.hidden) stopBadge(); else startInitialSway(); });
 reducedMotion.addEventListener('change', () => { if (!motionAllowed()) stopBadge(); else startInitialSway(); });
-new MutationObserver(() => { if (!motionAllowed() && (frame || dragging || poseKeys.some(key=>pose[key]!==restingPose[key]))) stopBadge(); }).observe(document.body, {attributes:true, attributeFilter:['class']});
+new MutationObserver(() => { if (!motionAllowed() && (frame || dragging || poseKeys.some(key=>pose[key]!==restingPose[key]))) stopBadge(); else startInitialSway(); }).observe(document.body, {attributes:true, attributeFilter:['class']});
 new MutationObserver(() => { if (!motionAllowed() && (frame || dragging)) stopBadge(); else startInitialSway(); }).observe(hero, {attributes:true, attributeFilter:['class']});
 
 

@@ -1,13 +1,15 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { renderSkills } = require('./render-skills.cjs');
+const { renderComponent } = require('./render-component.cjs');
 
 function composePage() {
   const shell = fs.readFileSync(path.join(__dirname, 'page.html'), 'utf8');
   let iconInstance = 0;
   return shell.replace(/<!-- section:([a-z-]+) -->/g, (_, name) =>
     name === 'skills' ? renderSkills() : fs.readFileSync(path.join(__dirname, 'sections', name + '.html'), 'utf8').trimEnd()
-  ).replace(/<img class="skill-logo" src="assets\/skills\/([\w-]+)\.svg"[^>]*>/g, (_, icon) => {
+  ).replace('<!-- loading-waves -->', () => renderComponent('message-loading.tsx', 'IntroLoading'))
+  .replace(/<img class="skill-logo" src="assets\/skills\/([\w-]+)\.svg"[^>]*>/g, (_, icon) => {
     const prefix = `skill-${++iconInstance}-`;
     return fs.readFileSync(path.resolve(__dirname, '../../assets/skills', icon + '.svg'), 'utf8')
       .replace(/\bid=(["'])([^"']+)\1/g, (_, quote, id) => `id=${quote}${prefix}${id}${quote}`)

@@ -53,6 +53,7 @@ fs.mkdirSync(output,{recursive:true});
     await page.locator('.portfolio-intro').waitFor({state:'detached'});
     await page.waitForFunction(()=>!document.body.classList.contains('badge-entering'));
    }
+   await page.locator('#page-loading').waitFor({state:'hidden'});
    await page.locator('#playground').waitFor({state:'attached'});
    const row=await page.evaluate(()=>new Promise(resolve=>{
     const target=document.querySelector('#playground').getBoundingClientRect().top+scrollY-innerHeight*.15;

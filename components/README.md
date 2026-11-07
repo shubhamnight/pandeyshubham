@@ -37,15 +37,17 @@ decoding, cycling, visibility-aware playback and departure cleanup. Travel keeps
 its existing one-video-per-three preview schedule and its separate video player;
 music keeps its record markup and captions.
 
-## Direct hero entry
+## Wave loading and hero entry
 
-The public page opens directly on the hero. The loading overlay, replay control,
-session gate and loader build command have been removed. Existing loader
-components remain available as standalone source demos.
+The homepage renders the original blue waves at build time. On first entry in a
+tab, the waves play for at least 2.5 seconds, then zoom and fade into the hero
+after the page load event, portrait decode, and font readiness. A 12-second
+limit covers stalled requests. Repeat visits in the same tab, section links,
+and reduced-motion visits open the requested content directly.
 
 Run the entry checks with `npm test -- --no-build --case=loading` after building.
-They verify direct entry, keyboard focus and anchors across laptop, phone and
-tablet viewports, including JavaScript-disabled pages and stalled portrait requests.
+They verify the zoom, keyboard focus, navigation and fallback behavior across
+laptop, phone and tablet viewports.
 
 ## Skills marquee
 
