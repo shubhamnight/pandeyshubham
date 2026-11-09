@@ -1,24 +1,22 @@
-/* The palette is scoped below the hero so the landing page stays unchanged. */
-main>.section,main>dialog{--paper:#e7ebf0;--blue:#0297de;--lime:#0297de;--accent:#0297de;--ink:#e7ebf0}
-#about{background:#e7ebf0;color:#171717}
-#about .skills-heading h2 em{color:#0297de}
+#about{background:var(--bg);color:var(--ink)}
+#about .skills-heading h2 em{color:#d0d0d0}
 #about .skills-heading>p{color:#595959}
-#projects{background:#02070a;color:#e7ebf0;border-top:1px solid #ffffff14}
+#projects{background:#000000;color:#ffffff;border-top:1px solid #ffffff14}
 #projects .project-heading p{color:#b4b4b4}
-#playground{background:#02070a;color:#e7ebf0;border-top:1px solid #ffffff20}
-#playground .play-heading h2 em{color:#0297de}
-#playground .play-stage{background:#1c1c1c;border-color:#ffffff25;--mood:#0297de}
+#playground{background:#000000;color:#ffffff;border-top:1px solid #ffffff20}
+#playground .play-heading h2 em{color:#d0d0d0}
+#playground .play-stage{background:#1c1c1c;border-color:#ffffff25;--mood:#d0d0d0}
 #playground .play-grid{background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px)}
-.personal.light-section{background:#e7ebf0;color:#171717}
+.personal.light-section{background:var(--bg);color:var(--ink)}
 .personal .polaroid{background:#fff}
-.personal .polaroid>div{background:#11233c}
-.personal .tape{background:#0297de3b}
-.personal .personal-copy h2 em{color:#0297de}
+.personal .polaroid>div{background:#222222}
+.personal .tape{background:#d0d0d03b}
+.personal .personal-copy h2 em{color:#d0d0d0}
 .personal .personal-copy p,.personal .eyebrow{color:#595959}
-.personal .signature-name{color:#0297de}
-#contact{background:#02070a;color:#e7ebf0;border-top:3px solid #0297de}
+.personal .signature-name{color:#d0d0d0}
+#contact{background:#000000;color:#ffffff;border-top:1px solid var(--line)}
 #contact>p,#contact .contact-note p>span,#contact .footer-bottom{color:#b4b4b4}
-#contact .footer-name>span{color:#0297de}
+#contact .footer-name>span{color:#d0d0d0}
 .skills-heading{display:flex;justify-content:space-between;align-items:end;gap:40px;margin-bottom:44px}
 .skills-heading>p{font-size:16px;line-height:1.8;color:#62625b;max-width:360px;margin:0 0 8px}
 @media(max-width:700px){.skills-heading{display:block}.skills-heading>p{margin-top:24px;font-size:14px}}
@@ -54,7 +52,7 @@ main>.section,main>dialog{--paper:#e7ebf0;--blue:#0297de;--lime:#0297de;--accent
 .skills-orbit-slot { position: relative; flex: 0 0 var(--skills-disc-size); width: var(--skills-disc-size); height: var(--skills-disc-size); }
 .skills-orbit-slot:focus-within, .skills-orbit-slot:hover { z-index: 1; }
 #about .skills-orbit-disc {
-  --skill-fill: #0297de;
+  --skill-fill: var(--surface-raised);
   --skill-tooltip-ink: #fff;
   position: relative;
   display: block;
@@ -70,7 +68,7 @@ main>.section,main>dialog{--paper:#e7ebf0;--blue:#0297de;--lime:#0297de;--accent
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-#about .skills-orbit-disc:focus-visible { outline: 3px solid #1765a0; }
+#about .skills-orbit-disc:focus-visible { outline: 3px solid #ffffff; }
 #about .skills-orbit-symbol {
   position: relative;
   display: grid;
@@ -79,7 +77,7 @@ main>.section,main>dialog{--paper:#e7ebf0;--blue:#0297de;--lime:#0297de;--accent
   height: 100%;
   border-radius: 50%;
   overflow: hidden;
-  background: #09131a;
+  background: #171717;
   box-shadow: 0 8px 16px #0006;
   transition: box-shadow .3s ease-in-out;
 }
@@ -102,7 +100,7 @@ main>.section,main>dialog{--paper:#e7ebf0;--blue:#0297de;--lime:#0297de;--accent
   border-radius: 6px;
   background: var(--skill-fill);
   color: var(--skill-tooltip-ink);
-  font: 400 14px/1.4 Ramabhadra, Inter, Helvetica, sans-serif;
+  font: 500 16px/1.4 var(--font-copy);
   width: max-content;
   max-width: calc(var(--skills-disc-size) + 40px);
   white-space: normal;
@@ -122,19 +120,6 @@ main>.section,main>dialog{--paper:#e7ebf0;--blue:#0297de;--lime:#0297de;--accent
   #about .skills-orbit-disc[data-hovered] > .skills-orbit-symbol { box-shadow: 0 10px 22px #0008; }
   #about .skills-orbit-disc[data-hovered] > .skills-orbit-symbol:before { opacity: 1; transform: translateY(0); }
 }
-#about .skills-orbit-disc[data-skill="Figma"] { --skill-fill: #663da6; }
-#about .skills-orbit-disc[data-skill="Sketch"] { --skill-fill: #8f6109; }
-#about .skills-orbit-disc[data-skill="HTML"] { --skill-fill: #be3c1d; }
-#about .skills-orbit-disc[data-skill="CSS"] { --skill-fill: #1765a0; }
-#about .skills-orbit-disc[data-skill="JavaScript"] { --skill-fill: #f7df1e; --skill-tooltip-ink: #171717; }
-#about .skills-orbit-disc[data-skill="Python"] { --skill-fill: #3776ab; }
-#about .skills-orbit-disc[data-skill="DBMS"] { --skill-fill: #155e75; }
-#about .skills-orbit-disc[data-skill="React"] { --skill-fill: #08677c; }
-#about .skills-orbit-disc[data-skill="Autodesk Maya"] { --skill-fill: #14777d; }
-#about .skills-orbit-disc[data-skill="Claude"] { --skill-fill: #a85235; }
-#about .skills-orbit-disc[data-skill="ChatGPT"] { --skill-fill: #106e52; }
-#about .skills-orbit-disc[data-skill="Communication"] { --skill-fill: #4f46a5; }
-#about .skills-orbit-disc[data-skill="Problem solving"] { --skill-fill: #7642ad; }
 .skills-enhanced .skills-marquee {
   overflow: hidden;
   touch-action: pan-y pinch-zoom;
@@ -145,7 +130,7 @@ main>.section,main>dialog{--paper:#e7ebf0;--blue:#0297de;--lime:#0297de;--accent
 .skills-enhanced .skills-marquee[data-direction="reverse"] .skills-marquee-track { animation-direction: reverse; }
 .skills-enhanced[data-skills-paused="false"] .skills-marquee-track { animation-play-state: running; }
 @keyframes skills-marquee-loop { to { transform: translateX(-50%); } }
-@media (max-width: 700px) { #about .skills-orbit-name { font-size: 12px; } }
+@media (max-width: 700px) { #about .skills-orbit-name { font-size: 15px; } }
 @media (prefers-reduced-motion: reduce) {
   #about .skills-orbit-symbol, #about .skills-orbit-symbol:before, #about .skills-orbit-name { transition: none; }
   .skills-enhanced .skills-marquee { overflow-x: auto; touch-action: auto; mask-image: none; }

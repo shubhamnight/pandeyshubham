@@ -35,7 +35,14 @@ async function contactReady(page){
   await page.locator('#music-gallery header button').click();
   await page.waitForFunction(()=>!document.body.classList.contains('photography-gallery-open'));
   await page.locator('#contact').scrollIntoViewIfNeeded();await page.waitForTimeout(300);
-  assert.ok(await page.locator('.footer-socials-fallback').isVisible(),'native links remain available when an enhancement has not loaded');
+  const fallback=page.locator('.footer-socials-fallback');
+  assert.ok(await page.locator('#contact .connect-email').isVisible(),'the email action remains available offline');
+  if(await fallback.evaluate(e=>e.hidden)){
+   const enhanced=page.locator('#contact .social-link:visible');
+   assert.equal(await enhanced.count(),5,'an enhancement loaded near the last hobby card remains usable offline');
+  }else{
+   assert.equal(await fallback.locator('a:visible').count(),4,'native links remain available when the enhancement has not loaded');
+  }
   await context.setOffline(false);await contactReady(page);
   assert.ok(await page.evaluate(()=>document===window.qaDocument),'reconnection enhances the same document');
   const social=await page.locator('#contact .social-link').count();
@@ -59,6 +66,7 @@ async function contactReady(page){
  await page.waitForFunction(()=>document.querySelector('.footer-socials-fallback')&&!document.querySelector('.footer-socials-fallback').hidden);
  for(let i=0;i<60&&failures<3;i++)await page.waitForTimeout(100);
  assert.ok(failures>=3,'entry and standalone recovery were unavailable');
+ assert.equal(await page.locator('.footer-socials-fallback a:visible').count(),4,'a failed enhancement leaves all native social links visible');
  await page.waitForTimeout(200);failing=false;await page.evaluate(()=>dispatchEvent(new Event('online')));
  await contactReady(page);results.push({profile:'contact-network-fault',failures,recovered:true});await context.close();
  }finally{await browser.close();}

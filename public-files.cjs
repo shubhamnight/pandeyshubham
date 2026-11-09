@@ -41,6 +41,8 @@ function publicFiles(root) {
   for (const name of [
     'index.html', '404.html', 'offline.html', 'offline-sw.js', 'robots.txt', 'sitemap.xml', 'favicon.ico',
     'image-shub-2.jpeg', 'shub ka photo.png', 'travel-locations.json',
+    'assets/fonts/Imbue-OFL.txt', 'assets/fonts/Odibee-Sans-OFL.txt',
+    'assets/React-Bits-LICENSE.txt',
     // Hobby module names and island recovery URLs are assembled at runtime.
     'photography-camera.js', 'travel-plane.js', 'gaming-controller.js', 'music-walkman.js',
     'photography-media.js', 'travel-media.js', 'gaming-media.js', 'music-records.js',

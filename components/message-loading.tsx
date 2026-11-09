@@ -2,7 +2,7 @@ import { hydrateRoot } from 'react-dom/client';
 import { GooeyLoader } from '@/components/ui/loader-10';
 
 export function IntroLoading() {
-  return <GooeyLoader primaryColor="#0297de" secondaryColor="#66c8f5" borderColor="#0297de" />;
+  return <GooeyLoader primaryColor="#a3a3a3" secondaryColor="#ffffff" borderColor="#a3a3a3" />;
 }
 
 export function mountMessageLoading(host: HTMLElement) {

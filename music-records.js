@@ -2,9 +2,8 @@ import { musicImages } from './music-data.js';
 import { mobileMediaSource } from './mobile-media.js';
 import { importPortfolioModule } from './module-loader.js';
 
-function createRecord(song,index){
+function createRecord(song){
   const record=document.createElement('div');record.className='music-record';
-  record.style.setProperty('--record-label', ['#0297de','#07334a','#0286c5'][index%3]);
   record.setAttribute('role','img');record.setAttribute('aria-label',song?.title?`${song.title}${song.artist?' — '+song.artist:''}`:'Vinyl record, awaiting song artwork');
   const label=document.createElement('div');label.className='music-record-label';
   if(song?.src){const image=document.createElement('img');image.src=mobileMediaSource(song.src);image.alt='';image.loading='lazy';image.decoding='async';label.append(image);}
@@ -18,7 +17,7 @@ function fillMusicFallback(gallery){
   const fragment=document.createDocumentFragment();
   for(let i=0;i<Math.max(6,musicImages.length);i++){
     const song=musicImages[i],frame=document.createElement('figure');frame.className='music-record-frame';
-    frame.append(createRecord(song,i));
+    frame.append(createRecord(song));
     if(song?.title){const caption=document.createElement('figcaption');caption.textContent=song.title+(song.artist?' — '+song.artist:'');frame.append(caption);}
     fragment.append(frame);
   }

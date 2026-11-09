@@ -15,7 +15,7 @@ export interface MarqueeLogoScrollerProps {
 export function MarqueeLogoScroller({ title, description, logos }: MarqueeLogoScrollerProps) {
   const rows = [logos.slice(0, 7), logos.slice(7)];
   return <section className="intro section light-section scroll-section" id="about" aria-labelledby="skills-heading">
-    <div className="skills-heading"><div><h2 id="skills-heading">{title}</h2></div><p>{description}</p></div>
+    <div className="skills-heading"><div><span className="editorial-label">Skills</span><h2 id="skills-heading">{title}</h2></div><p>{description}</p></div>
     <div className="skills-orbit-stage">
       {rows.map((row, rowIndex) => <div className="skills-marquee" data-direction={rowIndex ? 'reverse' : 'forward'} key={rowIndex}>
         <div className="skills-marquee-track">

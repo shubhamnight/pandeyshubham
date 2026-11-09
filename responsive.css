@@ -11,37 +11,12 @@
   }
   .floating-nav a { min-height:30px; display:flex; align-items:center; }
 
-  #home {
-    height:105svh; min-height:0;
-    --fit-badge-width:min(280px,60vw,34svh);
-    --fit-badge-height:calc(var(--fit-badge-width)*10/7);
-    --fit-badge-top:min(113px,20svh);
-  }
-  #home .badge-rig {
-    width:var(--fit-badge-width);
-    height:calc(var(--fit-badge-top) + var(--fit-badge-height) + 12px);
-  }
-  #home .badge {
-    width:var(--fit-badge-width); height:var(--fit-badge-height);
-    top:var(--fit-badge-top);
-  }
-  #home .badge-title { font-size:calc(var(--fit-badge-width)*.129); }
-  #home .badge-name { width:calc(var(--fit-badge-width) - 48px); }
-
   #playground .play-heading h2 { font-size:clamp(32px,5vw,72px); }
   #playground .play-stage { height:clamp(280px,65svh,500px); }
   #playground .kinetic-object { width:min(180px,42vw,38svh); height:min(180px,42vw,38svh); }
   #playground .kinetic-object span { font-size:min(210px,49vw,44svh); }
   #playground .stage-label { font-size:clamp(28px,5.7vw,50px); }
 
-  /* Keep both heading columns and the second-line word in their current places. */
-  .connect-invitation { container-type:inline-size; padding-inline:max(20px,env(safe-area-inset-left),env(safe-area-inset-right)); }
-  #contact #connect-heading {
-    --fit-heading-gap:clamp(12px,2.5vw,40px);
-    column-gap:var(--fit-heading-gap);
-    font-size:min(clamp(44px,7.5vw,110px),calc((100cqi - var(--fit-heading-gap))/11.5));
-  }
-  .connect-details { padding-left:max(24px,env(safe-area-inset-left)); padding-right:max(24px,env(safe-area-inset-right)); padding-bottom:max(48px,env(safe-area-inset-bottom)); }
 
   dialog.hobby-gallery {
     --gallery-gutter:12px;
@@ -61,16 +36,7 @@
   dialog#photography-gallery>header { top:max(15px,env(safe-area-inset-top)); right:max(15px,env(safe-area-inset-right)); }
 }
 
-@media (max-width:700px) {
-  #home { --fit-badge-width:min(220px,60vw,34svh); --fit-badge-height:calc(var(--fit-badge-width)*16/11); --fit-badge-top:min(190px,26svh); }
-  #home .badge-title { font-size:calc(var(--fit-badge-width)*29/220); }
-  #home .badge-name { width:calc(var(--fit-badge-width) - 42px); font-size:clamp(7px,2.2vw,9px); letter-spacing:clamp(1px,.5vw,2px); }
-  #home .name-track { font-size:clamp(80px,22vw,142.5px); }
-}
-
 @media (max-width:600px) {
-  .connect-invitation { padding-top:clamp(88px,17svh,120px); padding-bottom:48px; }
-  #contact #connect-heading { --fit-heading-gap:12px; font-size:min(clamp(20px,6.8vw,40px),calc((100cqi - 12px)/11.5)); }
   .connect-person p { overflow-wrap:break-word; }
 }
 
@@ -80,7 +46,7 @@ dialog.hobby-gallery:not(#photography-gallery)>header { position:relative; min-h
   position:absolute; top:16px; right:16px; z-index:10;
   display:grid; place-items:center; width:44px; height:44px; flex:0 0 44px; padding:0;
   border:1px solid #ffffff30; border-radius:50%;
-  background:linear-gradient(160deg,#303237,#202226); color:#f4f1e9;
+  background:linear-gradient(160deg,#303030,#222222); color:#ffffff;
   font-size:0; line-height:1; cursor:pointer; touch-action:manipulation;
   box-shadow:inset 0 1px 1px #ffffff16,inset 0 -2px 2px #0004,0 3px 0 #111216,0 7px 14px #0006;
   transition:transform .16s ease,filter .16s ease;
@@ -103,13 +69,8 @@ dialog#photography-gallery>header>button { position:relative; top:auto; right:au
 :is(#photography-gallery,#gaming-gallery,#travel-gallery,#music-gallery)>header>button{ transition:none; }
 }
 
-/* Phone/tablet landscape: fit both axes, without changing the four corners or
-   the viewport. These rules do not apply to a normal laptop viewport. */
+/* Keep gallery controls compact on short screens. */
 @media (max-width:1100px) and (max-height:550px), (pointer:coarse) and (max-height:550px) {
-  #home { height:105svh; min-height:0; --fit-badge-width:min(220px,48svh); --fit-badge-height:calc(var(--fit-badge-width)*16/11); --fit-badge-top:20svh; }
-  #home .name-track { font-size:clamp(80px,24svh,142.5px); }
-  .connect-invitation { padding-top:80px; padding-bottom:32px; }
-  .connect-details { padding-top:28px; padding-bottom:max(28px,env(safe-area-inset-bottom)); }
   dialog.hobby-gallery header { padding:12px 18px; }
   dialog.hobby-gallery h2 { font-size:24px; }
 }

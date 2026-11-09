@@ -10,7 +10,7 @@ function badgeFixture(source,touch=false,reduced=false){
  const glare=element(),face=element(),body=element(),hanger=element(),cord=element(),slot={offsetTop:10,offsetHeight:8};
  const hero=Object.assign(element(),{offsetWidth:1440,offsetHeight:900,querySelector:()=>null,getBoundingClientRect:()=>{measurements++;return {left:0,top:0,width:1440,height:900};}});
  const badge=Object.assign(element(),{offsetLeft:0,offsetTop:130,offsetWidth:320,offsetHeight:450,clientTop:6,querySelector:s=>({'.badge-glare':glare,'.badge-face':face,'.slot':slot})[s]});
- const rig=Object.assign(element(),{offsetLeft:720,offsetTop:0,offsetWidth:320}),strap=Object.assign(element(),{offsetHeight:176});
+ const rig=Object.assign(element(),{offsetLeft:560,offsetTop:0,offsetWidth:320}),strap=Object.assign(element(),{offsetHeight:176});
  const context=vm.createContext({navigator:{platform:'Win32',maxTouchPoints:0},document:{hidden:false,body,querySelector:s=>({'.badge':badge,'.strap':strap,'.badge-rig':rig,'.hero':hero,'.badge-hanger':hanger,'.lanyard-cord':cord})[s],createElement:element,addEventListener(){}},
   window:{matchMedia:q=>({matches:(touch&&q==='(pointer: coarse)')||(reduced&&q==='(prefers-reduced-motion: reduce)'),addEventListener(){}}),addEventListener(){}},DOMMatrix:class{inverse(){return {a:1,b:0,c:0,d:1};}},getComputedStyle:()=>({transform:'none'}),
   requestAnimationFrame:fn=>{frames.set(++id,fn);return id;},cancelAnimationFrame:k=>frames.delete(k),ResizeObserver:class{observe(){}},MutationObserver:class{observe(){}}});
@@ -91,10 +91,11 @@ function paintCadence(source,hz,touch){
  for(let i=0;i<hz;i++){context.timestamp=1000+i*1000/hz;vm.runInContext('tick(timestamp)',context);}
  return draws;
 }
-// Compare particles against the accepted palette, rather than failing on the
-// earlier pre-palette colors while checking unchanged physics and cadence.
+// Compare the particle renderer independently of the approved palette change.
 const oldParticles=cp.execFileSync('git',['show','49f92b2:components/ui/aether-flow-hero.tsx'],{encoding:'utf8'}),newParticles=fs.readFileSync('components/ui/aether-flow-hero.tsx','utf8');
-const particleDraw=source=>source.slice(source.indexOf('function draw('),source.indexOf('function tick(')).replace(/\r\n/g,'\n');
+const particleDraw=source=>source.slice(source.indexOf('function draw('),source.indexOf('function tick('))
+ .replace(/\r\n/g,'\n')
+ .replace(/(ctx\.(?:fill|stroke)Style = [^;]+);/g,(_,paint)=>paint.replace(/#[\da-f]{6}\b/gi,'#PALETTE')+';');
 assert.equal(particleDraw(newParticles),particleDraw(oldParticles),'particle physics, dots and connections unchanged');
 const cadence=[];
 for(const hz of [60,75,120,144,165,240]){

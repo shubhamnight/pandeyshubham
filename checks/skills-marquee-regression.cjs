@@ -207,6 +207,7 @@ async function verifyPinch(context) {
           const action = await rows.first().evaluate(e => getComputedStyle(e).touchAction);
           assert.match(action, /pan-y/); assert.match(action, /pinch-zoom/);
           await verifyPinch(context);
+          await rows.first().evaluate(row => row.scrollIntoView({ block: 'center', behavior: 'instant' }));
           const vertical = await visiblePoint(rows.first()), y = await page.evaluate(() => scrollY);
           await touch(cdp, 'touchStart', [vertical]);
           for (let i = 1; i <= 6; i++) {

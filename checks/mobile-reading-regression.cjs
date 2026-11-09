@@ -2,7 +2,6 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path');
 const origin=process.env.AUDIT_URL||'http://localhost:3000',output=path.resolve(process.env.AUDIT_OUTPUT||'output/final-audit/reading');
 const profiles=[[320,568],[320,480],[341,640],[350,780],[360,800],[390,844],[430,932],[768,1024],[820,1180],[1024,1366],[844,390],[1440,900],[2560,1440]];
-const titleStyles=Object.fromEntries(require('../music-typography.json').map(song=>[song.title,song.typography]));
 (async()=>{
  await fs.mkdir(output,{recursive:true});const browser=await chromium.launch({channel:'chrome',headless:true}),results=[];
  try{for(const [width,height]of profiles){
@@ -17,6 +16,11 @@ const titleStyles=Object.fromEntries(require('../music-typography.json').map(son
    result.lineClearance=list.top-heading.bottom;return result;
   });
   if(touch){assert.ok(body['#about .skills-heading>p'].font>=12.5);assert.equal(body['#profile .personal-copy>p'].font,16);assert.ok(body['.connect-person p'].font>=14);}
+  const crowdedHeadings=await page.locator('main :is(h1,h2,h3)').evaluateAll(headings=>headings.flatMap(heading=>{
+   const {fontFamily,letterSpacing,wordSpacing}=getComputedStyle(heading);
+   return fontFamily.includes('Odibee Sans')&&!(parseFloat(letterSpacing)>0&&parseFloat(wordSpacing)>0)?[heading.textContent.trim()]:[];
+  }));
+  assert.deepEqual(crowdedHeadings,[],width+': Odibee Sans headings leave room between letters and words');
   assert.ok(body.lineClearance>=1,`${width}: reading text clears the Skills icons (${body.lineClearance.toFixed(2)}px)`);
   await page.screenshot({path:path.join(output,width+'-skills.png')});
   await page.locator('.floating-nav a[href="#projects"]').evaluate(e=>e.click());
@@ -27,14 +31,14 @@ const titleStyles=Object.fromEntries(require('../music-typography.json').map(son
    const metrics=await copy.evaluate(e=>{
     const b=e.getBoundingClientRect(),stage=e.parentElement.getBoundingClientRect();
     const title=e.querySelector('h3'),singer=e.querySelector('.music-song-singer'),lyric=e.querySelector('.music-song-lyric');
-    return {title:title.textContent,titleStyle:title.dataset.titleStyle,singerFamily:getComputedStyle(singer).fontFamily,lyricFamily:getComputedStyle(lyric).fontFamily,width:b.width,height:b.height,stageHeight:stage.height,copyBottom:(b.bottom-stage.top)/stage.height,scrollHeight:e.scrollHeight,clientHeight:e.clientHeight,scrollable:getComputedStyle(e).overflowY==='auto',fits:b.left>=stage.left-.5&&b.right<=stage.right+.5&&b.top>=stage.top-.5&&b.bottom<=stage.bottom+.5,horizontalOverflow:e.scrollWidth>e.clientWidth+1,titleFont:parseFloat(getComputedStyle(title).fontSize),singerFont:parseFloat(getComputedStyle(singer).fontSize),lyricFont:parseFloat(getComputedStyle(lyric).fontSize)};
+    return {title:title.textContent,titleFamily:getComputedStyle(title).fontFamily,singerFamily:getComputedStyle(singer).fontFamily,lyricFamily:getComputedStyle(lyric).fontFamily,width:b.width,height:b.height,stageHeight:stage.height,copyBottom:(b.bottom-stage.top)/stage.height,scrollHeight:e.scrollHeight,clientHeight:e.clientHeight,scrollable:getComputedStyle(e).overflowY==='auto',fits:b.left>=stage.left-.5&&b.right<=stage.right+.5&&b.top>=stage.top-.5&&b.bottom<=stage.bottom+.5,horizontalOverflow:e.scrollWidth>e.clientWidth+1,titleFont:parseFloat(getComputedStyle(title).fontSize),singerFont:parseFloat(getComputedStyle(singer).fontSize),lyricFont:parseFloat(getComputedStyle(lyric).fontSize)};
    });
    assert.ok(metrics.fits&&!metrics.horizontalOverflow,`${width}: ${metrics.title} text fits the existing copy area`);
-   assert.equal(metrics.titleStyle,titleStyles[metrics.title]);assert.match(metrics.singerFamily,/Acme/);assert.match(metrics.lyricFamily,/Righteous/);
+   assert.match(metrics.titleFamily,/Odibee Sans/);assert.match(metrics.singerFamily,/Imbue/);assert.match(metrics.lyricFamily,/Imbue/);
    assert.ok(metrics.scrollHeight<=metrics.clientHeight+1||metrics.scrollable,'long copy remains reachable');
    if(width<=640&&metrics.stageHeight>360)assert.ok(metrics.copyBottom<=.451,'copy stays inside its original region above the discs');
    if(touch){assert.ok(metrics.singerFont>=12.5);assert.ok(metrics.lyricFont>=13);assert.ok(metrics.titleFont>=16);}
-   else{assert.equal(metrics.singerFont,12);assert.equal(metrics.lyricFont,14.25,'desktop type size remains unchanged');}
+   else{assert.ok(metrics.singerFont>=14);assert.ok(metrics.lyricFont>=15);}
    songMetrics.push(metrics);
    await page.locator('#music-gallery').getByRole('button',{name:'Next song',exact:true}).click();
   }

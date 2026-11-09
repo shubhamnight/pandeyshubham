@@ -1,5 +1,26 @@
 /* Self-hosted hero and navigation fonts. */
 @font-face {
+  font-family: 'Odibee Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(odibee-sans-latin.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Imbue';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(imbue-latin.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 500 600;
+  font-display: swap;
+  src: url(caveat-latin.woff2) format('woff2');
+}
+@font-face {
   font-family: 'Ramabhadra';
   font-style: normal;
   font-weight: 400;
@@ -19,13 +40,6 @@
   font-weight: 400;
   font-display: swap;
   src: url(righteous-latin.woff2) format('woff2');
-}
-@font-face {
-  font-family: 'Archivo Black';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(archivo-black-latin.woff2) format('woff2');
 }
 @font-face {
   font-family: 'Inter';

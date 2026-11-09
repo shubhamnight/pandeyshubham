@@ -15,7 +15,7 @@ const { profiles, enter, hobbies, save } = require('./helpers/site.cjs');
       });
       await enter(page);
       const sample = await page.evaluate(() => new Promise(resolve => {
-        const end = document.querySelector('#playground').offsetTop;
+        const end = document.querySelector('#projects').offsetTop;
         const gaps = [], started = performance.now();
         let previous = started;
         function frame(now) {
@@ -28,7 +28,7 @@ const { profiles, enter, hobbies, save } = require('./helpers/site.cjs');
         }
         requestAnimationFrame(frame);
       }));
-      assert.ok(Math.abs(sample.y - sample.end) < 2, 'native scroll reaches Projects');
+      assert.ok(Math.abs(sample.y - sample.end) < 2, 'native scroll reaches Hobbies after Skills');
       assert.ok(sample.gaps.length > 30, 'trace contains actual frames');
       const sorted = sample.gaps.toSorted((a, b) => a - b);
       const p95 = sorted[Math.floor(sorted.length * .95)];

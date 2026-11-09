@@ -54,9 +54,9 @@ fs.mkdirSync(output,{recursive:true});
     await page.waitForFunction(()=>!document.body.classList.contains('badge-entering'));
    }
    await page.locator('#page-loading').waitFor({state:'hidden'});
-   await page.locator('#playground').waitFor({state:'attached'});
+   await page.locator('#projects').waitFor({state:'attached'});
    const row=await page.evaluate(()=>new Promise(resolve=>{
-    const target=document.querySelector('#playground').getBoundingClientRect().top+scrollY-innerHeight*.15;
+    const target=document.querySelector('#projects').getBoundingClientRect().bottom+scrollY-innerHeight*1.15;
     const frames=[];
     const started=performance.now();let previous=started;
     function frame(now){

@@ -13,8 +13,6 @@ for(let depth=1;depth<=5;depth++){
 }
 hanger.insertBefore(badgeShell,badge);
 const hero = document.querySelector('.hero');
-const touchBadge=window.matchMedia('(pointer: coarse)').matches ||
-  (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 // Keep drag lighting local to the two surfaces that actually paint it.
 // The same values, gradients and transitions remain; other card descendants
 // no longer inherit a changing set of lighting properties every frame.
@@ -51,13 +49,15 @@ function measureBadge() {
   // transformed bounding rectangle. Keep the moving
   // rig out of this measurement so tilting cannot feed back into the next tilt.
   const inverse=new DOMMatrix(getComputedStyle(hero).transform).inverse();
-  bounds = {left:rig.offsetLeft-rig.offsetWidth/2+badge.offsetLeft,
-    top:rig.offsetTop+badge.offsetTop,width:badge.offsetWidth,height:badge.offsetHeight,
+  const anchorX = rig.offsetLeft + rig.offsetWidth / 2;
+  bounds = {left:rig.offsetLeft+badge.offsetLeft,
+    top:rig.offsetTop+badge.offsetTop,drop:badge.offsetTop,width:badge.offsetWidth,height:badge.offsetHeight,
     strapLength:strap.offsetHeight,centerX:rect.left+rect.width/2,centerY:rect.top+rect.height/2,
     heroWidth:hero.offsetWidth,heroHeight:hero.offsetHeight,inverse};
   bounds.maxPull=Math.max(0,Math.min(64,bounds.heroHeight-bounds.top-bounds.height-16));
-  const reach=bounds.top+bounds.height+bounds.maxPull, half=bounds.width*.56;
-  bounds.maxSwing=Math.min(18,Math.max(0,Math.asin(Math.min(1,Math.max(0,bounds.heroWidth/2-12)/Math.hypot(reach,half)))-Math.atan2(half,reach))*180/Math.PI);
+  const reach=bounds.drop+bounds.height+bounds.maxPull, half=bounds.width*.56;
+  const clearance=Math.max(0,Math.min(anchorX,bounds.heroWidth-anchorX)-12);
+  bounds.maxSwing=Math.min(18,Math.max(0,Math.asin(Math.min(1,clearance/Math.hypot(reach,half)))-Math.atan2(half,reach))*180/Math.PI);
   bounds.maxX=Math.min(85,Math.tan(bounds.maxSwing*Math.PI/180)*(bounds.strapLength+bounds.height*.45));
   const size=clamp(bounds.width*.1,14,28), slot=badge.querySelector('.slot');
   const attach=badge.offsetTop+badge.clientTop+slot.offsetTop+slot.offsetHeight/2;
@@ -77,7 +77,7 @@ function paintBadge() {
   // A fixed top pivot swings the suspension; the card tilts at its clip.
   const swing=clamp(ribbon.angle,-bounds.maxSwing,bounds.maxSwing);
   const bodyAngle=clamp(ribbon.lag+pose.rz,-bounds.maxSwing,bounds.maxSwing);
-  writeBadgeStyle(rig,'transform',`translateX(-50%) rotateZ(${swing.toFixed(3)}deg)`);
+  writeBadgeStyle(rig,'transform',`rotateZ(${swing.toFixed(3)}deg)`);
   writeBadgeStyle(hanger,'transform',`translateY(${pose.y.toFixed(3)}px) rotateZ(${(bodyAngle-swing).toFixed(3)}deg) rotateX(${pose.rx.toFixed(3)}deg) rotateY(${pose.ry.toFixed(3)}deg) scale(${pose.scale.toFixed(4)})`);
   writeBadgeStyle(cord,'transform',`scaleY(${(1+pose.y/bounds.cordLength).toFixed(4)})`);
   writeBadgeStyle(glareSurface,'--glare-x',`${(50 + pose.ry * 2.5).toFixed(2)}%`);
@@ -137,7 +137,7 @@ function animateBadge(time) {
     const threshold=key==='scale'?.0002:.015;
     if (Math.abs(targetPose[key] - pose[key]) > threshold || Math.abs(velocity[key]) > threshold) unsettled = true;
   }
-  const length=bounds.top+bounds.height/2;
+  const length=bounds.drop+bounds.height/2;
   if(dragging){
     const angle=clamp(originSwing-Math.atan2(pose.x,length+pose.y)*180/Math.PI-originAngle,-18,18);
     ribbon.velocity=clamp((angle-ribbon.angle)/elapsed*.5,-90,90);
@@ -220,6 +220,8 @@ function invalidateBadgeBounds(){
 }
 const badgeResizeObserver=new ResizeObserver(invalidateBadgeBounds);
 badgeResizeObserver.observe(rig);badgeResizeObserver.observe(badge);badgeResizeObserver.observe(strap);
+const heroCopy = hero.querySelector('.hero-copy');
+if (heroCopy) badgeResizeObserver.observe(heroCopy);
 rig.addEventListener('badge-entrance-complete', invalidateBadgeBounds);
 window.addEventListener('resize', invalidateBadgeBounds, {passive:true});
 window.addEventListener('scroll', () => {badgeBoundsDirty=true;}, {passive:true});
@@ -238,7 +240,7 @@ badge.addEventListener('pointerdown', event => {
   ribbon.angle=originSwing;ribbon.velocity=0;
   Object.assign(targetPose,pose);
   for(const key of poseKeys)velocity[key]=0;
-  originAngle=-Math.atan2(pose.x,bounds.top+bounds.height/2+pose.y)*180/Math.PI;
+  originAngle=-Math.atan2(pose.x,bounds.drop+bounds.height/2+pose.y)*180/Math.PI;
   dragging = true; pointerId = event.pointerId;
   const pointer=badgePointer(event.clientX,event.clientY);
   startX = pointer.x; startY = pointer.y; originX = pose.x; originY = pose.y;
@@ -268,32 +270,3 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) stopB
 reducedMotion.addEventListener('change', () => { if (!motionAllowed()) stopBadge(); else startInitialSway(); });
 new MutationObserver(() => { if (!motionAllowed() && (frame || dragging || poseKeys.some(key=>pose[key]!==restingPose[key]))) stopBadge(); else startInitialSway(); }).observe(document.body, {attributes:true, attributeFilter:['class']});
 new MutationObserver(() => { if (!motionAllowed() && (frame || dragging)) stopBadge(); else startInitialSway(); }).observe(hero, {attributes:true, attributeFilter:['class']});
-
-
-
-// Two identical groups, each at least a viewport wide, make the -50% reset invisible.
-const nameTrack = document.querySelector('.name-track');
-const nameGroups = [...nameTrack.querySelectorAll('.name-group')];
-function sizeNameLoop() {
-  const word=nameGroups[0].firstElementChild;
-  // The hero scales during scrolling; that visual scale must not change the
-  // number of marquee copies when a phone resizes or finishes loading fonts.
-  const wordWidth = touchBadge ? parseFloat(getComputedStyle(word).width) || word.offsetWidth : word.getBoundingClientRect().width;
-  if (!wordWidth) return;
-  const count = Math.max(2, Math.ceil(hero.clientWidth / wordWidth) + 1);
-  if (nameGroups[0].childElementCount !== count) {
-    nameGroups.forEach(group => {
-      const words = Array.from({length:count}, () => {
-        const word = document.createElement('span');
-        word.textContent = 'SHUBHAM';
-        return word;
-      });
-      group.replaceChildren(...words);
-    });
-  }
-  // Preserve the existing speed: 30.4 seconds per word including its spacing.
-  nameTrack.style.setProperty('--name-duration', `${count * 30.4}s`);
-}
-sizeNameLoop();
-document.fonts.ready.then(sizeNameLoop);
-new ResizeObserver(sizeNameLoop).observe(hero);

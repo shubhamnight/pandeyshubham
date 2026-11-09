@@ -20,6 +20,8 @@ const { enter, profiles, save } = require('./helpers/site.cjs');
         await route.fulfill({ response, body });
       });
       await enter(page);
+      const skillsTop = await page.locator('#about').evaluate(section => section.offsetTop);
+      await page.evaluate(top => scrollTo(0, top - innerHeight * .55), skillsTop);
       if (touch) {
         const cdp = await page.context().newCDPSession(page);
         await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
@@ -32,7 +34,7 @@ const { enter, profiles, save } = require('./helpers/site.cjs');
         }
         await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
       } else await page.mouse.wheel(0, height * .85);
-      await page.waitForFunction(() => scrollY > 300);
+      await page.waitForFunction(top => scrollY >= top, skillsTop);
       await page.evaluate(() => scrollBy(0, -1));
       // Test native input during entry, then freeze any entry reveal for inspection.
       const skills = page.locator('[data-skills-primary] .skills-orbit-disc');

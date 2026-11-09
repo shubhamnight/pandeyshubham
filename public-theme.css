@@ -1,0 +1,32 @@
+:root {
+  color-scheme: dark;
+  --font-display: 'Odibee Sans', Impact, sans-serif;
+  --font-copy: Imbue, Georgia, serif;
+  --display-tracking: .015em;
+  --display-word-spacing: .08em;
+  --headline-red: #ff4545;
+  --bg: #000;
+  --surface: #171717;
+  --surface-raised: #242424;
+  --ink: #fff;
+  --muted: #bcbcbc;
+  --accent: #d0d0d0;
+  --line: #ffffff24;
+  --paper: var(--surface);
+  --blue: var(--accent);
+  --lime: var(--accent);
+  --surface-black: var(--bg);
+  --surface-white: var(--surface-raised);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-copy);
+}
+
+:is(h1, h2, h3) {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: var(--display-tracking);
+  word-spacing: var(--display-word-spacing);
+}
+:focus-visible { outline-color: var(--ink); }
+::selection { background: var(--accent); color: var(--bg); }

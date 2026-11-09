@@ -12,7 +12,8 @@ function packStyles(files) {
     const source = files.get(name).content;
     const folder = path.posix.dirname(name);
     css.push(folder === '.' ? source : source.replace(/url\(([\w.-]+)\)/g, (_, value) => 'url(' + folder + '/' + value + ')'));
-    files.delete(name);
+    // Offline and 404 load the shared theme and fonts as standalone sheets.
+    if (name !== 'assets/fonts/fonts.css' && name !== 'public-theme.css') files.delete(name);
     return css.length === 1 ? '<link rel="stylesheet" href="site.css">' : '';
   });
   files.set('site.css', { content: css.join('\n') });

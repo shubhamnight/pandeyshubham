@@ -26,7 +26,7 @@ const {enter,hobbies,model}=require('./helpers/site.cjs');
     const visibleTime=await spins.first().evaluate(e=>e.getAnimations()[0].currentTime);
     await page.waitForTimeout(160);
     assert.ok(await spins.first().evaluate((e,t)=>e.getAnimations()[0].currentTime>t,visibleTime),'existing spin plays in view');
-    await page.locator('#profile').evaluate(e=>e.scrollIntoView());await page.waitForTimeout(1500);
+    await page.locator('#about').evaluate(e=>e.scrollIntoView());await page.waitForTimeout(1500);
     await page.waitForFunction(()=>document.querySelector('.kinetic-object').classList.contains('ambient-paused'));
     const pausedTime=await spins.first().evaluate(e=>e.getAnimations()[0].currentTime);
     await page.waitForTimeout(160);

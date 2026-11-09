@@ -6,6 +6,7 @@ async function enter(page,hash=''){
  await page.goto(origin+'/'+hash,{waitUntil:'domcontentloaded'});
  await page.locator('#home .badge').waitFor({state:'attached'});
  await page.locator('#home .badge').waitFor({state:'visible'});
+ await page.locator('#page-loading').waitFor({state:'hidden'});
 }
 async function navigation(page){
  const nav=page.locator('.floating-nav');

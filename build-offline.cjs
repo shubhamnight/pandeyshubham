@@ -12,7 +12,8 @@ async function buildOffline() {
     bundle: true, minify: true, format: 'esm', platform: 'browser', target: ['es2020'], legalComments: 'eof',
   });
   const assets = ['/offline.html', '/offline-boot.js', '/assets/ui/offline-page.css', '/assets/ui/offline-page.js',
-    '/assets/ui/offline-batman.js', '/assets/batman/cursor.svg', '/assets/fonts/inter-latin.woff2', '/assets/fonts/lilita-one-latin.woff2', '/assets/brand/favicon.svg'];
+    '/assets/ui/offline-batman.js', '/assets/batman/cursor.svg', '/public-theme.css', '/assets/fonts/fonts.css',
+    '/assets/fonts/imbue-latin.woff2', '/assets/fonts/odibee-sans-latin.woff2', '/assets/brand/favicon.svg'];
   const hash = crypto.createHash('sha256');
   for (const asset of assets) hash.update(fs.readFileSync(path.join(root, asset.slice(1))));
   const template = fs.readFileSync(path.join(root, 'lib/offline-worker.js'), 'utf8');

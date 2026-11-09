@@ -18,6 +18,7 @@ module.exports=[
  row('share-package','core','checks/share-build.cjs',all,['stale share files','missing offline/recovery/vendor output']),
  row('backend-stress','backend','checks/backend-stress.cjs',all,['encoding negotiation','range/cache validators','concurrent static reads','aborted downloads','UTF-8 request chunks','concurrent atomic saves','body/origin validation','editor queue/state durability','bounded cache and heap','malformed URL crash isolation']),
  row('loading','browser','checks/intro-message-regression.cjs',all,['page load before wave-to-hero zoom','same-tab and direct-section bypass','stalled request and focus recovery','reduced motion and no-JavaScript fallback']),
+ row('hero-dot-grid','browser','checks/hero-dot-grid-regression.cjs',all,['early intro; incorrect gesture triggers; offscreen frames; oversized buffer; missing static fallback']),
  row('interactions','browser','checks/browser-regression.cjs',all,['reload enters wrong section','ID drag','missing icons/models','overlay controls','rotation/close race','scroll locks','mount leaks']),
  row('historical-contracts','history','checks/historical-contracts.cjs',all,['labels/numbering','fonts','unwanted navigation','Travel queue click','looping portrait videos','close-button alignment/backdrop','CSS preload warnings']),
  row('overlay-keyboard','browser','checks/overlay-accessibility-regression.cjs',all,['Songs Escape focus restoration','Travel visible keyboard focus','video Enter/Space selection semantics']),

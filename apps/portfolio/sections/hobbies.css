@@ -1,14 +1,11 @@
-html { scroll-behavior: auto; scroll-padding-top: env(safe-area-inset-top); }
+html { scroll-behavior: auto; scroll-padding-top: max(64px, env(safe-area-inset-top)); }
 
 #projects .project-heading { align-items: center; }
 #projects .project-heading h2 { font-size: clamp(32px, 5.7vw, 64px); }
 .hobby-cards, .photo-fallback {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(16px, 3vw, 32px);
-}
-@media (max-width: 1000px) {
-  .hobby-cards, .photo-fallback { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 500px) {
   .hobby-cards, .photo-fallback { grid-template-columns: 1fr; }
@@ -32,7 +29,7 @@ html { scroll-behavior: auto; scroll-padding-top: env(safe-area-inset-top); }
   z-index: 1;
   inset: auto 0 0;
   padding: 8px;
-  background: #02070ad9;
+  background: #000000d9;
 }
 .hobby-card-model-controls { margin-top: 10px; }
 .hobby-card-model-controls button { min-height: 44px; padding: 8px 14px; }

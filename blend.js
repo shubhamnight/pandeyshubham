@@ -7,7 +7,7 @@ function setMotion(value) {
 }
 setMotion(paused);
 reducedMotion.addEventListener('change', event => setMotion(event.matches));
-// Navigation starts at Skills; keep the hero's suspension unobstructed.
+// Navigation starts at Profile, beyond the hero's suspension.
 const navigation = document.querySelector('.floating-nav');
 const heroBoundary = document.querySelector('#home');
 function syncNavigation() {
@@ -26,24 +26,6 @@ window.addEventListener('pagehide', event => {
   window.removeEventListener('pageshow', syncNavigation);
 });
 
-// Defining these faces at entry makes Chrome download them for offscreen text.
-const sectionFonts = new IntersectionObserver(entries => {
-  if (!entries.some(entry => entry.intersectionRatio >= .02)) return;
-  sectionFonts.disconnect();
-  function load() {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = new URL('./assets/fonts/section-fonts.css', import.meta.url);
-    link.addEventListener('error', () => {
-      link.remove();
-      window.addEventListener('online', load, {once:true});
-    }, {once:true});
-    document.head.append(link);
-  }
-  load();
-}, {threshold:.02});
-document.querySelectorAll('main > .section').forEach(section => sectionFonts.observe(section));
-document.body.classList.add('motion-enabled');
 const revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
   if (entry.isIntersecting) { entry.target.classList.add('is-visible'); revealObserver.unobserve(entry.target); }
 }), {threshold:0.1});

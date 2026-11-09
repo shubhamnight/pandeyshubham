@@ -11,9 +11,9 @@ const namedPlaces=new Set(Object.values(require('../travel-locations.json')).fil
   });
   page.on('pageerror',error=>errors.push(error.message));const cdp=await page.context().newCDPSession(page);await cdp.send('Log.enable');cdp.on('Log.entryAdded',({entry})=>{if(/preload/i.test(entry.text)&&/\/(photography-carousel|travel-overlay|gaming-overlay|music-overlay)\.css/.test(entry.text))warnings.push(entry.text);});
   await enter(page,'#projects');assert.equal(await page.evaluate(()=>location.hash),'#projects');
-  assert.deepEqual(await page.locator('.floating-nav a:not(.mini-brand)').allTextContents(),['Skills','Hobbies','Projects']);
-  assert.match(await page.locator('.floating-nav a[href="#about"]').evaluate(e=>getComputedStyle(e).fontFamily),/Ramabhadra/i);
-  assert.match(await page.locator('.badge-heading').evaluate(e=>getComputedStyle(e).fontFamily),/Archivo Black/i);
+  assert.deepEqual(await page.locator('.floating-nav a:not(.mini-brand)').allTextContents(),['Projects','Skills','Hobbies']);
+  assert.match(await page.locator('.floating-nav a[href="#about"]').evaluate(e=>getComputedStyle(e).fontFamily),/Imbue/i);
+  assert.equal((await page.locator('#home .badge').textContent()).trim(),'');
   await hobbies(page);
   assert.equal(await page.locator('.hobby-travel .travel-location-label').count(),0);
   assert.equal(await page.locator('#hobbies-heading').innerText(),'Beyond the screen\nThings I enjoy');
@@ -38,7 +38,7 @@ const namedPlaces=new Set(Object.values(require('../travel-locations.json')).fil
    }
    if(entry[1]==='music'){
     assert.ok(await dialog.locator('a').evaluateAll(links=>links.every(link=>link.target==='_blank'&&!link.closest('[data-travel-index]'))));assert.equal(await dialog.locator('.music-song-number,.music-stack-intro').count(),0);assert.equal(await dialog.locator('header .eyebrow').count(),0);assert.equal((await dialog.locator('header h2').innerText()).trim(),'Music');
-    const type=await dialog.locator('.music-song-copy').evaluate(e=>({singer:getComputedStyle(e.querySelector('.music-song-singer')).fontFamily,lyrics:getComputedStyle(e.querySelector('.music-song-lyric')).fontFamily}));assert.match(type.singer,/Acme/);assert.match(type.lyrics,/Righteous/);
+    const type=await dialog.locator('.music-song-copy').evaluate(e=>({singer:getComputedStyle(e.querySelector('.music-song-singer')).fontFamily,lyrics:getComputedStyle(e.querySelector('.music-song-lyric')).fontFamily}));assert.match(type.singer,/Imbue/);assert.match(type.lyrics,/Imbue/);
    }
    await close(page,dialog);
   }

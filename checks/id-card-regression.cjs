@@ -4,7 +4,7 @@ const {profiles,enter,save}=require('./helpers/site.cjs');
 const files=require('node:fs/promises'),path=require('node:path');
 const output=path.resolve(process.env.AUDIT_OUTPUT||'output/regressions/id-card');
 (async()=>{await files.mkdir(output,{recursive:true});const browser=await chromium.launch({headless:true}),results=[];
- try{for(const [name,width,height,touch]of [...profiles,['narrow-phone',320,568,true]]){
+ try{for(const [name,width,height,touch]of [...profiles,['narrow-phone',320,568,true],['short-landscape',844,390,true]]){
   if(process.env.BROWSER_PROFILE&&process.env.BROWSER_PROFILE!==name)continue;
   const page=await browser.newPage({viewport:{width,height},hasTouch:touch,isMobile:touch}),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{window.qaBadgeFrames=0;const raf=requestAnimationFrame;window.requestAnimationFrame=callback=>raf(time=>{if(callback.name==='animateBadge')window.qaBadgeFrames++;callback(time);if(callback.name==='animateBadge'){window.qaInitialAngles ||= [];window.qaInitialAngles.push(Number(document.querySelector('.badge-rig')?.style.transform.match(/rotateZ\(([-\d.]+)deg\)/)?.[1]||0));}});});
@@ -41,14 +41,14 @@ const output=path.resolve(process.env.AUDIT_OUTPUT||'output/regressions/id-card'
   }
   assert.equal(await rig.locator('[data-rail],[data-face="back"],.badge-back').count(),0,'no team rail or flip face is introduced');
   const front=await card.evaluate(e=>({
-   image:e.querySelector('img').getAttribute('src'),name:e.querySelector('.badge-heading').textContent,
-   role:e.querySelector('.badge-title small').textContent,tagline:e.querySelector('.badge-name').textContent,footer:e.querySelector('.badge-bottom').textContent,
+   image:e.querySelector('img').getAttribute('src'),text:e.textContent.trim(),strip:!!e.querySelector('.badge-bottom'),
    color:getComputedStyle(e.querySelector('.badge-face')).backgroundColor,pattern:getComputedStyle(e.querySelector('.badge-face')).backgroundImage,
-   patternSize:getComputedStyle(e.querySelector('.badge-face')).backgroundSize,font:getComputedStyle(e.querySelector('.badge-heading')).fontFamily,
+   patternSize:getComputedStyle(e.querySelector('.badge-face')).backgroundSize,
   }));
   assert.match(front.image,/assets\/profile\/shubham-pandey-hero-640\.webp$/);
-  assert.deepEqual([front.name,front.role,front.tagline,front.footer],['SHUBHAM','DEVELOPER/DESIGNER','CREATIVE THINKER','BATMAN']);
-  assert.equal(front.color,'rgb(24, 63, 115)');assert.match(front.pattern,/radial-gradient/);assert.match(front.patternSize,/9px 9px/);assert.match(front.font,/Archivo Black/);
+  assert.equal(front.text,'','the ID card has no visible lettering');
+  assert.equal(front.strip,false,'the ID card has no footer strip');
+  assert.equal(front.color,'rgb(36, 36, 36)');assert.match(front.pattern,/radial-gradient/);assert.match(front.patternSize,/9px 9px/);
   await connected();
   const restingCard=await card.boundingBox(),restingCord=await rig.locator('.lanyard-cord').boundingBox();
   await startDrag(0,85);
@@ -56,8 +56,10 @@ const output=path.resolve(process.env.AUDIT_OUTPUT||'output/regressions/id-card'
   await connected();await releaseDrag();await connected();
   assert.ok(Math.abs((await card.boundingBox()).y-restingCard.y)<2,'released reel retracts to the original card position');
   assert.ok(Math.abs((await rig.locator('.lanyard-cord').boundingBox()).height-restingCord.height)<2,'released cord returns to its rest length');
-  if(touch){
-   await startDrag(width/2-10,170,10);await page.waitForTimeout(500);
+  {
+   const centerX=restingCard.x+restingCard.width/2, centerY=restingCard.y+restingCard.height/2;
+   const dx=-Math.min(width/2-10,centerX-4), dy=Math.min(170,height-centerY-4);
+   await startDrag(dx,dy,10);await page.waitForTimeout(500);
    const pulled=await card.boundingBox();
    assert.ok(pulled.x>=-1&&pulled.y>=-1&&pulled.x+pulled.width<=width+1&&pulled.y+pulled.height<=height+1,'diagonal pull keeps the complete card inside the '+width+'x'+height+' viewport: '+JSON.stringify(pulled));
    await releaseDrag();
@@ -100,17 +102,31 @@ const output=path.resolve(process.env.AUDIT_OUTPUT||'output/regressions/id-card'
   const paint=[];
   for(const [w,h]of [[width,height],[height,width],[width,height]]){
    await page.setViewportSize({width:w,height:h});await settled();await page.waitForTimeout(150);
-   const b=await card.boundingBox();assert.ok(b.x>=-1&&b.y>=-1&&b.x+b.width<=w+1&&b.y+b.height<=h+1,'the resting card fits the viewport after resize');
+   const b=await card.boundingBox();assert.ok(b.x>=-1&&b.y>=-1&&b.x+b.width<=w+1&&b.y+b.height<=h+1,'the resting card fits '+w+'x'+h+' after resize: '+JSON.stringify(b));
+   const clip={left:Math.max(0,Math.ceil(b.x)),top:Math.max(0,Math.ceil(b.y)),width:Math.floor(b.width)-2,height:Math.floor(b.height)-2};
+   const cardPixels=async()=>sharp(await page.screenshot()).extract(clip).removeAlpha().raw().toBuffer();
+   const portrait=card.locator('img');
+   await portrait.evaluate(image=>image.style.visibility='hidden');
+   const faceOnly=await cardPixels();
+   await portrait.evaluate(image=>image.style.removeProperty('visibility'));
+   const bottomStart=Math.floor(clip.height*.87)*clip.width*3;
    for(let frame=0;frame<3;frame++){
-    const image=await page.screenshot(),clip={left:Math.max(0,Math.ceil(b.x)),top:Math.max(0,Math.ceil(b.y)),width:Math.floor(b.width)-2,height:Math.floor(b.height)-2};
-    const {data,info}=await sharp(image).extract(clip).removeAlpha().raw().toBuffer({resolveWithObject:true});let bright=0;
-    for(let i=0;i<data.length;i+=info.channels)if(data[i]>150&&data[i+1]>150&&data[i+2]>150)bright++;
-    assert.ok(bright/(info.width*info.height)>.001,'settled card samples contain the portrait/name paint');paint.push({viewport:[w,h],brightPixels:bright});
+    const data=await cardPixels();
+    let portraitPixels=0,bottomPixels=0,warmPixels=0;
+    for(let i=0;i<data.length;i+=3)if(Math.abs(data[i]-faceOnly[i])>8){
+     portraitPixels++;
+     if(i>=bottomStart)bottomPixels++;
+     if(data[i]-data[i+1]>20&&data[i]-data[i+2]>25)warmPixels++;
+    }
+    assert.ok(portraitPixels*3/data.length>.2,'the portrait paints on the settled card');
+    assert.ok(bottomPixels*3/(data.length-bottomStart)>.2,'the portrait fills the space at the bottom of the card');
+    assert.ok(warmPixels*3/data.length>.01,'the portrait paints in its original colors');
+    paint.push({viewport:[w,h],portraitPixels,bottomPixels});
    }
   }
   await page.screenshot({path:path.join(output,name+'-lanyard.png')});
   await page.emulateMedia({reducedMotion:'reduce'});await settled();assert.deepEqual(errors,[]);
-  results.push({profile:name,nativeDrag:true,pullRetraction:true,independentBodyLag:true,releaseOvershootDecay:true,initialCue:true,regrabContinuity:true,diagonalContainment:touch,connectedHardware:true,frontPreserved:front,cancellation:true,blurRelease:true,keyboard:true,idleStops:true,rotation:true,settledPaintSamples:paint,errors});console.log(name+' ID input, viewport and settled-paint checks passed');await page.close();
+  results.push({profile:name,nativeDrag:true,pullRetraction:true,independentBodyLag:true,releaseOvershootDecay:true,initialCue:true,regrabContinuity:true,diagonalContainment:true,connectedHardware:true,frontPreserved:front,cancellation:true,blurRelease:true,keyboard:true,idleStops:true,rotation:true,settledPaintSamples:paint,errors});console.log(name+' ID input, viewport and settled-paint checks passed');await page.close();
  }
  const reduced=await browser.newPage({viewport:{width:393,height:873},hasTouch:true,isMobile:true,reducedMotion:'reduce'});
  await reduced.addInitScript(()=>{window.qaBadgeFrames=0;const raf=requestAnimationFrame;window.requestAnimationFrame=callback=>raf(time=>{if(callback.name==='animateBadge')window.qaBadgeFrames++;callback(time);});});

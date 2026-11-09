@@ -1,70 +1,26 @@
-/* Supporting copy beneath the section titles uses the locally hosted Changa face. */
-:is(#about .skills-heading>p,#projects .project-heading>p,#playground .play-heading>p,#profile .personal-copy>p,#study-dialog>p){font-family:Changa,Inter,Helvetica,sans-serif}
-
-/* General titles use Prompt; keep contact and song typography independently styled. */
-:is(#skills-heading,#hobbies-heading,#playground .play-heading h2,#profile-heading,#dialog-title,dialog.hobby-gallery>header h2){font-family:Prompt,Inter,Helvetica,sans-serif;font-weight:400}
-:is(#skills-heading,#hobbies-heading,#playground .play-heading h2,#profile-heading,#dialog-title,dialog.hobby-gallery>header h2) em{font-family:inherit;font-weight:inherit}
-
-/* Hero-to-skills transition: preserve the full height of the skills content. */
-/* The canvas replaces only the hero grid, retaining its spacing and texture. */
-#home.kinetic-grid-ready{background-image:none;background-color:#02070a}
-#home .hero-kinetic-grid{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
-#home .name-track{z-index:1;font-family:Righteous,Inter,Helvetica,sans-serif;font-weight:400}
-main>.section{
-  --paper:#e7ebf0;--ink:#fafafa;--blue:#0297de;--accent:#0297de;
-  --surface-black:#02070a;--surface-white:#e7ebf0;
-}
-main>.section{padding-block:clamp(72px,8vw,128px)}
-#about{background:#e7ebf0}
-.personal .polaroid{background:#e7ebf0}
-main>.section ::selection{background:#0297de;color:#fff}
-#about .skills-heading{padding-bottom:36px;border-bottom:1px solid #17171724}
-#projects{background:#02070a}
-#projects .project-heading{border-bottom:1px solid #ffffff26;padding-bottom:36px}
-#projects .project-heading h2 em{color:#0297de}
-#playground{background:#02070a;border-top:0;padding-top:36px}
-#playground .play-heading{border-top:1px solid #ffffff26;padding-top:64px}
-#playground .play-stage{background:#e7ebf0;border:0;color:#171717;--mood:#0297de;border-radius:18px}
-#playground .play-grid{background-image:linear-gradient(#02070a09 1px,transparent 1px),linear-gradient(90deg,#02070a09 1px,transparent 1px)}
-#playground .kinetic-object span:nth-child(2){-webkit-text-stroke-color:#0297de}
-#playground .kinetic-object span:nth-child(3){-webkit-text-stroke-color:#171717}
+#projects{background:#000000}
+#projects .project-heading h2 em{color:#d0d0d0}
+#playground .kinetic-object span:nth-child(2){-webkit-text-stroke-color:#d0d0d0}
 #playground .stage-label{bottom:40px}
-.personal.light-section{background:#e7ebf0;border-top:6px solid #0297de}
-.personal .personal-layout{gap:10%;padding-block:24px}
-.personal .polaroid{border:1px solid #17171718;box-shadow:12px 14px 0 #0297de,0 24px 50px #02070a15}
-.personal .tape{background:#0297de59}
-.personal .eyebrow{color:#0297de}
-.personal .personal-copy h2{padding-bottom:28px;border-bottom:1px solid #17171724}
-.personal .signature-name{color:#0297de}
-#contact{background:#02070a;border-top:0}
-#contact>p{color:#0297de}
+.personal .tape{background:#d0d0d059}
+.personal .eyebrow{color:#d0d0d0}
+.personal .signature-name{color:#d0d0d0}
+#contact{background:#000000;border-top:0}
+#contact>p{color:#d0d0d0}
 #contact h2{max-width:1150px}
-#contact .footer-rotator{color:#0297de}
-#contact .contact-spark{color:#0297de}
+#contact .footer-rotator{color:#d0d0d0}
+#contact .contact-spark{color:#d0d0d0}
 #contact .contact-note{padding-bottom:36px;border-bottom:1px solid #ffffff26}
 #contact .footer-bottom{border-top:0;padding-top:0}
 #contact .footer-name{color:#fafafa}
-#contact .footer-name>span{color:#0297de}
-main>.section :focus-visible{outline:3px solid #0297de;outline-offset:5px}
-#projects :focus-visible,#contact :focus-visible{outline-color:#0297de}
+#contact .footer-name>span{color:#d0d0d0}
+main>.section :focus-visible{outline:3px solid #d0d0d0;outline-offset:5px}
+#projects :focus-visible,#contact :focus-visible{outline-color:#d0d0d0}
 @media(max-width:700px){
-  #about .skills-heading{padding-bottom:24px}
-  #projects .project-heading{padding-bottom:28px}
-  #playground .play-heading{padding-top:40px}
   #playground .stage-label{bottom:30px}
-  .personal .personal-layout{gap:60px}
 }
 
-
-/* A flush white fourth page, with no section translation at the shared edge. */
-#playground{position:relative;z-index:3;background:#fff;color:#171717;--ink:#171717;--accent:#0297de;transform:none;will-change:auto}
-#playground .play-heading{border-top-color:#17171720}
-#playground .play-heading h2{color:#171717}
-#playground .play-heading h2 em{color:#0297de}
-#playground .play-stage{background:#f5f7fa;border:1px solid #172d4914;color:#171717;--mood:#0297de}
-#playground .stage-label{color:#171717}
-#playground .stage-label em{color:#0297de}
-.photography-empty-frame{aspect-ratio:4/3;background:#101f29;border:1px solid #ffffff20;border-radius:8px}
+.photography-empty-frame{aspect-ratio:4/3;background:#242424;border:1px solid #ffffff20;border-radius:8px}
 #gaming-controller .gaming-controller-fallback svg{margin:auto}
 
 /* Alpha-based shadows follow the rendered silhouette through orbit and hover.
@@ -87,22 +43,22 @@ main>.section :focus-visible{outline:3px solid #0297de;outline-offset:5px}
 /* Video frames stay on the same compositor path as each moving card. */
 .hobby-image-surface .hobby-video-canvas{display:block;width:100%;height:100%;transform:translateZ(0);backface-visibility:hidden}
 /* Shared hobby overlays: fixed header, bounded media, independent scrolling. */
-dialog.hobby-gallery{width:min(1060px,calc(100vw - 40px));height:min(780px,88dvh);max-width:none;max-height:88dvh;margin:auto;padding:0;box-sizing:border-box;background:#09131a;color:#f4f1e9;border:1px solid #ffffff24;border-radius:18px;overflow:hidden;overscroll-behavior:contain;box-shadow:0 24px 80px #0006}
+dialog.hobby-gallery{width:min(1060px,calc(100vw - 40px));height:min(780px,88dvh);max-width:none;max-height:88dvh;margin:auto;padding:0;box-sizing:border-box;background:#171717;color:#ffffff;border:1px solid #ffffff24;border-radius:18px;overflow:hidden;overscroll-behavior:contain;box-shadow:0 24px 80px #0006}
 dialog.hobby-gallery[open]{display:flex;flex-direction:column}
-dialog.hobby-gallery::backdrop{background:rgba(2,7,10,.42);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-dialog.hobby-gallery header{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:26px 30px 22px;border-bottom:1px solid #ffffff18;flex:0 0 auto;background:#09131a}
+dialog.hobby-gallery::backdrop{background:rgba(0,0,0,.42);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+dialog.hobby-gallery header{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:26px 30px 22px;border-bottom:1px solid #ffffff18;flex:0 0 auto;background:#171717}
 dialog.hobby-gallery h2{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:8px 0 0}
-dialog.hobby-gallery .eyebrow{color:#0297de}
-dialog.hobby-gallery header button{display:grid;place-items:center;width:44px;height:44px;padding:0;flex:0 0 44px;border:1px solid #ffffff30;border-radius:50%;background:#242526;color:#fff;font-size:28px;line-height:1;cursor:pointer}
-dialog.hobby-gallery :focus-visible{outline:2px solid #0297de;outline-offset:4px}
+dialog.hobby-gallery .eyebrow{color:#d0d0d0}
+dialog.hobby-gallery header button{display:grid;place-items:center;width:44px;height:44px;padding:0;flex:0 0 44px;border:1px solid #ffffff30;border-radius:50%;background:#262626;color:#fff;font-size:28px;line-height:1;cursor:pointer}
+dialog.hobby-gallery :focus-visible{outline:2px solid #d0d0d0;outline-offset:4px}
 /* The camera opens an isolated editorial filmstrip inside its existing dialog. */
-dialog#photography-gallery{width:calc(100vw - 32px);height:calc(100dvh - 32px);max-height:none;border-radius:0;background:#02070a}
+dialog#photography-gallery{width:calc(100vw - 32px);height:calc(100dvh - 32px);max-height:none;border-radius:0;background:#000000}
 dialog#photography-gallery>header{position:absolute;top:16px;right:16px;z-index:10;padding:0;border:0;background:transparent}
 dialog#photography-gallery>header>div{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 dialog#photography-gallery>header>button{width:46px;height:46px;flex-basis:46px;font-size:27.6px;background:#0004;border-color:#ffffff70}
 dialog#photography-gallery .hobby-gallery-content{position:relative;padding:0;overflow:hidden;scrollbar-gutter:auto;isolation:isolate}
 dialog#photography-gallery .photography-carousel-mount{width:100%;height:100%}
-dialog#photography-gallery .photography-gallery-status{position:absolute;inset:0;z-index:1;display:grid;place-items:center;margin:0;pointer-events:none;color:#e7ebf0;font-size:13px;letter-spacing:.1em}
+dialog#photography-gallery .photography-gallery-status{position:absolute;inset:0;z-index:1;display:grid;place-items:center;margin:0;pointer-events:none;color:#ffffff;font-size:13px;letter-spacing:.1em}
 dialog#photography-gallery .photography-gallery-status[hidden]{display:none}
 dialog#photography-gallery .photography-gallery-grid{display:none}
 dialog#photography-gallery.photo-carousel-fallback .hobby-gallery-content{padding:64px 24px 24px;overflow-y:auto}
@@ -110,21 +66,21 @@ dialog#photography-gallery.photo-carousel-fallback .photography-carousel-mount{d
 dialog#photography-gallery.photo-carousel-fallback .photography-gallery-status{position:static;display:block;margin:0 0 20px}
 dialog#photography-gallery.photo-carousel-fallback .photography-gallery-grid{display:grid}
 @media(max-width:700px){dialog#photography-gallery{width:100vw;height:100dvh;border:0}dialog#photography-gallery>header{top:max(12px,env(safe-area-inset-top));right:12px}}
-.hobby-gallery-content{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:26px 30px 30px;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-color:#626971 #09131a}
-.hobby-gallery-content p{color:#aeb3bb;font-size:14px;margin:0 0 24px}
+.hobby-gallery-content{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:26px 30px 30px;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-color:#6b6b6b #171717}
+.hobby-gallery-content p{color:#c4c4c4;font-size:14px;margin:0 0 24px}
 .hobby-gallery-content [class$="-gallery-grid"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:start}
-.hobby-gallery-content figure{margin:0;min-width:0;background:#101f29;border:1px solid #ffffff18;border-radius:8px;overflow:hidden;aspect-ratio:4/3;position:relative}
+.hobby-gallery-content figure{margin:0;min-width:0;background:#242424;border:1px solid #ffffff18;border-radius:8px;overflow:hidden;aspect-ratio:4/3;position:relative}
 .hobby-gallery-content figure>a{display:block;width:100%;height:100%}
 .hobby-gallery-content figure>img,.hobby-gallery-content figure>video,.hobby-gallery-content figure>a{position:absolute;inset:0}
-.hobby-gallery-content figure img,.hobby-gallery-content figure video{display:block;width:100%;height:100%;max-width:100%;max-height:100%;aspect-ratio:auto;object-fit:contain;border-radius:0;background:#101f29}
-.hobby-gallery-content figcaption{position:absolute;inset:auto 0 0;padding:10px 12px;background:#09131ae8;font-size:13px;line-height:1.4}
+.hobby-gallery-content figure img,.hobby-gallery-content figure video{display:block;width:100%;height:100%;max-width:100%;max-height:100%;aspect-ratio:auto;object-fit:contain;border-radius:0;background:#242424}
+.hobby-gallery-content figcaption{position:absolute;inset:auto 0 0;padding:10px 12px;background:#171717e8;font-size:13px;line-height:1.4}
 .travel-video-player{position:absolute;inset:0;background:#000}
 .travel-video-player video{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
 @media(max-width:700px){dialog.hobby-gallery{width:calc(100vw - 24px);height:90dvh;max-height:90dvh;border-radius:14px}dialog.hobby-gallery header{padding:20px;gap:16px}.hobby-gallery-content{padding:20px}.hobby-gallery-content [class$="-gallery-grid"]{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
 @media(max-width:380px){.hobby-gallery-content [class$="-gallery-grid"]{grid-template-columns:minmax(0,1fr)}}
 
 /* Optional travel locations, rendered only for labelled media. */
-.travel-location-label{position:absolute;left:auto;right:8px;top:8px;bottom:auto;max-width:calc(100% - 16px);z-index:2;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0;background:none;color:#000;text-shadow:none;font:500 13.2px/1.35 system-ui,sans-serif;pointer-events:none}
+.travel-location-label{position:absolute;left:auto;right:8px;top:8px;bottom:auto;max-width:calc(100% - 16px);z-index:2;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0;background:none;color:#000;text-shadow:none;font:500 13.2px/1.35 var(--font-copy);pointer-events:none}
 .travel-location-label.travel-location-light{color:#fff;text-shadow:0 1px 3px #000}
 .travel-location-label img.travel-location-pin{position:static;display:block;width:16px;height:24px;min-width:16px;max-width:none;max-height:none;aspect-ratio:2/3;flex:none;object-fit:contain;background:none;border-radius:0}
 .travel-location-label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -132,22 +88,22 @@ dialog#photography-gallery.photo-carousel-fallback .photography-gallery-grid{dis
 
 /* Vinyl records retain the existing 4:3 orbit bounds and shared arc clock. */
 .hobby-music .hobby-image-surface{display:grid;place-items:center;background:none;border:0;border-radius:0;box-shadow:none;overflow:visible}
-.music-record{position:relative;width:74%;aspect-ratio:1;border-radius:50%;isolation:isolate;background:repeating-radial-gradient(circle at center,transparent 0 2px,#ffffff09 2.5px 3px,transparent 3.5px 5px),conic-gradient(from -35deg,#0b0d10 0deg,#353a40 35deg,#121518 60deg,#080a0c 140deg,#30353b 210deg,#121518 240deg,#080a0c 320deg,#0b0d10 360deg);border:1px solid #545a63;box-shadow:inset 0 0 0 3px #090a0b,inset 0 0 0 5px #ffffff0c,0 8px 16px #0005;transform:rotate(0deg);transition:transform .65s cubic-bezier(.22,1,.36,1)}
-.music-record-label{position:absolute;inset:32%;border-radius:50%;overflow:hidden;background:var(--record-label,#0297de);border:1px solid #ffffff30;box-shadow:0 0 0 3px #050709,0 0 0 4px #ffffff12}
+.music-record{position:relative;width:74%;aspect-ratio:1;border-radius:50%;isolation:isolate;background:repeating-radial-gradient(circle at center,transparent 0 2px,#ffffff09 2.5px 3px,transparent 3.5px 5px),conic-gradient(from -35deg,#0b0d10 0deg,#383838 35deg,#171717 60deg,#080a0c 140deg,#333333 210deg,#171717 240deg,#080a0c 320deg,#0b0d10 360deg);border:1px solid #585858;box-shadow:inset 0 0 0 3px #090a0b,inset 0 0 0 5px #ffffff0c,0 8px 16px #0005;transform:rotate(0deg);transition:transform .65s cubic-bezier(.22,1,.36,1)}
+.music-record-label{position:absolute;inset:32%;border-radius:50%;overflow:hidden;background:var(--surface-raised);border:1px solid #ffffff30;box-shadow:0 0 0 3px #050709,0 0 0 4px #ffffff12}
 .music-record-label::after{content:'';position:absolute;inset:12%;border:1px solid #ffffff24;border-radius:50%;pointer-events:none}
 .hobby-music .music-record-label img,.music-gallery-grid .music-record-label img{position:static;width:100%;height:100%;object-fit:cover;background:none;border-radius:50%}
-.music-record-hole{position:absolute;left:50%;top:50%;width:5%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#111;border:1px solid #d0d5dc88;box-shadow:0 0 0 2px #0004;z-index:2}
-.music-gallery-grid .music-record-frame{display:grid;place-items:center;background:#09131a}
+.music-record-hole{position:absolute;left:50%;top:50%;width:5%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#111;border:1px solid #d5d5d588;box-shadow:0 0 0 2px #0004;z-index:2}
+.music-gallery-grid .music-record-frame{display:grid;place-items:center;background:#171717}
 .music-gallery-grid .music-record{width:68%}
 @media(hover:hover) and (pointer:fine){.hobby-music .hobby-image-placeholder:hover .music-record,.music-record-frame:hover .music-record{transform:rotate(14deg)}}
 @media(prefers-reduced-motion:reduce){.music-record{transition:none}.hobby-music .hobby-image-placeholder:hover .music-record,.music-record-frame:hover .music-record{transform:rotate(0deg)}}
 
 .hobby-music .music-record{box-shadow:inset 0 0 0 3px #090a0b,inset 0 0 0 5px #ffffff0c,0 8px 14px #0007,0 20px 32px #0005}
-.music-record-caption{position:absolute;top:calc(100% + 5px);left:-12%;right:-12%;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;font:10.71px/1.35 system-ui,sans-serif;color:#eee;text-shadow:0 1px 3px #000}
+.music-record-caption{position:absolute;top:calc(100% + 5px);left:-12%;right:-12%;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;font:10.71px/1.35 var(--font-copy);color:#eee;text-shadow:0 1px 3px #000}
 .music-record-caption strong,.music-record-caption>span{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.music-record-caption .music-title{font-family:var(--title-font,Inter),serif;font-weight:var(--title-weight,700);font-style:var(--title-style,normal);letter-spacing:var(--title-spacing,-.035em);text-transform:var(--title-case,none);line-height:var(--title-leading,1.2)}
+.music-record-caption .music-title{font-family:var(--font-display);font-weight:400;line-height:1.2;letter-spacing:var(--display-tracking); word-spacing:var(--display-word-spacing);}
 .music-record-caption .music-title[data-song-title="Bohemian Rhapsody"]{font-size:110%}
-.music-record-caption>span{color:#b8bec8;font-family:Acme,Inter,Helvetica,sans-serif;font-weight:400;font-size:8.925px;margin-top:2px}
+.music-record-caption>span{color:#bcbcbc;font-family:var(--font-copy);font-weight:400;font-size:12px;margin-top:2px}
 @media(hover:hover) and (pointer:fine){.hobby-music .hobby-image-placeholder:hover .music-record-caption{opacity:1}}
 @media(prefers-reduced-motion:reduce){.music-record-caption{transition:none}}
 
@@ -160,60 +116,50 @@ dialog#photography-gallery.photo-carousel-fallback .photography-gallery-grid{dis
 
 .ambient-paused,.ambient-paused *{animation-play-state:paused!important}
 
-/* Midnight base, electric blue accents and a deliberately rare warm accent.
-   Surface tints retain depth without adding layers or changing motion. */
-:root{--midnight:#02070a;--electric:#0297de;--cantaloupe:#fc734d;--surface:#09131a;--surface-raised:#101f29;--bg:var(--midnight);--ink:#e7ebf0;--muted:#a4aab3;--accent:var(--electric);--paper:var(--surface);--blue:var(--electric);--lime:var(--electric);--line:#0297de12}
-main>.section,main>dialog{--paper:#09131a;--ink:#e7ebf0;--blue:#0297de;--lime:#0297de;--accent:#0297de;--surface-black:#02070a;--surface-white:#101f29}
-.floating-nav{display:flex;align-items:center;justify-content:center;width:max-content;gap:clamp(16px,2.8vw,26px);padding:9px 16px;max-width:calc(100% - 24px);white-space:nowrap;background:#09131aed;border-color:#0297de26;box-shadow:0 8px 20px #0006,0 20px 48px #0005,0 0 24px #0297de1a}
-.floating-nav a{flex-shrink:0;font-family:Ramabhadra,Inter,Helvetica,sans-serif;font-weight:400}
+.floating-nav{display:flex;align-items:center;justify-content:center;width:max-content;gap:clamp(16px,2.8vw,26px);padding:9px 16px;max-width:calc(100% - 24px);white-space:nowrap;background:#171717ed;border-color:#d0d0d026;box-shadow:0 8px 20px #0006,0 20px 48px #0005,0 0 24px #d0d0d01a}
+.floating-nav a{flex-shrink:0;font-family:var(--font-copy);font-weight:400}
 .floating-nav .mini-brand{padding-right:0}
-.floating-nav a:hover{color:#0297de}
-.floating-nav a[aria-current="location"]{color:#e7ebf0;text-shadow:0 0 12px #0297de80}
-.badge,.badge-face{background-color:#183f73;color:#e7ebf0}
-.badge-face{background-image:radial-gradient(circle at 1px 1px,#96b7df50 1px,transparent 1.5px),linear-gradient(138deg,#ffffff12,transparent 42%,#0e244530)}
-.badge-bottom{background:#17181c;color:#5685c1;justify-content:center}
-.badge-bottom>span{font-size:1.2em;font-weight:700}
-#home .badge>img,#home .badge>picture>img{filter:url('#badge-soft-shadow')}
-#about{background:#09131a;color:#e7ebf0}
-#about .skills-heading{border-color:#e7ebf024}
-#about .skills-heading>p,.personal .personal-copy p{color:#a4aab3}
-#projects,#contact{background:#02070a}
-#projects .project-heading p,#contact .contact-note p>span,#contact .footer-bottom{color:#a4aab3}
-#playground{background:#09131a;color:#e7ebf0;--ink:#e7ebf0;--accent:#0297de}
-#playground .play-heading{border-top-color:#e7ebf020}
-#playground .play-heading h2,#playground .stage-label{color:#e7ebf0}
-#playground .play-stage{background:#101f29;color:#e7ebf0;border-color:#0297de14;--mood:#0297de}
-#playground .play-grid{background-image:linear-gradient(#e7ebf009 1px,transparent 1px),linear-gradient(90deg,#e7ebf009 1px,transparent 1px)}
-#playground .kinetic-object span:nth-child(3){-webkit-text-stroke-color:#e7ebf0}
-.personal.light-section{background:#09131a;color:#e7ebf0}
-.personal .personal-copy h2{border-color:#e7ebf024}
-.personal .polaroid{background:#101f29;border-color:#e7ebf018;color:#e7ebf0}
-.personal .polaroid>div{background:#303136}
-.personal .eyebrow{color:#0297de}
-#photography-camera .hobby-camera-icon{filter:grayscale(1) sepia(1) saturate(3) hue-rotate(175deg)}
-.hobby-image-surface{border-color:#0297de24}
+.floating-nav a:hover{color:#d0d0d0}
+.floating-nav a[aria-current="location"]{color:#ffffff;text-shadow:0 0 12px #d0d0d080}
+.badge{background:var(--surface-raised);color:var(--ink);font-family:Inter,Helvetica,sans-serif}
+#home .badge>img,#home .badge>picture>img{filter:url('#portrait-grey-outline')}
+#about{background:var(--bg);color:#ffffff}
+#about .skills-heading>p,.personal .personal-copy p{color:#bcbcbc}
+#projects,#contact{background:#000000}
+#projects .project-heading p,#contact .contact-note p>span,#contact .footer-bottom{color:#bcbcbc}
+#playground{background:var(--bg);color:#ffffff;--ink:#ffffff;--accent:#d0d0d0}
+#playground .play-heading h2,#playground .stage-label{color:#ffffff}
+#playground .play-stage{background:#242424;color:#ffffff;border-color:#d0d0d014;--mood:#d0d0d0}
+#playground .play-grid{background-image:linear-gradient(#ffffff09 1px,transparent 1px),linear-gradient(90deg,#ffffff09 1px,transparent 1px)}
+#playground .kinetic-object span:nth-child(3){-webkit-text-stroke-color:#ffffff}
+.personal.light-section{background:var(--bg);color:#ffffff}
+.personal .polaroid{background:var(--surface-raised);color:var(--ink);box-shadow:12px 14px 0 #303030}
+.personal .polaroid>div{background:#303030}
+.personal .eyebrow{color:#d0d0d0}
+#photography-camera .hobby-camera-icon{filter:grayscale(1)}
+.hobby-image-surface{border-color:#d0d0d024}
 dialog.hobby-gallery{border-color:transparent;box-shadow:0 8px 20px #0008,0 28px 80px #000b}
 dialog.hobby-gallery:focus-visible{outline:none}
-.hobby-gallery-content{scrollbar-color:#07334a #02070a}
-.hobby-gallery-content figure{border-color:#0297de18}
+.hobby-gallery-content{scrollbar-color:#555555 #000000}
+.hobby-gallery-content figure{border-color:#d0d0d018}
 
 
 /* The games island owns its scroll viewport; retain the native grid if loading fails. */
-#gaming-gallery.gaming-tilted-active .hobby-gallery-content{overflow:hidden;padding:0;scrollbar-gutter:auto;background:#02070a}
+#gaming-gallery.gaming-tilted-active .hobby-gallery-content{overflow:hidden;padding:0;scrollbar-gutter:auto;background:#000000}
 #gaming-gallery.gaming-tilted-active .gaming-gallery-grid{display:none}
 #gaming-gallery .gaming-gallery-grid[hidden]{display:none}
 #gaming-gallery .gaming-tilted-mount{width:100%;height:100%;min-height:0}
 #gaming-gallery .gaming-tilted-mount[hidden]{display:none}
 
 /* Travel photographs and looping videos share the existing dialog strip. */
-dialog#travel-gallery.travel-zoom-active .hobby-gallery-content{padding:0;background:#02070a;scrollbar-gutter:auto}
+dialog#travel-gallery.travel-zoom-active .hobby-gallery-content{padding:0;background:#000000;scrollbar-gutter:auto}
 #travel-gallery .travel-zoom-mount{width:100%;height:100%;min-height:0}
 #travel-gallery .travel-zoom-mount[hidden],#travel-gallery .travel-gallery-grid[hidden]{display:none}
 #travel-gallery.travel-zoom-active .travel-gallery-grid{padding:28px 30px 30px}
 @media(max-width:700px){#travel-gallery.travel-zoom-active .travel-gallery-grid{padding:20px}}
 
 /* The music island owns the disc carousel and song navigation. */
-dialog#music-gallery.music-cascade-active .hobby-gallery-content{padding:0;overflow:hidden;scrollbar-gutter:auto;background:#02070a}
+dialog#music-gallery.music-cascade-active .hobby-gallery-content{padding:0;overflow:hidden;scrollbar-gutter:auto;background:#000000}
 dialog#music-gallery h2{font-size:clamp(21px,3vw,31.5px)}
 #music-gallery.music-cascade-active .music-gallery-grid,#music-gallery .music-gallery-grid[hidden]{display:none}
 #music-gallery .music-cascade-mount{width:100%;height:100%;min-height:0}
@@ -223,11 +169,142 @@ dialog#music-gallery h2{font-size:clamp(21px,3vw,31.5px)}
    The inner circle clips the fill; the tooltip stays outside that clipping area.
    Slot transforms and dimensions remain owned by the existing motion clock. */
 
-/* Warm accents stay confined to the navigation and signature. */
-.floating-nav a[aria-current="location"]{color:var(--cantaloupe);text-shadow:none}
-.personal .signature-name{color:var(--cantaloupe)}
 /* Midnight ink keeps small type legible on saturated electric fills. */
-::selection{background:var(--electric);color:var(--midnight)}
-main>.section ::selection{background:var(--electric);color:var(--midnight)}
+::selection{background:var(--accent);color:var(--bg)}
+main>.section ::selection{background:var(--accent);color:var(--bg)}
 
-#home.hero-idle .name-track{animation-play-state:paused}
+/* Let the copy and lanyard occupy separate areas while the card swings. */
+#home {
+  --fit-badge-width: min(280px, 28vw, 38svh);
+  --fit-badge-height: calc(var(--fit-badge-width) * 10 / 7);
+  --fit-badge-top: clamp(38px, 9svh, 90px);
+  display: grid;
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+  align-items: center;
+  align-content: center;
+  gap: clamp(22px, 5vw, 80px);
+  height: auto;
+  min-height: 100svh;
+  max-height: none;
+  padding-block: clamp(24px, 5svh, 64px);
+  padding-inline: max(24px, 5vw, calc((100% - 1280px) / 2), env(safe-area-inset-left), env(safe-area-inset-right));
+  background: #000;
+}
+#home::after { content: none; }
+#home .hero-dot-grid { position: absolute; inset: 0; pointer-events: none; }
+.hero-dot-grid:not([data-grid-ready]) {
+  background: radial-gradient(circle, #3a3a3a 2px, transparent 2.5px) center / 23px 23px;
+}
+.hero-dot-grid .dot-grid,
+.hero-dot-grid canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.hero-dot-grid:not([data-grid-ready]) canvas { visibility: hidden; }
+#home .hero-copy { position: relative; z-index: 1; grid-column: 2; grid-row: 1; container-type: inline-size; }
+#home .hero-copy > :is(h1, p) { text-shadow: 0 0 3px #000, 0 0 7px #000; }
+#home .hero-copy h1 {
+  color: var(--headline-red);
+  margin: 0;
+  font: 400 clamp(42px, 24cqi, 168px)/.95 'Odibee Sans', Impact, sans-serif;
+  overflow-wrap: anywhere;
+}
+#home .hero-copy p {
+  color: var(--ink);
+  margin: 16px 0 0;
+  font: 500 clamp(24px, 5.5cqi, 42px)/1.2 Imbue, Georgia, serif;
+}
+#home .badge-rig {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: center;
+  left: auto;
+  width: var(--fit-badge-width);
+  height: calc(var(--fit-badge-top) + var(--fit-badge-height));
+  margin-bottom: min(48px, 8svh);
+  transform: none;
+}
+#home .badge {
+  top: var(--fit-badge-top);
+  width: var(--fit-badge-width);
+  height: var(--fit-badge-height);
+}
+@media (max-width: 719px) {
+  #home {
+    --fit-badge-width: min(220px, 61vw, 33svh);
+    --fit-badge-top: clamp(36px, 8svh, 62px);
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #home .hero-copy { grid-column: 1; }
+  #home .badge-rig { grid-row: 2; }
+}
+@media (max-width: 719px) and (max-height: 430px) and (orientation: landscape) {
+  #home { gap: 10px; padding-block: 8px; }
+  #home .hero-copy h1 { font-size: 16svh; }
+  #home .hero-copy p { margin-top: 8px; }
+  #home .badge-rig { margin-bottom: 12px; }
+}
+
+/* Shared editorial grid. Section backgrounds still extend to the viewport edges. */
+main > .section {
+  --editorial-inset: max(clamp(20px, 5vw, 72px), calc((100% - 1280px) / 2), env(safe-area-inset-left), env(safe-area-inset-right));
+  --editorial-space: clamp(76px, 8vw, 124px);
+  --editorial-gap: clamp(26px, 5vw, 68px);
+  --editorial-rule: #ffffff28;
+  padding: var(--editorial-space) var(--editorial-inset);
+  border-top: 1px solid var(--editorial-rule);
+}
+.editorial-label {
+  display: block;
+  margin-bottom: 14px;
+  color: #bcbcbc;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+main > .section :focus-visible { scroll-margin-block: 16px; }
+#about #skills-heading, #projects #hobbies-heading, #profile #profile-heading {
+  font-size: clamp(32px, 4.8vw, 64px);
+}
+#profile .personal-layout,
+main > #playground {
+  display: grid;
+  gap: var(--editorial-gap);
+  align-items: center;
+}
+#profile .personal-layout {
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  padding: 0;
+}
+#profile .polaroid {
+  width: min(100%, 380px);
+  margin: 0;
+  transform: none;
+  border: 1px solid var(--editorial-rule);
+  box-shadow: 6px 6px 0 #d0d0d032;
+}
+#profile .polaroid:hover { transform: rotate(-2deg); }
+#profile .polaroid > div { height: auto; aspect-ratio: 4 / 5; }
+#profile .personal-copy h2 { margin: 0 0 22px; }
+#profile .personal-copy p { max-width: 58ch; }
+main > #playground {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.65fr);
+  transform: none;
+  will-change: auto;
+}
+#playground .play-heading { display: block; margin: 0; }
+#playground #playground-heading { font-size: clamp(32px, 4.2vw, 64px); }
+#playground #playground-heading em { font-size: 1em; }
+#playground .play-stage { height: clamp(300px, 40vw, 500px); border-radius: 6px; }
+#about .skills-heading, #projects .project-heading {
+  margin-bottom: clamp(28px, 4vw, 56px);
+  padding-bottom: clamp(22px, 3vw, 36px);
+  border-bottom: 1px solid var(--editorial-rule);
+}
+#projects .project-heading > p { max-width: 32ch; }
+@media (max-width: 719px) {
+  #profile .personal-layout, main > #playground { grid-template-columns: minmax(0, 1fr); }
+  #profile .polaroid { width: min(100%, 300px); }
+  #profile .personal-copy { grid-row: 1; }
+  #about .skills-heading, #projects .project-heading { display: block; }
+  #about .skills-heading > p, #projects .project-heading > p { margin: 14px 0 0; }
+}

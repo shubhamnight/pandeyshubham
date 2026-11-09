@@ -36,6 +36,8 @@ const {profiles,origin,navigation,save}=require('./helpers/site.cjs');
     assert.equal(await page.locator('.portfolio-intro,.intro-replay,#intro-template').count(),0);
     assert.equal(await page.locator('html').getAttribute('data-intro'),null);
     assert.equal(await page.locator('#main-content').evaluate(main=>main.inert),false);
+    assert.deepEqual(await page.locator('#main-content > :is(section,footer)[id]').evaluateAll(sections=>sections.map(section=>section.id)),
+     ['home','profile','playground','about','projects','contact'],'the story and work lead the page after the hero');
     const nav=page.locator('.floating-nav');
     if(javaScriptEnabled){
      assert.equal(await nav.isVisible(),false,'navigation is hidden on the hero');
@@ -70,7 +72,7 @@ const {profiles,origin,navigation,save}=require('./helpers/site.cjs');
      await nav.waitFor({state:'hidden'});
      assert.ok(await nav.evaluate(e=>e.inert),'returning home disables hidden navigation');
     }
-    for(const hash of ['#about','#projects','#contact']){
+    for(const hash of ['#profile','#playground','#about','#projects','#contact']){
      await page.goto(origin+'/'+hash,{waitUntil:'load'});
      if(javaScriptEnabled)assert.equal(await loader.count(),0,'direct section entry skips loading waves');
      await nav.waitFor({state:'visible'});
