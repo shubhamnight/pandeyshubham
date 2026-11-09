@@ -31,7 +31,7 @@ let frame = 0, geometryFrame = 0, lastTime = 0, dragging = false, pointerId = nu
 let startX = 0, startY = 0, originX = 0, originY = 0, originSwing = 0, originAngle = 0;
 let bounds;
 let badgeBoundsDirty=true;
-let hoveringBadge=false, pointerPending=false, initialSway=true;
+let hoveringBadge=false, pointerPending=false;
 const latestPointer={x:0,y:0};
 const paintedStyles=new WeakMap();
 function writeBadgeStyle(element,property,value){
@@ -112,11 +112,9 @@ function animateBadge(time) {
     }else{
       const nx=(pointer.x-bounds.left-bounds.width/2)/(bounds.width/2);
       const ny=(pointer.y-bounds.top-bounds.height/2)/(bounds.height/2);
-      hoveringBadge=Math.abs(nx)<=2.2&&ny<=1.5&&pointer.y>=bounds.top-bounds.strapLength;
-      if(hoveringBadge)Object.assign(targetPose,{x:clamp(nx,-1,1)*7,y:0,
+      Object.assign(targetPose,{x:clamp(nx,-1,1)*7,y:0,
         rx:-clamp(ny,-1,1)*15,ry:clamp(nx,-1,1)*15,rz:clamp(nx,-1,1)*1.2,
         z:0,light:.12,scale:1.02});
-      else Object.assign(targetPose,restingPose);
     }
   }
   const elapsed = Math.min((time - (lastTime || time - 16.67)) / 1000, .05);
@@ -169,13 +167,6 @@ function requestBadgeFrame(){
   if (!frame) { rig.classList.add('is-moving'); frame = requestAnimationFrame(animateBadge); }
 }
 function queueBadgePointer(event){
-  // No work for pointer movement far from the rig once its spring has settled.
-  // A captured touch drag is mapped once by the next animation frame. It
-  // does not need a second coordinate conversion for the hover bounds guard.
-  const pointer=badgeBoundsDirty||frame||dragging||hoveringBadge?null:badgePointer(event.clientX,event.clientY);
-  if(!frame&&!dragging&&!hoveringBadge&&!badgeBoundsDirty&&
-    (pointer.x<bounds.left-bounds.width*.6||pointer.x>bounds.left+bounds.width*1.6||
-      pointer.y<bounds.top-bounds.strapLength||pointer.y>bounds.top+bounds.height*1.25))return;
   latestPointer.x=event.clientX;latestPointer.y=event.clientY;pointerPending=true;
   requestBadgeFrame();
 }
@@ -198,24 +189,13 @@ function stopBadge() {
   pointerId = null;
 }
 function settleBadge() { hoveringBadge=false;pointerPending=false;setPose(restingPose); }
-function startInitialSway() {
-  if(!initialSway || !motionAllowed()) return;
-  if(badgeBoundsDirty)measureBadge();
-  const top=bounds.centerY-bounds.heroHeight/2;
-  if(top>=(window.innerHeight||bounds.heroHeight) || top+bounds.heroHeight<=0)return;
-  initialSway=false;
-  ribbon.velocity=30;
-  requestBadgeFrame();
-}
 measureBadge();
-requestAnimationFrame(startInitialSway);
 function invalidateBadgeBounds(){
   badgeBoundsDirty=true;
   // Update the backing layers even when the spring is idle or the hero is
   // covered. Resizing must not leave an old rim visible until the next hover.
   if(!geometryFrame)geometryFrame=requestAnimationFrame(()=>{
     geometryFrame=0;if(badgeBoundsDirty)measureBadge();
-    if(hoveringBadge){pointerPending=true;requestBadgeFrame();}
   });
 }
 const badgeResizeObserver=new ResizeObserver(invalidateBadgeBounds);
@@ -225,16 +205,11 @@ if (heroCopy) badgeResizeObserver.observe(heroCopy);
 rig.addEventListener('badge-entrance-complete', invalidateBadgeBounds);
 window.addEventListener('resize', invalidateBadgeBounds, {passive:true});
 window.addEventListener('scroll', () => {badgeBoundsDirty=true;}, {passive:true});
-hero.addEventListener('pointermove', event => {
-  if (dragging || event.pointerType === 'touch' || !motionAllowed()) return;
-  queueBadgePointer(event);
-}, {passive:true});
-hero.addEventListener('pointerleave', () => { if (!dragging) settleBadge(); });
+badge.addEventListener('pointerleave', () => { if (!dragging && hoveringBadge) settleBadge(); });
 badge.addEventListener('pointerdown', event => {
   if (!motionAllowed() || event.button !== 0 || dragging || event.isPrimary===false) return;
   if(badgeBoundsDirty)measureBadge();
   pointerPending=false;hoveringBadge=false;
-  initialSway=false;
   originSwing=clamp(ribbon.angle,-bounds.maxSwing,bounds.maxSwing);
   ribbon.lag=clamp(ribbon.lag+pose.rz,-bounds.maxSwing,bounds.maxSwing)-pose.rz;
   ribbon.angle=originSwing;ribbon.velocity=0;
@@ -247,7 +222,12 @@ badge.addEventListener('pointerdown', event => {
   badge.classList.add('dragging'); badge.setPointerCapture(pointerId);
 });
 badge.addEventListener('pointermove', event => {
-  if (!dragging || event.pointerId !== pointerId) return;
+  if (dragging) {
+    if (event.pointerId !== pointerId) return;
+  } else {
+    if (event.pointerType === 'touch' || event.buttons || !motionAllowed()) return;
+    hoveringBadge = true;
+  }
   queueBadgePointer(event);
 }, {passive:true});
 function releaseBadge(event) {
@@ -266,7 +246,11 @@ badge.addEventListener('keydown', event => {
 badge.addEventListener('keyup', event => { if (event.key.startsWith('Arrow')) settleBadge(); });
 badge.addEventListener('blur', () => { releaseBadge(); settleBadge(); });
 window.addEventListener('blur', stopBadge);
-document.addEventListener('visibilitychange', () => { if (document.hidden) stopBadge(); else startInitialSway(); });
-reducedMotion.addEventListener('change', () => { if (!motionAllowed()) stopBadge(); else startInitialSway(); });
-new MutationObserver(() => { if (!motionAllowed() && (frame || dragging || poseKeys.some(key=>pose[key]!==restingPose[key]))) stopBadge(); else startInitialSway(); }).observe(document.body, {attributes:true, attributeFilter:['class']});
-new MutationObserver(() => { if (!motionAllowed() && (frame || dragging)) stopBadge(); else startInitialSway(); }).observe(hero, {attributes:true, attributeFilter:['class']});
+function stopUnavailableMotion() {
+  if (!motionAllowed() && (frame || dragging || poseKeys.some(key=>pose[key]!==restingPose[key]))) stopBadge();
+}
+document.addEventListener('visibilitychange', stopUnavailableMotion);
+reducedMotion.addEventListener('change', stopUnavailableMotion);
+const motionState = new MutationObserver(stopUnavailableMotion);
+motionState.observe(document.body, {attributes:true, attributeFilter:['class']});
+motionState.observe(hero, {attributes:true, attributeFilter:['class']});

@@ -7,7 +7,7 @@ const output=path.resolve(process.env.AUDIT_OUTPUT||'output/regressions/id-card'
  try{for(const [name,width,height,touch]of [...profiles,['narrow-phone',320,568,true],['short-landscape',844,390,true]]){
   if(process.env.BROWSER_PROFILE&&process.env.BROWSER_PROFILE!==name)continue;
   const page=await browser.newPage({viewport:{width,height},hasTouch:touch,isMobile:touch}),errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.addInitScript(()=>{window.qaBadgeFrames=0;const raf=requestAnimationFrame;window.requestAnimationFrame=callback=>raf(time=>{if(callback.name==='animateBadge')window.qaBadgeFrames++;callback(time);if(callback.name==='animateBadge'){window.qaInitialAngles ||= [];window.qaInitialAngles.push(Number(document.querySelector('.badge-rig')?.style.transform.match(/rotateZ\(([-\d.]+)deg\)/)?.[1]||0));}});});
+  await page.addInitScript(()=>{window.qaBadgeFrames=0;const raf=requestAnimationFrame;window.requestAnimationFrame=callback=>raf(time=>{if(callback.name==='animateBadge')window.qaBadgeFrames++;callback(time);});});
   await enter(page);await page.bringToFront();const card=page.locator('.badge'),rig=page.locator('.badge-rig'),cdp=await page.context().newCDPSession(page);
   async function settled(){await page.waitForFunction(()=>!document.querySelector('.badge').classList.contains('dragging')&&!document.querySelector('.badge-rig').classList.contains('is-moving'),null,{timeout:20000});assert.ok(await rig.evaluate(e=>!/(NaN|Infinity)/.test(e.getAttribute('style')||'')));}
   async function startDrag(dx=50,dy=25,steps=5){const b=await card.boundingBox(),x=b.x+b.width/2,y=b.y+b.height/2;
@@ -32,7 +32,24 @@ const output=path.resolve(process.env.AUDIT_OUTPUT||'output/regressions/id-card'
     return cord.top<=reel.bottom+4&&cord.bottom>=clip.top-4&&clip.bottom>=slot.top-5&&clip.top<=slot.bottom+5&&Math.abs(clip.x+clip.width/2-slot.x-slot.width/2)<slot.width/2+4;
    }),'reel, cord, metal clip and existing card slot remain connected');
   }
-  await page.waitForFunction(()=>window.qaInitialAngles?.some(angle=>Math.abs(angle)>.05),undefined,{timeout:5000});
+  await page.waitForTimeout(200);
+  assert.equal(await page.evaluate(()=>window.qaBadgeFrames),0,'opening the hero leaves the ID card at rest');
+  if(!touch){
+   const b=await card.boundingBox(),strap=await rig.locator('.strap').boundingBox();
+   await page.mouse.move(strap.x+strap.width/2,strap.y+strap.height/2);
+   await page.mouse.move(b.x+b.width+12,b.y+b.height*.4);
+   await page.waitForTimeout(200);
+   assert.equal(await page.evaluate(()=>window.qaBadgeFrames),0,'hovering the strap or beside the card does not start it');
+   await page.mouse.move(b.x+b.width*.35,b.y+b.height*.35);
+   await page.waitForFunction(()=>Number(document.querySelector('.badge-glare').style.getPropertyValue('--glare-opacity'))>.03);
+   await page.mouse.move(b.x+b.width+12,b.y+b.height*.4);
+   await settled();
+   assert.equal(await card.locator('.badge-glare').evaluate(e=>Number(e.style.getPropertyValue('--glare-opacity'))),0,'leaving the card clears its hover pose');
+   const frames=await page.evaluate(()=>window.qaBadgeFrames);
+   await page.mouse.move(b.x+b.width+18,b.y+b.height*.45);
+   await page.waitForTimeout(150);
+   assert.equal(await page.evaluate(()=>window.qaBadgeFrames),frames,'moving nearby cannot restart the card');
+  }
   await settled();
   assert.equal(await card.count(),1,'hero uses one original ID card');
   for(const selector of ['.lanyard-ring','.lanyard-reel','.lanyard-cord','.lanyard-clip']){
@@ -126,7 +143,7 @@ const output=path.resolve(process.env.AUDIT_OUTPUT||'output/regressions/id-card'
   }
   await page.screenshot({path:path.join(output,name+'-lanyard.png')});
   await page.emulateMedia({reducedMotion:'reduce'});await settled();assert.deepEqual(errors,[]);
-  results.push({profile:name,nativeDrag:true,pullRetraction:true,independentBodyLag:true,releaseOvershootDecay:true,initialCue:true,regrabContinuity:true,diagonalContainment:true,connectedHardware:true,frontPreserved:front,cancellation:true,blurRelease:true,keyboard:true,idleStops:true,rotation:true,settledPaintSamples:paint,errors});console.log(name+' ID input, viewport and settled-paint checks passed');await page.close();
+  results.push({profile:name,nativeDrag:true,pullRetraction:true,independentBodyLag:true,releaseOvershootDecay:true,stillOnEntry:true,regrabContinuity:true,diagonalContainment:true,connectedHardware:true,frontPreserved:front,cancellation:true,blurRelease:true,keyboard:true,idleStops:true,rotation:true,settledPaintSamples:paint,errors});console.log(name+' ID input, viewport and settled-paint checks passed');await page.close();
  }
  const reduced=await browser.newPage({viewport:{width:393,height:873},hasTouch:true,isMobile:true,reducedMotion:'reduce'});
  await reduced.addInitScript(()=>{window.qaBadgeFrames=0;const raf=requestAnimationFrame;window.requestAnimationFrame=callback=>raf(time=>{if(callback.name==='animateBadge')window.qaBadgeFrames++;callback(time);});});

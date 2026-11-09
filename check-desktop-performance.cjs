@@ -68,7 +68,8 @@ const resetAngle=badgeSource.replace('originSwing-Math.atan2(pose.x,length+pose.
 assert.notEqual(resetAngle,badgeSource,'regrab negative control targets the actual held-angle mapping');
 assert.throws(()=>regrabContinuity(resetAngle),/stationary regrab preserves/,'old pose-derived regrab snap is detected');
 const initial=badgeFixture(badgeSource);for(let i=0;i<15;i++)initial.tick(60);
-assert.ok(Math.abs(rotation(initial.state().rig))>.05,'a first-visible lanyard receives an initial swing cue');
+assert.equal(initial.read('frame'),0,'the visible lanyard waits for input');
+assert.equal(rotation(initial.state().rig),0,'the card rests on initial entry');
 const reducedInitial=badgeFixture(badgeSource,true,true);for(let i=0;i<15;i++)reducedInitial.tick(60);
 assert.equal(reducedInitial.read('frame'),0,'reduced-motion startup never starts the lanyard spring loop');
 assert.equal(rotation(reducedInitial.state().rig),0,'reduced-motion startup keeps the suspension still');
