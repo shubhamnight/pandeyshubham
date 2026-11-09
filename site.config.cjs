@@ -15,6 +15,6 @@ module.exports = {
   analyticsMeasurementId: null,
   knowsAbout: ['HTML', 'CSS', 'JavaScript', 'Python', 'React', 'Database Management Systems', 'Figma', 'Sketch', 'UI/UX Design', 'Autodesk Maya', 'Claude', 'ChatGPT', 'Antigravity', 'Web Development', 'Cybersecurity Basics', 'Communication', 'Problem Solving'],
   themeColor: '#000000',
-  socialImage: 'assets/brand/shubham-pandey-portfolio-og.jpg',
+  socialImage: 'assets/brand/shubham-pandey-share.jpg',
   profileImage: 'assets/profile/shubham-pandey-portrait-960.webp',
 };

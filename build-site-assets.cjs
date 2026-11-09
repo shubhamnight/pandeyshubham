@@ -44,11 +44,7 @@ async function buildSiteAssets() {
   ico.writeUInt16LE(1, 2); ico.writeUInt16LE(1, 4); ico[6] = 32; ico[7] = 32;
   ico.writeUInt16LE(1, 10); ico.writeUInt16LE(32, 12); ico.writeUInt32LE(png.length, 14); ico.writeUInt32LE(22, 18);
   await fs.writeFile(path.join(root, 'favicon.ico'), Buffer.concat([ico, png]));
-  const social = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><defs><linearGradient id="b" x2="1" y2="1"><stop stop-color="#0a2738"/><stop offset="1" stop-color="#02070a"/></linearGradient><pattern id="g" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M60 0H0V60" fill="none" stroke="#0297de" stroke-opacity=".12"/></pattern></defs><rect width="1200" height="630" fill="url(#b)"/><rect width="1200" height="630" fill="url(#g)"/><rect x="66" y="75" width="5" height="475" rx="2" fill="#0297de"/><g fill="#e7ebf0" font-family="sans-serif"><text x="105" y="145" font-size="19" letter-spacing="4" fill="#66c8f5">DEVELOPER / DESIGNER</text><text x="100" y="280" font-size="76" font-weight="700">Shubham</text><text x="100" y="365" font-size="76" font-weight="700">Pandey</text><text x="105" y="437" font-size="24">BCA (Honours) student</text><text x="105" y="480" font-size="21" fill="#b3c0d2">Software · Web development · Cybersecurity interest</text><text x="105" y="548" font-size="19" fill="#66c8f5">pandeyshubham.in</text></g></svg>`;
-  const portrait = await sharp(path.join(root, 'shub ka photo.png')).resize({ height: 540 }).grayscale().toBuffer();
-  await sharp(Buffer.from(social)).composite([{ input: portrait, left: 784, top: 90 }]).jpeg({ quality: 94, mozjpeg: true })
-    .toFile(path.join(brand, 'shubham-pandey-portfolio-og.jpg'));
-  console.log('Responsive portraits, original crowd pixels, icons and social preview prepared.');
+  console.log('Responsive portraits, original crowd pixels, and icons prepared.');
 }
 module.exports = buildSiteAssets;
 if (require.main === module) buildSiteAssets().catch(error => { console.error(error); process.exitCode = 1; });

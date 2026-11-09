@@ -23,7 +23,7 @@ function metadata({ preview = false, env = process.env } = {}) {
   ];
   // Current students are not marked as alumni, and no unverified school is added.
   const verification = env.GOOGLE_SITE_VERIFICATION || config.searchConsoleVerification;
-  const imageAlt = 'Shubham Pandey — BCA (Honours) student and aspiring IT and software professional';
+  const imageAlt = 'Shubham Pandey. I design and build websites. A hanging portrait card on a black dotted background.';
   const tags = [
     ['name', 'description', config.description], ['name', 'author', config.name],
     ['name', 'robots', preview ? 'noindex, follow' : 'index, follow, max-image-preview:large'],
