@@ -91,7 +91,8 @@
   pointer-events: none;
   transition: transform .3s ease-in-out, opacity .3s ease-in-out;
 }
-#about .skill-logo { position: relative; z-index: 1; display: block; width: 58.333%; height: 58.333%; }
+#about .skills-logo-hit { position: relative; z-index: 1; width: 58.333%; height: 58.333%; }
+#about .skill-logo { display: block; width: 100%; height: 100%; pointer-events: none; transition: scale .25s ease-out; }
 #about .skills-orbit-name {
   position: absolute;
   left: 50%;
@@ -119,6 +120,7 @@
   #about .skills-orbit-disc[data-hovered] > .skills-orbit-name { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
   #about .skills-orbit-disc[data-hovered] > .skills-orbit-symbol { box-shadow: 0 10px 22px #0008; }
   #about .skills-orbit-disc[data-hovered] > .skills-orbit-symbol:before { opacity: 1; transform: translateY(0); }
+  #about .skills-orbit-disc[data-hovered] .skill-logo { scale: 1.08; }
 }
 .skills-enhanced .skills-marquee {
   overflow: hidden;
@@ -132,7 +134,7 @@
 @keyframes skills-marquee-loop { to { transform: translateX(-50%); } }
 @media (max-width: 700px) { #about .skills-orbit-name { font-size: 15px; } }
 @media (prefers-reduced-motion: reduce) {
-  #about .skills-orbit-symbol, #about .skills-orbit-symbol:before, #about .skills-orbit-name { transition: none; }
+  #about .skills-orbit-symbol, #about .skills-orbit-symbol:before, #about .skills-orbit-name, #about .skill-logo { transition: none; }
   .skills-enhanced .skills-marquee { overflow-x: auto; touch-action: auto; mask-image: none; }
   .skills-enhanced .skills-marquee-track { animation: none; }
   .skills-enhanced .skills-orbit-list[aria-hidden="true"] { display: none; }

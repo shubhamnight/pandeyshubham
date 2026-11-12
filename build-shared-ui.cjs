@@ -9,6 +9,7 @@ async function buildSharedUI() {
   const entryPoints={
     'message-loading': 'components/message-loading.tsx',
     'hero-dot-grid': 'components/hero-dot-grid.jsx',
+    'animated-content': 'components/ui/animated-content.js',
     'photography-carousel': 'components/photography-overlay.tsx',
     'connect-page': 'components/connect-page.tsx',
     'gaming-overlay': 'components/gaming-overlay.tsx',
@@ -30,7 +31,7 @@ async function buildSharedUI() {
   await writeBuildFiles([...chunks, ...entries]);
   const recovery=await build({
     ...browserOptions, absWorkingDir:__dirname,
-    entryPoints:Object.fromEntries(Object.entries(entryPoints).filter(([name])=>!['message-loading','hero-dot-grid'].includes(name))
+    entryPoints:Object.fromEntries(Object.entries(entryPoints).filter(([name])=>!['message-loading','hero-dot-grid','animated-content'].includes(name))
       .map(([name,file])=>[name+'-recovery',file])),
     outdir:path.join(__dirname,'assets/ui'), splitting:false,
   });

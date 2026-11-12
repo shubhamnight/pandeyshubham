@@ -26,10 +26,6 @@ window.addEventListener('pagehide', event => {
   window.removeEventListener('pageshow', syncNavigation);
 });
 
-const revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
-  if (entry.isIntersecting) { entry.target.classList.add('is-visible'); revealObserver.unobserve(entry.target); }
-}), {threshold:0.1});
-document.querySelectorAll('.reveal').forEach(element => revealObserver.observe(element));
 const stage = document.querySelector('.play-stage');
 const kinetic = document.querySelector('.kinetic-object');
 let kineticFrame=0,kineticBounds=null,kineticX=0,kineticY=0,kineticPaint='';

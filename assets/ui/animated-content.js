@@ -1,0 +1,2 @@
+import{a as t}from"./chunks/shared-DIQKC4OW.js";import"./chunks/shared-7MWYJQAL.js";function c(e,n){let o=t.context(()=>t.set(e,{opacity:0})),r={started:!1,play(a,p){r.started=!0,o.add(()=>{t.set(e,{transitionProperty:"none"}),t.fromTo(e,{y:n,opacity:0},{y:0,opacity:1,duration:.8,ease:"power3.out",delay:a,onComplete:p})})},reset:()=>o.revert()};return r}export{c as prepareContent};
+/*! Adapted from React Bits AnimatedContent by David Haz. See /assets/React-Bits-LICENSE.txt. */

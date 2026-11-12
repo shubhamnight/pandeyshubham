@@ -4,6 +4,7 @@ const section = document.querySelector('#about');
 if (section) {
   const rows = [...section.querySelectorAll('.skills-marquee')];
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
+  const fineHover = matchMedia('(hover: hover) and (pointer: fine)');
   const events = new AbortController();
   const options = { signal: events.signal };
   const animation = row => row.querySelector('.skills-marquee-track').getAnimations()
@@ -12,6 +13,24 @@ if (section) {
   let selected = null, drag = null, pointerShift = 0, touchTarget = null;
   let enhanced = false;
   const phases = new Map();
+  let resuming = [], resumeStart = 0;
+
+  function stopResume() {
+    cancelHobbyFrame(easeResume);
+    for (const current of resuming) current.updatePlaybackRate(1);
+    resuming = [];
+  }
+
+  function easeResume(time) {
+    const elapsed = time - resumeStart;
+    if (elapsed >= 750) {
+      stopResume();
+      return;
+    }
+    // LogoLoop's exponential acceleration, with steady motion left to CSS.
+    const rate = 1 - .8 * Math.exp(-elapsed / 250);
+    for (const current of resuming) current.updatePlaybackRate(rate);
+  }
 
   function keyboardFocus() {
     return section.querySelector('[data-skills-primary] button:focus-visible');
@@ -20,7 +39,9 @@ if (section) {
     const paused = !visible || suspended || document.hidden || preference.matches ||
       hovered || selected !== null || drag?.active || keyboardFocus() ||
       document.body.matches('.motion-paused,.photography-gallery-open,.intro-active');
-    section.dataset.skillsPaused = String(Boolean(paused));
+    if (paused && resuming.length) stopResume();
+    const state = String(Boolean(paused));
+    if (section.dataset.skillsPaused !== state) section.dataset.skillsPaused = state;
   }
   function seek(row, pixels) {
     const current = animation(row);
@@ -32,17 +53,21 @@ if (section) {
     current.currentTime = ((time % duration) + duration) % duration;
   }
   function updateHover(event) {
-    if (event.pointerType === 'touch') return;
-    let circle = event.target.closest('[data-skill]');
-    if (circle) {
-      const b = circle.getBoundingClientRect();
-      if (Math.hypot((event.clientX-b.x-b.width/2)/(b.width/2), (event.clientY-b.y-b.height/2)/(b.height/2)) > 1) circle = null;
-    }
+    if (!fineHover.matches || event.pointerType !== 'mouse') return;
+    const circle = event.target.closest('.skills-logo-hit')?.closest('[data-skill]') ?? null;
     if (circle === hovered) return;
-    hovered?.removeAttribute('data-hovered');
+    const leavingIcon = Boolean(hovered && !circle);
+    clearHover();
     hovered = circle;
     hovered?.setAttribute('data-hovered', '');
     sync();
+    if (leavingIcon && enhanced && section.dataset.skillsPaused === 'false') {
+      resuming = rows.map(animation).filter(current => current && typeof current.updatePlaybackRate === 'function');
+      if (!resuming.length) return;
+      resumeStart = performance.now();
+      easeResume(resumeStart);
+      requestHobbyFrame(easeResume, 30, false);
+    }
   }
   function clearHover() {
     hovered?.removeAttribute('data-hovered');
@@ -89,6 +114,7 @@ if (section) {
     sync();
   }
   function configure() {
+    stopResume();
     release();
     clearSelected();
     rows.forEach(row => {
@@ -203,6 +229,7 @@ if (section) {
   const state = new MutationObserver(sync);
   state.observe(document.body, { attributes: true, attributeFilter: ['class'] });
   preference.addEventListener('change', configure, options);
+  fineHover.addEventListener('change', () => { clearHover(); sync(); }, options);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { release(); clearSelected(); clearHover(); }
     sync();

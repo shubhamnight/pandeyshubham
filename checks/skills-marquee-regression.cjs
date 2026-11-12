@@ -224,6 +224,12 @@ async function verifyPinch(context) {
           assert.equal(await page.locator('#about [data-selected]').count(),0,'mouse clicks do not pin hover-only labels');
           const hovered = page.locator('#about [data-hovered]');
           const iconBox=await hovered.boundingBox(), labelBox=await hovered.locator('.skills-orbit-name').boundingBox();
+          await page.waitForFunction(() => getComputedStyle(document.querySelector('#about [data-hovered] .skill-logo')).scale === '1.08');
+          await page.mouse.move(iconBox.x+iconBox.width/2,iconBox.y+iconBox.height*.08);
+          await playing(page,'running');
+          assert.equal(await hovered.count(),0,'the circular backing outside the logo does not pause the loop');
+          await page.waitForFunction(selector => [...document.querySelectorAll(selector)].every(track =>
+            track.getAnimations()[0]?.playbackRate < 1), tracksSelector);
           await page.mouse.move(labelBox.x+labelBox.width/2,labelBox.y+labelBox.height/2);
           await playing(page,'running');
           assert.equal(await page.locator('#about [data-hovered]').count(),0,'labels do not trigger icon hover');

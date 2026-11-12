@@ -3,8 +3,8 @@ import { flushSync } from 'react-dom';
 import AetherFlowHero from '@/components/ui/aether-flow-hero';
 import { SocialIcons, type SocialLinks } from '@/components/ui/social-icons';
 
-/** Apply the supplied hero's entrance timing to the native contact content. */
-function prepareContactEntrance(footer: HTMLElement, background: HTMLElement) {
+/** Fade the particle canvas independently of the Contact content. */
+function prepareContactBackground(footer: HTMLElement, background: HTMLElement) {
   const animations: Animation[] = [];
   const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
   const observer = new IntersectionObserver(entries => {
@@ -14,20 +14,6 @@ function prepareContactEntrance(footer: HTMLElement, background: HTMLElement) {
     animations.push(background.animate([{ opacity: 0 }, { opacity: 1 }], {
       duration: 800, easing: 'ease-in-out',
     }));
-    const content = [
-      { selector: '#connect-heading', index: 1 },
-      { selector: '.footer-socials', index: 3 },
-      { selector: '.connect-details', index: 2 },
-    ];
-    for (const { selector, index } of content) {
-      const element = footer.querySelector<HTMLElement>(selector);
-      if (!element) continue;
-      // Opacity and translation leave icon dimensions and row gaps unchanged.
-      animations.push(element.animate([
-        { opacity: 0, transform: 'translateY(20px)' },
-        { opacity: 1, transform: 'translateY(0)' },
-      ], { duration: 800, delay: index * 200 + 500, easing: 'ease-in-out', fill: 'backwards' }));
-    }
   }, { threshold: .15 });
   const finish = () => { for (const animation of animations) animation.finish(); };
   const syncMotion = () => {
@@ -70,7 +56,7 @@ export async function mountConnectBackground(host: HTMLElement, signal?: AbortSi
   const footer = host.parentElement!;
   const reveal = () => {
     host.hidden = false;
-    disposeEntrance = prepareContactEntrance(footer, host);
+    disposeEntrance = prepareContactBackground(footer, host);
   };
   root.render(<AetherFlowHero backgroundOnly pointerTarget={footer} onReady={reveal} />);
   return () => { disposeEntrance?.(); root.unmount(); host.hidden = true; };
